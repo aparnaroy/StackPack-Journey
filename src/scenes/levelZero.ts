@@ -39,28 +39,28 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         this.load.spritesheet("gal_right", "assets/Pink_Monster_Walk_6.png", {
-            frameWidth: 32,
-            frameHeight: 32,
+            frameWidth: 128,
+            frameHeight: 128,
         });
         this.load.spritesheet(
             "gal_left",
             "assets/Pink_Monster_Walk_Left6.png",
-            { frameWidth: 32, frameHeight: 32 }
+            { frameWidth: 128, frameHeight: 128 }
         );
         this.load.spritesheet(
             "gal_idle_right",
             "assets/Pink_Monster_Idle_4.png",
-            { frameWidth: 32, frameHeight: 32 }
+            { frameWidth: 128, frameHeight: 128 }
         );
         this.load.spritesheet(
             "gal_idle_left",
             "assets/Pink_Monster_Idle_Left4.png",
-            { frameWidth: 32, frameHeight: 32 }
+            { frameWidth: 128, frameHeight: 128 }
         );
         this.load.spritesheet(
             "gal_jump_right",
             "assets/Pink_Monster_Jump_8.png",
-            { frameWidth: 32, frameHeight: 32 }
+            { frameWidth: 128, frameHeight: 128 }
         );
 
         this.load.image("play", "assets/play-button.png");
@@ -72,7 +72,7 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("ladder", "assets/ladder.png");
         this.load.image("plank", "assets/plank.png");
         this.load.image("door", "assets/door.png");
-        this.load.image("opendoor", "assets/open-door.png")
+        this.load.image("opendoor", "assets/open-door.png");
     }
 
     create() {
@@ -100,7 +100,7 @@ export default class LevelZero extends Phaser.Scene {
         });
         this.player = this.physics.add
             .sprite(100, 450, "gal_right")
-            .setScale(3, 3);
+            .setScale(0.77, 0.77);
         this.player.setCollideWorldBounds(true);
 
         this.anims.create({
@@ -180,10 +180,10 @@ export default class LevelZero extends Phaser.Scene {
         this.plank.setName("plank");
 
         this.spikes = this.physics.add.staticGroup();
-        this.spikes.create(780, 675, "spike").setScale(0.75, 0.75);
-        this.spikes.create(830, 675, "spike").setScale(0.75, 0.75);
-        this.spikes.create(880, 675, "spike").setScale(0.75, 0.75);
-        this.spikes.create(930, 675, "spike").setScale(0.75, 0.75);
+        this.spikes.create(790, 675, "spike").setScale(0.75, 0.75);
+        this.spikes.create(840, 675, "spike").setScale(0.75, 0.75);
+        this.spikes.create(890, 675, "spike").setScale(0.75, 0.75);
+        this.spikes.create(940, 675, "spike").setScale(0.75, 0.75);
 
         this.door = this.physics.add.image(875, 150, "door").setScale(0.1, 0.1);
         this.physics.add.collider(this.door, this.platforms);
@@ -505,7 +505,7 @@ export default class LevelZero extends Phaser.Scene {
         }
 
         // Climbing the laddder
-        if(this.player && this.ladder && this.cursors){
+        if (this.player && this.ladder && this.cursors) {
             if (
                 this.ladder.x === 680 &&
                 this.cursors.up.isDown &&
@@ -519,8 +519,8 @@ export default class LevelZero extends Phaser.Scene {
             }
         }
 
-        if(this.player && this.plank && this.spikes){
-            if(this.plank.x === 850){
+        if (this.player && this.plank && this.spikes) {
+            if (this.plank.x === 850) {
                 this.physics.world.enable(this.plank);
                 this.physics.add.collider(this.plank, this.spikes);
                 this.physics.add.collider(this.player, this.plank);
