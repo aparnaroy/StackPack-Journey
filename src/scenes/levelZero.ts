@@ -26,6 +26,9 @@ export default class LevelZero extends Phaser.Scene {
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
 
     private levelCompleteText?: Phaser.GameObjects.Text;
+    private playerDiedText?: Phaser.GameObjects.Text;
+    private howToPlayText?: Phaser.GameObjects.Text;
+    private blackBackground: Phaser.GameObjects.Rectangle;
 
     constructor() {
         super({ key: "Level0" });
@@ -301,6 +304,42 @@ export default class LevelZero extends Phaser.Scene {
         // Set initial properties for animation
         this.levelCompleteText.setScale(0);
         this.levelCompleteText.setAlpha(0);
+
+        // Create player died text
+        this.playerDiedText = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2,
+            "You Died",
+            { fontSize: "96px", color: "#8c0615", fontFamily: "Verdana" }
+        );
+        this.playerDiedText.setOrigin(0.5);
+        this.playerDiedText.setVisible(false);
+        this.playerDiedText.setDepth(5);
+
+        this.playerDiedText.setScale(0);
+        this.playerDiedText.setAlpha(0);
+
+        this.blackBackground = this.add.rectangle(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2,
+            this.cameras.main.width,
+            this.cameras.main.height,
+            0x000000
+        );
+        this.blackBackground.setDepth(4);
+        this.blackBackground.setAlpha(0);
+
+        // Temporary how to play text
+        this.howToPlayText = this.add.text(
+            20,
+            20,
+            "Press 'E' to collect (push) items \nPress 'F' to use (pop) items\nGood luck unlocking the door!",
+            {
+                fontSize: "26px",
+                color: "#03572a",
+                fontFamily: "Verdana",
+            }
+        );
     }
 
     private updateStackView() {
@@ -432,12 +471,35 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private playerDie() {
+        // Show You Died text
+        this.playerDiedText?.setVisible(true);
+
+        // Animate you died text and black background
+        this.tweens.add({
+            targets: this.playerDiedText,
+            scale: 1,
+            alpha: 1,
+            duration: 200,
+            ease: "Bounce",
+        });
+        this.tweens.add({
+            targets: this.blackBackground,
+            alpha: 1,
+            duration: 900,
+            ease: "Exponential",
+            onStart: () => {
+                this.blackBackground.setAlpha(1);
+            },
+        });
+
         // Reset the stack and collected items
         this.stack = [];
         this.collectedItems = [];
 
         // Reload the scene to reset everything
-        this.scene.restart();
+        this.time.delayedCall(800, () => {
+            this.scene.restart();
+        });
     }
 
     update() {
