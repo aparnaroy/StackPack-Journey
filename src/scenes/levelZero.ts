@@ -25,6 +25,8 @@ export default class LevelZero extends Phaser.Scene {
     private plankHighlightBox: Phaser.GameObjects.Rectangle;
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
 
+    private levelCompleteText?: Phaser.GameObjects.Text;
+
     constructor() {
         super({ key: "Level0" });
     }
@@ -100,7 +102,8 @@ export default class LevelZero extends Phaser.Scene {
         });
         this.player = this.physics.add
             .sprite(100, 450, "gal_right")
-            .setScale(0.77, 0.77);
+            .setScale(0.77, 0.77)
+            .setOrigin(0.5, 1);
         this.player.setCollideWorldBounds(true);
 
         this.anims.create({
@@ -162,9 +165,15 @@ export default class LevelZero extends Phaser.Scene {
         this.ground.setScale(5).refreshBody();
         this.ground.setAlpha(0); // Hide the ground platform
 
-        this.platforms.create(350, 585, "level0-platform").setScale(1, 1);
-        this.platforms.create(650, 500, "level0-platform").setScale(0.75, 0.75);
-        this.platforms.create(875, 300, "level0-platform").setScale(1, 0.75);
+        const platform1 = this.platforms
+            .create(350, 585, "level0-platform")
+            .setScale(1, 1);
+        const platform2 = this.platforms
+            .create(650, 500, "level0-platform")
+            .setScale(0.75, 0.75);
+        const platform3 = this.platforms
+            .create(875, 300, "level0-platform")
+            .setScale(1, 0.75);
 
         this.physics.add.collider(this.player, this.platforms);
 
@@ -180,12 +189,20 @@ export default class LevelZero extends Phaser.Scene {
         this.plank.setName("plank");
 
         this.spikes = this.physics.add.staticGroup();
-        this.spikes.create(790, 675, "spike").setScale(0.75, 0.75);
-        this.spikes.create(840, 675, "spike").setScale(0.75, 0.75);
-        this.spikes.create(890, 675, "spike").setScale(0.75, 0.75);
-        this.spikes.create(940, 675, "spike").setScale(0.75, 0.75);
+        const spike1 = this.spikes
+            .create(790, 675, "spike")
+            .setScale(0.75, 0.75);
+        const spike2 = this.spikes
+            .create(840, 675, "spike")
+            .setScale(0.75, 0.75);
+        const spike3 = this.spikes
+            .create(890, 675, "spike")
+            .setScale(0.75, 0.75);
+        const spike4 = this.spikes
+            .create(940, 675, "spike")
+            .setScale(0.75, 0.75);
 
-        this.door = this.physics.add.image(875, 150, "door").setScale(0.1, 0.1);
+        this.door = this.physics.add.image(887, 150, "door").setScale(0.1, 0.1);
         this.physics.add.collider(this.door, this.platforms);
 
         // Set the depth of the character/player sprite to a high value
@@ -197,6 +214,30 @@ export default class LevelZero extends Phaser.Scene {
         this.plank.setDepth(0);
         this.spikes.setDepth(0);
         this.door.setDepth(0);
+
+        // Resize collision boxes of player and everything else that can be collided with
+        this.player
+            .setSize(this.player.width - 64, this.player.height)
+            .setOffset(32, 0);
+
+        platform1
+            .setSize(platform1.width - 12, platform1.height - 28)
+            .setOffset(8, 5);
+        platform2
+            .setSize(platform2.width - 80, platform2.height - 30)
+            .setOffset(40, 8);
+        platform3
+            .setSize(platform3.width - 10, platform3.height - 30)
+            .setOffset(7, 7);
+
+        this.door
+            .setSize(this.door.width, this.door.height - 60)
+            .setOffset(0, 0);
+
+        spike1.setSize(spike1.width - 30, spike1.height - 30).setOffset(15, 14);
+        spike2.setSize(spike2.width - 30, spike2.height - 30).setOffset(15, 14);
+        spike3.setSize(spike3.width - 30, spike3.height - 30).setOffset(15, 14);
+        spike4.setSize(spike4.width - 30, spike4.height - 30).setOffset(15, 14);
 
         // Define keys 'E' and 'F' for collecting and using items respectively
         this.keyE = this.input.keyboard?.addKey(
@@ -230,7 +271,7 @@ export default class LevelZero extends Phaser.Scene {
 
         // Creating a highlighted rectangle to indicate where plank can be used
         this.plankHighlightBox = this.add.rectangle(
-            860,
+            865,
             210,
             215,
             50,
@@ -246,6 +287,20 @@ export default class LevelZero extends Phaser.Scene {
         this.keyDetectionArea = this.add.rectangle(875, 150, 200, 200);
         this.physics.world.enable(this.keyDetectionArea);
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
+
+        // Create level complete text
+        this.levelCompleteText = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2,
+            "Level Complete!",
+            { fontSize: "96px", color: "#03572a", fontFamily: "Verdana" }
+        );
+        this.levelCompleteText.setOrigin(0.5);
+        this.levelCompleteText.setVisible(false);
+
+        // Set initial properties for animation
+        this.levelCompleteText.setScale(0);
+        this.levelCompleteText.setAlpha(0);
     }
 
     private updateStackView() {
@@ -376,6 +431,15 @@ export default class LevelZero extends Phaser.Scene {
         }
     }
 
+    private playerDie() {
+        // Reset the stack and collected items
+        this.stack = [];
+        this.collectedItems = [];
+
+        // Reload the scene to reset everything
+        this.scene.restart();
+    }
+
     update() {
         // Key animation
         if (this.key) {
@@ -496,6 +560,16 @@ export default class LevelZero extends Phaser.Scene {
                 if (this.keyF?.isDown && !this.keyFPressed) {
                     this.keyFPressed = true;
                     this.useItem();
+                    this.levelCompleteText?.setVisible(true);
+                    // Animate level complete text
+                    this.tweens.add({
+                        targets: this.levelCompleteText,
+                        scale: 1,
+                        alpha: 1,
+                        duration: 1000,
+                        ease: "Bounce",
+                        delay: 500, // Delay the animation slightly
+                    });
                 }
             } else {
                 // Otherwise, hide the highlight box
@@ -525,6 +599,17 @@ export default class LevelZero extends Phaser.Scene {
                 this.physics.add.collider(this.plank, this.spikes);
                 this.physics.add.collider(this.player, this.plank);
             }
+        }
+
+        // Check if player touches the spikes and restart level if so
+        if (this.player && this.spikes) {
+            this.physics.add.overlap(
+                this.player,
+                this.spikes,
+                this.playerDie,
+                undefined,
+                this
+            );
         }
     }
 }
