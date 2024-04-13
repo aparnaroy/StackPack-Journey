@@ -21,8 +21,12 @@ export default class LevelZero extends Phaser.Scene {
 
     private ladderDetectionArea: Phaser.GameObjects.Rectangle;
     private ladderHighlightBox: Phaser.GameObjects.Rectangle;
-    private plankDetectionArea: Phaser.GameObjects.Rectangle;
+    private plankDetectionArea1: Phaser.GameObjects.Rectangle;
+    private plankDetectionArea2: Phaser.GameObjects.Rectangle;
+    private plankDetectionAreasGroup: Phaser.GameObjects.Container;
     private plankHighlightBox: Phaser.GameObjects.Rectangle;
+    private plankPlatforms?: Phaser.Physics.Arcade.StaticGroup;
+    private plankPlatform?: Phaser.Physics.Arcade.Image;
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
 
     private levelCompleteText?: Phaser.GameObjects.Text;
@@ -191,18 +195,37 @@ export default class LevelZero extends Phaser.Scene {
         this.plank = this.add.sprite(350, 530, "plank").setScale(0.5, 0.5);
         this.plank.setName("plank");
 
+        this.plankPlatforms = this.physics.add.staticGroup();
+        this.plankPlatform = this.plankPlatforms.create(
+            815,
+            600,
+            "plank"
+        ) as Phaser.Physics.Arcade.Image;
+
+        this.plankPlatform
+            .setSize(
+                this.plankPlatform.width - 246,
+                this.plankPlatform.height - 60
+            )
+            .setOffset(123, 55);
+
+        this.physics.add.collider(this.player, this.plankPlatform);
+
+        this.plankPlatform.disableBody(true, true);
+        this.plankPlatform.setVisible(false);
+
         this.spikes = this.physics.add.staticGroup();
         const spike1 = this.spikes
-            .create(790, 675, "spike")
+            .create(740, 675, "spike")
             .setScale(0.75, 0.75);
         const spike2 = this.spikes
-            .create(840, 675, "spike")
+            .create(790, 675, "spike")
             .setScale(0.75, 0.75);
         const spike3 = this.spikes
-            .create(890, 675, "spike")
+            .create(840, 675, "spike")
             .setScale(0.75, 0.75);
         const spike4 = this.spikes
-            .create(940, 675, "spike")
+            .create(890, 675, "spike")
             .setScale(0.75, 0.75);
 
         this.door = this.physics.add.image(887, 150, "door").setScale(0.1, 0.1);
@@ -227,7 +250,7 @@ export default class LevelZero extends Phaser.Scene {
             .setSize(platform1.width - 12, platform1.height - 28)
             .setOffset(8, 5);
         platform2
-            .setSize(platform2.width - 80, platform2.height - 30)
+            .setSize(platform2.width - 80, platform2.height - 35)
             .setOffset(40, 8);
         platform3
             .setSize(platform3.width - 10, platform3.height - 30)
@@ -268,13 +291,21 @@ export default class LevelZero extends Phaser.Scene {
         this.ladderHighlightBox.setVisible(false);
 
         // Creating dectection areas when using the plank
-        this.plankDetectionArea = this.add.rectangle(700, 0, 100, 150);
-        this.physics.world.enable(this.plankDetectionArea);
-        this.physics.add.collider(this.plankDetectionArea, this.ground);
+        this.plankDetectionArea1 = this.add.rectangle(670, 0, 100, 150);
+        this.physics.world.enable(this.plankDetectionArea1);
+        this.physics.add.collider(this.plankDetectionArea1, this.ground);
+
+        this.plankDetectionArea2 = this.add.rectangle(920, 0, 100, 150);
+        this.physics.world.enable(this.plankDetectionArea2);
+        this.physics.add.collider(this.plankDetectionArea2, this.ground);
+
+        this.plankDetectionAreasGroup = this.add.container();
+        this.plankDetectionAreasGroup.add(this.plankDetectionArea1);
+        this.plankDetectionAreasGroup.add(this.plankDetectionArea2);
 
         // Creating a highlighted rectangle to indicate where plank can be used
         this.plankHighlightBox = this.add.rectangle(
-            865,
+            815,
             210,
             215,
             50,
@@ -333,7 +364,7 @@ export default class LevelZero extends Phaser.Scene {
         this.howToPlayText = this.add.text(
             20,
             20,
-            "Press 'E' to collect (push) items \nPress 'F' to use (pop) items\nGood luck unlocking the door!",
+            "Press 'E' to collect (push) items \nPress 'F' to use (pop) items where you need them\n(Make sure they're at the top of your StackPack!)\nGood luck unlocking the door!",
             {
                 fontSize: "26px",
                 color: "#03572a",
@@ -448,8 +479,9 @@ export default class LevelZero extends Phaser.Scene {
                         this.ladderHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(850, 600);
+                        poppedItem.setPosition(815, 600);
                         this.plankHighlightBox.setVisible(false);
+                        this.plankPlatform?.enableBody(true, 938, 650);
                     }
                     if (poppedItem.name === "key") {
                         this.door?.setTexture("opendoor");
@@ -476,20 +508,11 @@ export default class LevelZero extends Phaser.Scene {
 
         // Animate you died text and black background
         this.tweens.add({
-            targets: this.playerDiedText,
+            targets: [this.playerDiedText, this.blackBackground],
             scale: 1,
             alpha: 1,
-            duration: 200,
+            duration: 100,
             ease: "Bounce",
-        });
-        this.tweens.add({
-            targets: this.blackBackground,
-            alpha: 1,
-            duration: 900,
-            ease: "Exponential",
-            onStart: () => {
-                this.blackBackground.setAlpha(1);
-            },
         });
 
         // Reset the stack and collected items
@@ -498,7 +521,7 @@ export default class LevelZero extends Phaser.Scene {
 
         // Reload the scene to reset everything
         this.time.delayedCall(800, () => {
-            this.scene.restart();
+            this.scene.start("Level0");
         });
     }
 
@@ -601,7 +624,7 @@ export default class LevelZero extends Phaser.Scene {
             } else if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
-                    this.plankDetectionArea.getBounds()
+                    this.plankDetectionAreasGroup.getBounds()
                 ) &&
                 this.stack[this.stack.length - 1].name === "plank"
             ) {
@@ -656,10 +679,10 @@ export default class LevelZero extends Phaser.Scene {
         }
 
         if (this.player && this.plank && this.spikes) {
-            if (this.plank.x === 850) {
+            if (this.plank.x === 815) {
                 this.physics.world.enable(this.plank);
                 this.physics.add.collider(this.plank, this.spikes);
-                this.physics.add.collider(this.player, this.plank);
+                //this.physics.add.collider(this.player, this.plank);
             }
         }
 
