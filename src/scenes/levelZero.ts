@@ -111,7 +111,7 @@ export default class LevelZero extends Phaser.Scene {
         this.player = this.physics.add
             .sprite(100, 450, "gal_right")
             .setScale(0.77, 0.77)
-            .setOrigin(0.5, 1);
+            .setOrigin(0.5, 0.5);
         this.player.setCollideWorldBounds(true);
 
         this.anims.create({
@@ -486,20 +486,19 @@ export default class LevelZero extends Phaser.Scene {
                     }
                     if (poppedItem.name === "key") {
                         this.door?.setTexture("opendoor");
+                        // Make the player get sucked into the door
                         if (this.player && this.door) {
-                            this.player.setOrigin(0.5, 0.5);
-                            // Make the player get sucked into the door
                             this.tweens.add({
                                 targets: this.player,
-                                scaleX: 0.25,
-                                scaleY: 0.25,
+                                scaleX: 0.27,
+                                scaleY: 0.27,
                                 rotation: Math.PI * 3,
                                 x: this.door.x - 10,
-                                y: this.door.y + 10,
+                                y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
                                     this.player?.disableBody(true, true);
-                                    // Transition to game map or next level
+                                    // TODO: Transition to game map or next level
                                     // To re-eanble the player later:
                                     /*this.player?.enableBody(
                                         true,
@@ -696,7 +695,7 @@ export default class LevelZero extends Phaser.Scene {
         if (this.player && this.ladder && this.cursors) {
             // Max distance player can be from ladder to climb it
             const xTolerance = 30; // Tolerance for X position
-            const yTolerance = 110; // Tolerance for Y position
+            const yTolerance = 145; // Tolerance for Y position
             // Calculate horizontal and vertical distances between player and ladder
             const deltaX = Math.abs(this.player.x - this.ladder.x);
             const deltaY = Math.abs(this.player.y - this.ladder.y);
