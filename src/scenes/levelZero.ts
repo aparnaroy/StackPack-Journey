@@ -18,6 +18,7 @@ export default class LevelZero extends Phaser.Scene {
     private keyEPressed: boolean = false; // Flag to check if 'E' was pressed to prevent picking up multiple items from one long key press
     private keyFPressed: boolean = false; // Flag to check if 'E' was pressed to prevent using multiple items from one long key press
     private lastDirection: string = "right";
+    private climbing: boolean = false;
 
     private ladderDetectionArea: Phaser.GameObjects.Rectangle;
     private ladderHighlightBox: Phaser.GameObjects.Rectangle;
@@ -475,7 +476,7 @@ export default class LevelZero extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(680, 400);
+                        poppedItem.setPosition(680, 385);
                         this.ladderHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "plank") {
@@ -485,6 +486,31 @@ export default class LevelZero extends Phaser.Scene {
                     }
                     if (poppedItem.name === "key") {
                         this.door?.setTexture("opendoor");
+                        if (this.player && this.door) {
+                            this.player.setOrigin(0.5, 0.5);
+                            // Make the player get sucked into the door
+                            this.tweens.add({
+                                targets: this.player,
+                                scaleX: 0.25,
+                                scaleY: 0.25,
+                                rotation: Math.PI * 3,
+                                x: this.door.x - 10,
+                                y: this.door.y + 10,
+                                duration: 800,
+                                onComplete: () => {
+                                    this.player?.disableBody(true, true);
+                                    // Transition to game map or next level
+                                    // To re-eanble the player later:
+                                    /*this.player?.enableBody(
+                                        true,
+                                        this.player.x,
+                                        this.player.y,
+                                        true,
+                                        true
+                                    );*/
+                                },
+                            });
+                        }
                     }
 
                     this.tweens.add({
@@ -534,7 +560,14 @@ export default class LevelZero extends Phaser.Scene {
         // Move the gal with arrow keys
         // Inside your update function or wherever you handle player movement
         if (this.player && this.cursors) {
-            if (this.cursors.right.isDown) {
+            if (
+                this.cursors.up.isDown &&
+                this.player.body?.touching.down &&
+                !this.climbing
+            ) {
+                this.player.anims.play("jump_right", true);
+                this.player.setVelocityY(-530);
+            } else if (this.cursors.right.isDown) {
                 this.player.setVelocityX(290);
                 this.player.anims.play("right", true);
                 this.lastDirection = "right"; // Update last direction
@@ -542,7 +575,7 @@ export default class LevelZero extends Phaser.Scene {
                 this.player.setVelocityX(-290);
                 this.player.anims.play("left", true);
                 this.lastDirection = "left"; // Update last direction
-            } else {
+            } else if (!this.climbing) {
                 this.player.setVelocityX(0);
                 // Check last direction and play corresponding idle animation
                 if (this.lastDirection === "right") {
@@ -550,10 +583,6 @@ export default class LevelZero extends Phaser.Scene {
                 } else {
                     this.player.anims.play("idle_left", true);
                 }
-            }
-            if (this.cursors.up.isDown && this.player.body?.touching.down) {
-                this.player.anims.play("jump_right", true);
-                this.player.setVelocityY(-530);
             }
         }
 
@@ -663,18 +692,26 @@ export default class LevelZero extends Phaser.Scene {
             }
         }
 
-        // Climbing the laddder
+        // Climbing the ladder
         if (this.player && this.ladder && this.cursors) {
+            // Max distance player can be from ladder to climb it
+            const xTolerance = 30; // Tolerance for X position
+            const yTolerance = 110; // Tolerance for Y position
+            // Calculate horizontal and vertical distances between player and ladder
+            const deltaX = Math.abs(this.player.x - this.ladder.x);
+            const deltaY = Math.abs(this.player.y - this.ladder.y);
+
             if (
                 this.ladder.x === 680 &&
-                this.cursors.up.isDown &&
-                this.player.y < 800 &&
-                this.player.x >= 670 &&
-                this.player.x <= this.ladder.x + this.ladder.width &&
-                this.player.body?.touching.down
+                deltaX < xTolerance &&
+                deltaY < yTolerance &&
+                this.cursors.up.isDown
             ) {
+                this.climbing = true;
                 this.player.anims.play("jump_right", true);
-                this.player.setVelocityY(-650);
+                this.player.setVelocityY(-150);
+            } else {
+                this.climbing = false;
             }
         }
 
