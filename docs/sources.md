@@ -21,4 +21,4 @@
 -   Door: https://www.artstation.com/artwork/BmOoPz
 -   Spikes 1: https://opengameart.org/content/spikey-stuff
 -   Spikes 2: https://www.gamedeveloperstudio.com/graphics/viewgraphic.php?page-name=Animated-floor-spikes-game-asset&item=1u5v5h4w8i7s7t806o
--   Hearts: https://lil-cthulhu.itch.io/heart-fullempty
+-   Hearts: https://opengameart.org/content/heart-full-and-empty-for-health
