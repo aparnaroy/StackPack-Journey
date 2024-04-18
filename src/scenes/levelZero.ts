@@ -72,6 +72,11 @@ export default class LevelZero extends Phaser.Scene {
             "assets/Pink_Monster_Jump_8.png",
             { frameWidth: 128, frameHeight: 128 }
         );
+        this.load.spritesheet(
+            "gal_climb", 
+            "assets/Pink_Monster_Climb_4.png", 
+            { frameWidth: 32, frameHeight: 32 }
+        );
 
         this.load.image("play", "assets/play-button.png");
         this.load.image("level0-platform", "assets/platform.png");
@@ -159,6 +164,13 @@ export default class LevelZero extends Phaser.Scene {
                 end: 7,
             }),
         });
+        this.anims.create({
+            key: "climb",
+            frames: this.anims.generateFrameNames("gal_climb", {
+                start: 0,
+                end: 3,
+            }),
+        })
 
         this.cursors = this.input.keyboard?.createCursorKeys();
 
@@ -707,7 +719,7 @@ export default class LevelZero extends Phaser.Scene {
                 this.cursors.up.isDown
             ) {
                 this.climbing = true;
-                this.player.anims.play("jump_right", true);
+                this.player.anims.play("climb", true);
                 this.player.setVelocityY(-150);
             } else {
                 this.climbing = false;
