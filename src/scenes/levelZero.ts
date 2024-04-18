@@ -35,8 +35,14 @@ export default class LevelZero extends Phaser.Scene {
     private howToPlayText?: Phaser.GameObjects.Text;
     private blackBackground: Phaser.GameObjects.Rectangle;
 
+    private freePopText?: Phaser.GameObjects.Text;
+    private hearts?: Phaser.GameObjects.Sprite[] = []; 
+    private lives: number = 3;
+    private isColliding: boolean = false;
+
     constructor() {
         super({ key: "Level0" });
+        console.log("Inital value oflives", this.lives);
     }
 
     preload() {
@@ -72,11 +78,10 @@ export default class LevelZero extends Phaser.Scene {
             "assets/Pink_Monster_Jump_8.png",
             { frameWidth: 128, frameHeight: 128 }
         );
-        this.load.spritesheet(
-            "gal_climb", 
-            "assets/Pink_Monster_Climb_4.png", 
-            { frameWidth: 32, frameHeight: 32 }
-        );
+        this.load.spritesheet("gal_climb", "assets/Pink_Monster_Climb_4.png", {
+            frameWidth: 32,
+            frameHeight: 32,
+        });
 
         this.load.image("play", "assets/play-button.png");
         this.load.image("level0-platform", "assets/platform.png");
@@ -88,8 +93,8 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("plank", "assets/plank.png");
         this.load.image("door", "assets/door.png");
         this.load.image("opendoor", "assets/open-door.png");
+        this.load.image("heart", "assets/heart_16.png");
     }
-
     create() {
         const backgroundImage = this.add
             .image(0, 0, "level0-background")
@@ -170,7 +175,7 @@ export default class LevelZero extends Phaser.Scene {
                 start: 0,
                 end: 3,
             }),
-        })
+        });
 
         this.cursors = this.input.keyboard?.createCursorKeys();
 
@@ -244,6 +249,17 @@ export default class LevelZero extends Phaser.Scene {
         this.door = this.physics.add.image(887, 150, "door").setScale(0.1, 0.1);
         this.physics.add.collider(this.door, this.platforms);
 
+        // Creating lives
+        this.freePopText = this.add.text(20, 20, "Free Pops:", {
+            fontSize: "26px",
+            color: "#03572a",
+            fontFamily: "Verdana",
+        });
+
+        for (let i = 0; i < this.lives; i++){
+            this.hearts?.push(this.add.sprite(190 + (i * 50), 35, "heart").setScale(0.5));
+        }
+        
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
 
@@ -376,7 +392,7 @@ export default class LevelZero extends Phaser.Scene {
         // Temporary how to play text
         this.howToPlayText = this.add.text(
             20,
-            20,
+            150,
             "Press 'E' to collect (push) items \nPress 'F' to use (pop) items where you need them\n(Make sure they're at the top of your StackPack!)\nGood luck unlocking the door!",
             {
                 fontSize: "26px",
@@ -539,7 +555,32 @@ export default class LevelZero extends Phaser.Scene {
         }
     }
 
+    private loseLife(){
+        if (!this.isColliding){
+            this.isColliding = true;
+            this.lives--;
+            console.log(this.lives);
+
+            const heartToRemove = this.hearts?.pop();
+            if (heartToRemove) {
+                heartToRemove.destroy();
+            }
+
+            if (this.lives === 0) {
+                this.playerDie();
+            }
+
+            // Reset isColliding flag 
+            this.time.delayedCall(500, () => {
+                this.isColliding = false;
+            }, [], this)
+
+            this.player?.setPosition(100,450);
+        }
+    }
+
     private playerDie() {
+        console.log("in player die")
         // Show You Died text
         this.playerDiedText?.setVisible(true);
 
@@ -730,16 +771,15 @@ export default class LevelZero extends Phaser.Scene {
             if (this.plank.x === 815) {
                 this.physics.world.enable(this.plank);
                 this.physics.add.collider(this.plank, this.spikes);
-                //this.physics.add.collider(this.player, this.plank);
             }
         }
 
         // Check if player touches the spikes and restart level if so
         if (this.player && this.spikes) {
-            this.physics.add.overlap(
+            this.physics.add.collider(
                 this.player,
                 this.spikes,
-                this.playerDie,
+                this.loseLife,
                 undefined,
                 this
             );
