@@ -18,6 +18,8 @@ export default class LevelZero extends Phaser.Scene {
     private popButton1?: Phaser.GameObjects.Image;
     private popButton2?: Phaser.GameObjects.Image;
     private movementInstruction?: Phaser.GameObjects.Image;
+    private orderInstruction?: Phaser.GameObjects.Image;
+    private glowingSpot?: Phaser.GameObjects.Image;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -40,7 +42,6 @@ export default class LevelZero extends Phaser.Scene {
 
     private levelCompleteText?: Phaser.GameObjects.Text;
     private playerDiedText?: Phaser.GameObjects.Text;
-    private howToPlayText?: Phaser.GameObjects.Text;
     private blackBackground: Phaser.GameObjects.Rectangle;
 
     constructor() {
@@ -50,6 +51,8 @@ export default class LevelZero extends Phaser.Scene {
     preload() {
         this.load.image("level0-background", "assets/level0-background.jpg");
         this.load.image("stackpack", "assets/stackpack.png");
+
+        this.load.image("glowingSpot", "assets/glowingSpot.png");
 
         this.load.spritesheet("key", "assets/key.png", {
             frameWidth: 768 / 24,
@@ -101,6 +104,8 @@ export default class LevelZero extends Phaser.Scene {
             "MovementInstructions",
             "assets/Movement-Instructions.png"
         );
+
+        this.load.image("OrderInstructions", "assets/Order-Instructions.png");
     }
 
     create() {
@@ -116,6 +121,9 @@ export default class LevelZero extends Phaser.Scene {
             .image(0, 0, "stackpack")
             .setPosition(1170, 165);
         stackpack.setScale(0.26, 0.26);
+
+        this.glowingSpot = this.add.image(350, 430, "glowingSpot");
+        this.glowingSpot.setScale(0.4);
 
         this.anims.create({
             key: "turn",
@@ -351,6 +359,10 @@ export default class LevelZero extends Phaser.Scene {
         this.movementInstruction = this.add
             .image(200, 600, "MovementInstructions")
             .setScale(1, 1);
+        this.orderInstruction = this.add
+            .image(1090, 380, "OrderInstructions")
+            .setScale(0.45);
+        this.orderInstruction.setVisible(false);
 
         this.pushDialogue.setVisible(false);
         this.popDialogue.setVisible(false);
@@ -396,18 +408,6 @@ export default class LevelZero extends Phaser.Scene {
         );
         this.blackBackground.setDepth(4);
         this.blackBackground.setAlpha(0);
-
-        // Temporary how to play text
-        this.howToPlayText = this.add.text(
-            20,
-            20,
-            "Press 'E' to collect (push) items \nPress 'F' to use (pop) items where you need them\n(Make sure they're at the top of your StackPack!)\nGood luck unlocking the door!",
-            {
-                fontSize: "26px",
-                color: "#03572a",
-                fontFamily: "Verdana",
-            }
-        );
     }
 
     private updateStackView() {
@@ -521,6 +521,7 @@ export default class LevelZero extends Phaser.Scene {
                         this.plankPlatform?.enableBody(true, 938, 650);
                     }
                     if (poppedItem.name === "key") {
+                        this.popButton2?.setVisible(false);
                         this.door?.setTexture("opendoor");
                         // Make the player get sucked into the door
                         if (this.player && this.door) {
@@ -587,6 +588,63 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     update() {
+        // Continuously make glowing spot small and big
+        const minScaleX = 0.15; // Minimum scale on x-axis
+        const maxScaleX = 0.35; // Maximum scale on x-axis
+
+        // Calculate the scale factor based on the sine function
+        const scaleFactor = Math.sin(this.time.now / 400) * 0.5 + 0.5;
+
+        // Map the scaleFactor to the range between minScaleX and maxScaleX
+        const newScaleX = Phaser.Math.Linear(minScaleX, maxScaleX, scaleFactor);
+
+        // Set the new scale on the x-axis while maintaining the original scale on the y-axis
+        this.glowingSpot?.setScale(newScaleX, this.glowingSpot.scaleY);
+
+        // Check if the player is on top of the glowing spot and if so, move to next location
+        // After pushing plank
+        if (
+            this.player &&
+            this.glowingSpot &&
+            this.glowingSpot.x == 350 &&
+            this.stack.length > 0 &&
+            this.stack[this.stack.length - 1].name === "plank"
+        ) {
+            this.glowingSpot.setPosition(
+                this.plankDetectionArea1.x - 40,
+                this.plankDetectionArea1.y - 65
+            );
+        }
+        // After popping plank
+        if (
+            this.player &&
+            this.glowingSpot &&
+            this.plank &&
+            this.glowingSpot.x == this.plankDetectionArea1.x - 40 &&
+            this.plank.x == 815
+        ) {
+            this.glowingSpot.setPosition(1115, 560);
+        }
+        // At ladder and key area
+        if (
+            this.player &&
+            this.glowingSpot &&
+            this.glowingSpot.x == 1115 &&
+            Phaser.Math.Distance.Between(
+                this.player.x,
+                this.player.y,
+                this.glowingSpot.x,
+                this.glowingSpot.y
+            ) < 100
+        ) {
+            this.orderInstruction?.setVisible(true);
+            setTimeout(() => {
+                this.orderInstruction?.setVisible(false);
+                this.glowingSpot?.setVisible(false);
+                this.glowingSpot?.setPosition(1200, 560);
+            }, 4000);
+        }
+
         // Key animation
         if (this.key) {
             this.key.anims.play("turn", true);
@@ -601,7 +659,9 @@ export default class LevelZero extends Phaser.Scene {
                 this.cursors.left.isDown ||
                 this.cursors.space.isDown
             ) {
-                this.movementInstruction?.setVisible(false);
+                setTimeout(() => {
+                    this.movementInstruction?.setVisible(false);
+                }, 500);
             }
         }
 
@@ -787,7 +847,7 @@ export default class LevelZero extends Phaser.Scene {
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
-                    this.plankDetectionArea1.getBounds()
+                    this.plankDetectionAreasGroup.getBounds()
                 ) &&
                 this.stack[this.stack.length - 1].name === "plank"
             ) {
@@ -800,7 +860,7 @@ export default class LevelZero extends Phaser.Scene {
             this.popDialogue?.setVisible(false);
         }
 
-        // Making Text Boxes appear/dissapear: EtoPush DIALOGUE
+        // Making Text Boxes appear/disappear: EtoPush DIALOGUE
         if (this.player && this.plank) {
             if (
                 Phaser.Math.Distance.Between(
