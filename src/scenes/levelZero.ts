@@ -182,26 +182,23 @@ export default class LevelZero extends Phaser.Scene {
         });
         this.anims.create({
             key: "climb",
-            frames: this.anims.generateFrameNames("gal_climb", {
+            frames: this.anims.generateFrameNumbers("gal_climb", {
                 start: 0,
                 end: 3,
             }),
         });
         this.anims.create({
             key:"hurt_right",
-            frames: this.anims.generateFrameNames("gal_hurt_right", {
-                start: 0,
-                end: 3,
+            frames: this.anims.generateFrameNumbers("gal_hurt_right", {
+                start: 1,
+                end: 1,
             }),
+            repeat: 0,
         });
         this.anims.create({
             key: "hurt_left",
-            frames: this.anims.generateFrameNames("gal_hurt_left", {
-                start: 0,
-                end: 3,
-            }),
+            frames: [{key: "gal_hurt_left", frame: 1}]
         });
-
 
         this.cursors = this.input.keyboard?.createCursorKeys();
 
@@ -582,11 +579,14 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private loseLife(){
-        if (!this.isColliding){
-            this.isColliding = true;
-            this.lives--;
-            console.log(this.lives);
+        if (!this.isColliding && this.player){
+            this.isColliding = true;            
 
+            this.player.anims.play("hurt_right");
+            this.player.setVelocity(0);
+            this.lives--;
+            
+            // Removing hearts from free pop
             const heartToRemove = this.hearts?.pop();
             if (heartToRemove) {
                 heartToRemove.destroy();
@@ -599,14 +599,12 @@ export default class LevelZero extends Phaser.Scene {
             // Reset isColliding flag 
             this.time.delayedCall(500, () => {
                 this.isColliding = false;
-            }, [], this)
-
-            this.player?.setPosition(100,450);
+                this.player?.setPosition(100, 450);
+            }, [], this)            
         }
     }
 
     private playerDie() {
-        console.log("in player die")
         // Show You Died text
         this.playerDiedText?.setVisible(true);
 
@@ -638,29 +636,32 @@ export default class LevelZero extends Phaser.Scene {
         // Move the gal with arrow keys
         // Inside your update function or wherever you handle player movement
         if (this.player && this.cursors) {
-            if (
-                this.cursors.up.isDown &&
-                this.player.body?.touching.down &&
-                !this.climbing
-            ) {
-                this.player.anims.play("jump_right", true);
-                this.player.setVelocityY(-530);
-            } else if (this.cursors.right.isDown) {
-                this.player.setVelocityX(290);
-                this.player.anims.play("right", true);
-                this.lastDirection = "right"; // Update last direction
-            } else if (this.cursors.left.isDown) {
-                this.player.setVelocityX(-290);
-                this.player.anims.play("left", true);
-                this.lastDirection = "left"; // Update last direction
-            } else if (!this.climbing) {
-                this.player.setVelocityX(0);
-                // Check last direction and play corresponding idle animation
-                if (this.lastDirection === "right") {
-                    this.player.anims.play("idle_right", true);
-                } else {
-                    this.player.anims.play("idle_left", true);
+            if (!this.isColliding){
+                if (
+                    this.cursors.up.isDown &&
+                    this.player.body?.touching.down &&
+                    !this.climbing
+                ) {
+                    this.player.anims.play("jump_right", true);
+                    this.player.setVelocityY(-530);
+                } else if (this.cursors.right.isDown) {
+                    this.player.setVelocityX(290);
+                    this.player.anims.play("right", true);
+                    this.lastDirection = "right"; // Update last direction
+                } else if (this.cursors.left.isDown) {
+                    this.player.setVelocityX(-290);
+                    this.player.anims.play("left", true);
+                    this.lastDirection = "left"; // Update last direction
+                } else if (!this.climbing) {
+                    this.player.setVelocityX(0);
+                    // Check last direction and play corresponding idle animation
+                    if (this.lastDirection === "right") {
+                        this.player.anims.play("idle_right", true);
+                    } else {
+                        this.player.anims.play("idle_left", true);
+                    }
                 }
+
             }
         }
 
