@@ -185,7 +185,7 @@ export default class LevelZero extends Phaser.Scene {
             }),
         });
         this.anims.create({
-            key:"hurt_right",
+            key: "hurt_right",
             frames: this.anims.generateFrameNumbers("gal_hurt_right", {
                 start: 0,
                 end: 1,
@@ -282,10 +282,12 @@ export default class LevelZero extends Phaser.Scene {
             fontFamily: "Verdana",
         });
 
-        for (let i = 0; i < this.lives; i++){
-            this.hearts?.push(this.add.sprite(190 + (i * 50), 35, "heart").setScale(0.5));
+        for (let i = 0; i < this.lives; i++) {
+            this.hearts?.push(
+                this.add.sprite(190 + i * 50, 35, "heart").setScale(0.5)
+            );
         }
-        
+
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
 
@@ -590,16 +592,17 @@ export default class LevelZero extends Phaser.Scene {
     private playerDie() {
         this.player?.setVelocity(0,0);
         this.player?.setTint(0xff0000);
-        this.physics.pause();
         
         this.time.delayedCall(300, () => {
-            this.scene.stop("Level0");
-            this.scene.start("YouDiedScene");
+            this.scene.pause("Level0");
+            this.scene.launch("YouDiedScene", { previousLevelKey: this.scene.key });
             this.player?.clearTint();
 
             // Reset the stack and collected items
             this.stack = [];
             this.collectedItems = [];
+            this.hearts = [];
+            this.lives = 3;
         })
     }
 

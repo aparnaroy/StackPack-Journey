@@ -10,6 +10,9 @@ export default class youDiedScene extends Phaser.Scene{
     }
 
     create(){
+        //const previousLevelKey = this.scene.settings.data.previousLevelKey;
+        console.log(this.scene.settings.data);
+
         const playerDiedText = this.add.text(
             this.cameras.main.width / 2,
             this.cameras.main.height / 2,
@@ -17,7 +20,6 @@ export default class youDiedScene extends Phaser.Scene{
             { fontSize: "96px", color: "#8c0615", fontFamily: "Verdana" }
         );
         playerDiedText.setOrigin(0.5);
-        //playerDiedText.setVisible(false);
         playerDiedText.setDepth(5);
 
         playerDiedText.setScale(0);
@@ -40,7 +42,13 @@ export default class youDiedScene extends Phaser.Scene{
             alpha: 1,
             duration: 200,
             ease: "Bounce",
+            onComplete: () => {
+                this.time.delayedCall(1000, () => {
+                    this.scene.stop("YouDiedScene");
+                    // Hard coded for now -- fix later
+                    this.scene.resume("Level0");
+                })
+            }
         });
-
     }
 }
