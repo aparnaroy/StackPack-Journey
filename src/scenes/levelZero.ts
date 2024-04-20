@@ -615,25 +615,30 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private playerDie() {
-        // Show You Died text
+        this.player?.setVelocity(0,0);
+        this.player?.setTint(0xff0000);
+        // Show You Died text  
+        
+        this.time.delayedCall(500, () => {
+            this.player?.clearTint();
+            this.playerDiedText?.setVisible(true);
+            // Animate you died text and black background
+            this.tweens.add({
+                targets: [this.playerDiedText, this.blackBackground],
+                scale: 1,
+                alpha: 1,
+                duration: 200,
+                ease: "Bounce",
+            });
 
-        this.playerDiedText?.setVisible(true);
+            // Reset the stack and collected items
+            this.stack = [];
+            this.collectedItems = [];
+        })
 
-        // Animate you died text and black background
-        this.tweens.add({
-            targets: [this.playerDiedText, this.blackBackground],
-            scale: 1,
-            alpha: 1,
-            duration: 100,
-            ease: "Bounce",
-        });
-
-        // Reset the stack and collected items
-        this.stack = [];
-        this.collectedItems = [];
-
+    
         // Reload the scene to reset everything
-        this.time.delayedCall(800, () => {
+        this.time.delayedCall(1000, () => {
             this.scene.start("Level0");
         });
     }
