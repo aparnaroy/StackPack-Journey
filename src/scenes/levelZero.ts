@@ -11,6 +11,14 @@ export default class LevelZero extends Phaser.Scene {
     private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
 
+    private pushDialogue?: Phaser.GameObjects.Image;
+    private popDialogue?: Phaser.GameObjects.Image;
+    private pushButton1?: Phaser.GameObjects.Image;
+    private pushButton2?: Phaser.GameObjects.Image;
+    private popButton1?: Phaser.GameObjects.Image;
+    private popButton2?: Phaser.GameObjects.Image;
+    private movementInstruction?: Phaser.GameObjects.Image;
+
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
     private keyE?: Phaser.Input.Keyboard.Key;
@@ -83,6 +91,16 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("plank", "assets/plank.png");
         this.load.image("door", "assets/door.png");
         this.load.image("opendoor", "assets/open-door.png");
+
+        this.load.image("EButton", "assets/EButton.png");
+        this.load.image("FButton", "assets/FButton.png");
+        this.load.image("EtoPush", "assets/EtoPush.png");
+        this.load.image("FtoPop", "assets/FtoPop.png");
+
+        this.load.image(
+            "MovementInstructions",
+            "assets/Movement-Instructions.png"
+        );
     }
 
     create() {
@@ -323,6 +341,24 @@ export default class LevelZero extends Phaser.Scene {
         this.physics.world.enable(this.keyDetectionArea);
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
 
+        // Text Boxes
+        this.pushDialogue = this.add.image(350, 550, "EtoPush").setScale(1, 1);
+        this.popDialogue = this.add.image(750, 650, "FtoPop").setScale(1, 1);
+        this.pushButton1 = this.add.image(1100, 650, "EButton").setScale(1, 1);
+        this.pushButton2 = this.add.image(1250, 730, "EButton").setScale(1, 1);
+        this.popButton1 = this.add.image(750, 500, "FButton").setScale(1, 1);
+        this.popButton2 = this.add.image(900, 300, "FButton").setScale(1, 1);
+        this.movementInstruction = this.add
+            .image(200, 600, "MovementInstructions")
+            .setScale(1, 1);
+
+        this.pushDialogue.setVisible(false);
+        this.popDialogue.setVisible(false);
+        this.pushButton1.setVisible(false);
+        this.pushButton2.setVisible(false);
+        this.popButton1.setVisible(false);
+        this.popButton2.setVisible(false);
+
         // Create level complete text
         this.levelCompleteText = this.add.text(
             this.cameras.main.width / 2,
@@ -556,6 +592,19 @@ export default class LevelZero extends Phaser.Scene {
             this.key.anims.play("turn", true);
         }
 
+        // show movement instructions until any key is pressed
+        if (this.player && this.cursors) {
+            if (
+                this.cursors.up.isDown ||
+                this.cursors.down.isDown ||
+                this.cursors.right.isDown ||
+                this.cursors.left.isDown ||
+                this.cursors.space.isDown
+            ) {
+                this.movementInstruction?.setVisible(false);
+            }
+        }
+
         // Move the gal with arrow keys
         // Inside your update function or wherever you handle player movement
         if (this.player && this.cursors) {
@@ -731,6 +780,105 @@ export default class LevelZero extends Phaser.Scene {
                 undefined,
                 this
             );
+        }
+
+        // FtoPop DIALOGUE
+        if (this.player && this.stack.length > 0) {
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.plankDetectionArea1.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "plank"
+            ) {
+                this.popDialogue?.setVisible(true);
+            } else {
+                this.popDialogue?.setVisible(false);
+            }
+        }
+        if (!(this.stack.length > 0)) {
+            this.popDialogue?.setVisible(false);
+        }
+
+        // Making Text Boxes appear/dissapear: EtoPush DIALOGUE
+        if (this.player && this.plank) {
+            if (
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.plank.x,
+                    this.plank.y
+                ) < 100 &&
+                !this.collectedItems.includes(this.plank)
+            ) {
+                this.pushDialogue?.setVisible(true);
+            } else {
+                this.pushDialogue?.setVisible(false);
+            }
+        }
+
+        // E to push button1: ladder
+        if (this.player && this.ladder) {
+            if (
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.ladder.x,
+                    this.ladder.y
+                ) < 100 &&
+                !this.collectedItems.includes(this.ladder)
+            ) {
+                this.pushButton1?.setVisible(true);
+            } else {
+                this.pushButton1?.setVisible(false);
+            }
+        }
+
+        // E to push button2: key
+        if (this.player && this.key) {
+            if (
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.key.x,
+                    this.key.y
+                ) < 100 &&
+                !this.collectedItems.includes(this.key)
+            ) {
+                this.pushButton2?.setVisible(true);
+            } else {
+                this.pushButton2?.setVisible(false);
+            }
+        }
+
+        // F to push button1: ladder
+        if (this.player && this.stack.length > 0) {
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.ladderDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "ladder"
+            ) {
+                this.popButton1?.setVisible(true);
+            } else {
+                this.popButton1?.setVisible(false);
+            }
+        }
+
+        // F to push button: key
+        if (this.player && this.stack.length > 0) {
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.keyDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "key"
+            ) {
+                this.popButton2?.setVisible(true);
+            } else {
+                this.popButton2?.setVisible(false);
+            }
         }
     }
 }
