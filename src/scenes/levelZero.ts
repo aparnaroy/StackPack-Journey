@@ -13,8 +13,10 @@ export default class LevelZero extends Phaser.Scene {
 
     private pushDialogue?: Phaser.GameObjects.Image;
     private popDialogue?: Phaser.GameObjects.Image;
-    private pushButton?: Phaser.GameObjects.Image;
-    private popButton?: Phaser.GameObjects.Image;
+    private pushButton1?: Phaser.GameObjects.Image;
+    private pushButton2?: Phaser.GameObjects.Image;
+    private popButton1?: Phaser.GameObjects.Image;
+    private popButton2?: Phaser.GameObjects.Image;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -23,12 +25,22 @@ export default class LevelZero extends Phaser.Scene {
     private keyEPressed: boolean = false; // Flag to check if 'E' was pressed to prevent picking up multiple items from one long key press
     private keyFPressed: boolean = false; // Flag to check if 'E' was pressed to prevent using multiple items from one long key press
     private lastDirection: string = "right";
+    private climbing: boolean = false;
 
     private ladderDetectionArea: Phaser.GameObjects.Rectangle;
     private ladderHighlightBox: Phaser.GameObjects.Rectangle;
-    private plankDetectionArea: Phaser.GameObjects.Rectangle;
+    private plankDetectionArea1: Phaser.GameObjects.Rectangle;
+    private plankDetectionArea2: Phaser.GameObjects.Rectangle;
+    private plankDetectionAreasGroup: Phaser.GameObjects.Container;
     private plankHighlightBox: Phaser.GameObjects.Rectangle;
+    private plankPlatforms?: Phaser.Physics.Arcade.StaticGroup;
+    private plankPlatform?: Phaser.Physics.Arcade.Image;
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
+
+    private levelCompleteText?: Phaser.GameObjects.Text;
+    private playerDiedText?: Phaser.GameObjects.Text;
+    private howToPlayText?: Phaser.GameObjects.Text;
+    private blackBackground: Phaser.GameObjects.Rectangle;
 
     constructor() {
         super({ key: "Level0" });
@@ -110,7 +122,8 @@ export default class LevelZero extends Phaser.Scene {
         });
         this.player = this.physics.add
             .sprite(100, 450, "gal_right")
-            .setScale(0.77, 0.77);
+            .setScale(0.77, 0.77)
+            .setOrigin(0.5, 0.5);
         this.player.setCollideWorldBounds(true);
 
         this.anims.create({
@@ -172,9 +185,15 @@ export default class LevelZero extends Phaser.Scene {
         this.ground.setScale(5).refreshBody();
         this.ground.setAlpha(0); // Hide the ground platform
 
-        this.platforms.create(350, 585, "level0-platform").setScale(1, 1);
-        this.platforms.create(650, 500, "level0-platform").setScale(0.75, 0.75);
-        this.platforms.create(875, 300, "level0-platform").setScale(1, 0.75);
+        const platform1 = this.platforms
+            .create(350, 585, "level0-platform")
+            .setScale(1, 1);
+        const platform2 = this.platforms
+            .create(650, 500, "level0-platform")
+            .setScale(0.75, 0.75);
+        const platform3 = this.platforms
+            .create(875, 300, "level0-platform")
+            .setScale(1, 0.75);
 
         this.physics.add.collider(this.player, this.platforms);
 
@@ -189,13 +208,40 @@ export default class LevelZero extends Phaser.Scene {
         this.plank = this.add.sprite(350, 530, "plank").setScale(0.5, 0.5);
         this.plank.setName("plank");
 
-        this.spikes = this.physics.add.staticGroup();
-        this.spikes.create(790, 675, "spike").setScale(0.75, 0.75);
-        this.spikes.create(840, 675, "spike").setScale(0.75, 0.75);
-        this.spikes.create(890, 675, "spike").setScale(0.75, 0.75);
-        this.spikes.create(940, 675, "spike").setScale(0.75, 0.75);
+        this.plankPlatforms = this.physics.add.staticGroup();
+        this.plankPlatform = this.plankPlatforms.create(
+            815,
+            600,
+            "plank"
+        ) as Phaser.Physics.Arcade.Image;
 
-        this.door = this.physics.add.image(875, 150, "door").setScale(0.1, 0.1);
+        this.plankPlatform
+            .setSize(
+                this.plankPlatform.width - 246,
+                this.plankPlatform.height - 60
+            )
+            .setOffset(123, 55);
+
+        this.physics.add.collider(this.player, this.plankPlatform);
+
+        this.plankPlatform.disableBody(true, true);
+        this.plankPlatform.setVisible(false);
+
+        this.spikes = this.physics.add.staticGroup();
+        const spike1 = this.spikes
+            .create(740, 675, "spike")
+            .setScale(0.75, 0.75);
+        const spike2 = this.spikes
+            .create(790, 675, "spike")
+            .setScale(0.75, 0.75);
+        const spike3 = this.spikes
+            .create(840, 675, "spike")
+            .setScale(0.75, 0.75);
+        const spike4 = this.spikes
+            .create(890, 675, "spike")
+            .setScale(0.75, 0.75);
+
+        this.door = this.physics.add.image(887, 150, "door").setScale(0.1, 0.1);
         this.physics.add.collider(this.door, this.platforms);
 
         // Set the depth of the character/player sprite to a high value
@@ -207,6 +253,30 @@ export default class LevelZero extends Phaser.Scene {
         this.plank.setDepth(0);
         this.spikes.setDepth(0);
         this.door.setDepth(0);
+
+        // Resize collision boxes of player and everything else that can be collided with
+        this.player
+            .setSize(this.player.width - 64, this.player.height)
+            .setOffset(32, 0);
+
+        platform1
+            .setSize(platform1.width - 12, platform1.height - 28)
+            .setOffset(8, 5);
+        platform2
+            .setSize(platform2.width - 80, platform2.height - 35)
+            .setOffset(40, 8);
+        platform3
+            .setSize(platform3.width - 10, platform3.height - 30)
+            .setOffset(7, 7);
+
+        this.door
+            .setSize(this.door.width, this.door.height - 60)
+            .setOffset(0, 0);
+
+        spike1.setSize(spike1.width - 30, spike1.height - 30).setOffset(15, 14);
+        spike2.setSize(spike2.width - 30, spike2.height - 30).setOffset(15, 14);
+        spike3.setSize(spike3.width - 30, spike3.height - 30).setOffset(15, 14);
+        spike4.setSize(spike4.width - 30, spike4.height - 30).setOffset(15, 14);
 
         // Define keys 'E' and 'F' for collecting and using items respectively
         this.keyE = this.input.keyboard?.addKey(
@@ -234,13 +304,21 @@ export default class LevelZero extends Phaser.Scene {
         this.ladderHighlightBox.setVisible(false);
 
         // Creating dectection areas when using the plank
-        this.plankDetectionArea = this.add.rectangle(700, 0, 100, 150);
-        this.physics.world.enable(this.plankDetectionArea);
-        this.physics.add.collider(this.plankDetectionArea, this.ground);
+        this.plankDetectionArea1 = this.add.rectangle(670, 0, 100, 150);
+        this.physics.world.enable(this.plankDetectionArea1);
+        this.physics.add.collider(this.plankDetectionArea1, this.ground);
+
+        this.plankDetectionArea2 = this.add.rectangle(920, 0, 100, 150);
+        this.physics.world.enable(this.plankDetectionArea2);
+        this.physics.add.collider(this.plankDetectionArea2, this.ground);
+
+        this.plankDetectionAreasGroup = this.add.container();
+        this.plankDetectionAreasGroup.add(this.plankDetectionArea1);
+        this.plankDetectionAreasGroup.add(this.plankDetectionArea2);
 
         // Creating a highlighted rectangle to indicate where plank can be used
         this.plankHighlightBox = this.add.rectangle(
-            860,
+            815,
             210,
             215,
             50,
@@ -260,14 +338,67 @@ export default class LevelZero extends Phaser.Scene {
         // Text Boxes
         this.pushDialogue = this.add.image(350, 550, "EtoPush").setScale(1, 1);
         this.popDialogue = this.add.image(750, 650, "FtoPop").setScale(1, 1);
-        //const FtoPop = this.add.image(750, 650, "FtoPop").setScale(1, 1);
-        //const EButton1 = this.add.image(1100, 650, "EButton").setScale(1, 1);
-        //const EButton2 = this.add.image(1250, 730, "EButton").setScale(1, 1);
-        //const FButton1 = this.add.image(750, 500, "FButton").setScale(1, 1);
-        //const FButton2 = this.add.image(900, 300, "FButton").setScale(1, 1);
+        this.pushButton1 = this.add.image(1100, 650, "EButton").setScale(1, 1);
+        this.pushButton2 = this.add.image(1250, 730, "EButton").setScale(1, 1);
+        this.popButton1 = this.add.image(750, 500, "FButton").setScale(1, 1);
+        this.popButton2 = this.add.image(900, 300, "FButton").setScale(1, 1);
 
         this.pushDialogue.setVisible(false);
         this.popDialogue.setVisible(false);
+        this.pushButton1.setVisible(false);
+        this.pushButton2.setVisible(false);
+        this.popButton1.setVisible(false);
+        this.popButton2.setVisible(false);
+
+        // Create level complete text
+        this.levelCompleteText = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2,
+            "Level Complete!",
+            { fontSize: "96px", color: "#03572a", fontFamily: "Verdana" }
+        );
+        this.levelCompleteText.setOrigin(0.5);
+        this.levelCompleteText.setVisible(false);
+
+        // Set initial properties for animation
+        this.levelCompleteText.setScale(0);
+        this.levelCompleteText.setAlpha(0);
+
+        // Create player died text
+        this.playerDiedText = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2,
+            "You Died",
+            { fontSize: "96px", color: "#8c0615", fontFamily: "Verdana" }
+        );
+        this.playerDiedText.setOrigin(0.5);
+        this.playerDiedText.setVisible(false);
+        this.playerDiedText.setDepth(5);
+
+        this.playerDiedText.setScale(0);
+        this.playerDiedText.setAlpha(0);
+
+        this.blackBackground = this.add.rectangle(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2,
+            this.cameras.main.width,
+            this.cameras.main.height,
+            0x000000
+        );
+        this.blackBackground.setDepth(4);
+        this.blackBackground.setAlpha(0);
+
+        // Temporary how to play text
+        this.howToPlayText = this.add.text(
+            20,
+            20,
+            "Press 'E' to collect (push) items \nPress 'F' to use (pop) items where you need them\n(Make sure they're at the top of your StackPack!)\nGood luck unlocking the door!",
+            {
+                fontSize: "26px",
+                color: "#03572a",
+                fontFamily: "Verdana",
+            }
+        );
     }
 
     private updateStackView() {
@@ -372,15 +503,40 @@ export default class LevelZero extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(680, 400);
+                        poppedItem.setPosition(680, 385);
                         this.ladderHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(850, 600);
+                        poppedItem.setPosition(815, 600);
                         this.plankHighlightBox.setVisible(false);
+                        this.plankPlatform?.enableBody(true, 938, 650);
                     }
                     if (poppedItem.name === "key") {
                         this.door?.setTexture("opendoor");
+                        // Make the player get sucked into the door
+                        if (this.player && this.door) {
+                            this.tweens.add({
+                                targets: this.player,
+                                scaleX: 0.27,
+                                scaleY: 0.27,
+                                rotation: Math.PI * 3,
+                                x: this.door.x - 10,
+                                y: this.door.y + 15,
+                                duration: 800,
+                                onComplete: () => {
+                                    this.player?.disableBody(true, true);
+                                    // TODO: Transition to game map or next level
+                                    // To re-eanble the player later:
+                                    /*this.player?.enableBody(
+                                        true,
+                                        this.player.x,
+                                        this.player.y,
+                                        true,
+                                        true
+                                    );*/
+                                },
+                            });
+                        }
                     }
 
                     this.tweens.add({
@@ -398,6 +554,29 @@ export default class LevelZero extends Phaser.Scene {
         }
     }
 
+    private playerDie() {
+        // Show You Died text
+        this.playerDiedText?.setVisible(true);
+
+        // Animate you died text and black background
+        this.tweens.add({
+            targets: [this.playerDiedText, this.blackBackground],
+            scale: 1,
+            alpha: 1,
+            duration: 100,
+            ease: "Bounce",
+        });
+
+        // Reset the stack and collected items
+        this.stack = [];
+        this.collectedItems = [];
+
+        // Reload the scene to reset everything
+        this.time.delayedCall(800, () => {
+            this.scene.start("Level0");
+        });
+    }
+
     update() {
         // Key animation
         if (this.key) {
@@ -407,7 +586,14 @@ export default class LevelZero extends Phaser.Scene {
         // Move the gal with arrow keys
         // Inside your update function or wherever you handle player movement
         if (this.player && this.cursors) {
-            if (this.cursors.right.isDown) {
+            if (
+                this.cursors.up.isDown &&
+                this.player.body?.touching.down &&
+                !this.climbing
+            ) {
+                this.player.anims.play("jump_right", true);
+                this.player.setVelocityY(-530);
+            } else if (this.cursors.right.isDown) {
                 this.player.setVelocityX(290);
                 this.player.anims.play("right", true);
                 this.lastDirection = "right"; // Update last direction
@@ -415,7 +601,7 @@ export default class LevelZero extends Phaser.Scene {
                 this.player.setVelocityX(-290);
                 this.player.anims.play("left", true);
                 this.lastDirection = "left"; // Update last direction
-            } else {
+            } else if (!this.climbing) {
                 this.player.setVelocityX(0);
                 // Check last direction and play corresponding idle animation
                 if (this.lastDirection === "right") {
@@ -423,10 +609,6 @@ export default class LevelZero extends Phaser.Scene {
                 } else {
                     this.player.anims.play("idle_left", true);
                 }
-            }
-            if (this.cursors.up.isDown && this.player.body?.touching.down) {
-                this.player.anims.play("jump_right", true);
-                this.player.setVelocityY(-530);
             }
         }
 
@@ -497,7 +679,7 @@ export default class LevelZero extends Phaser.Scene {
             } else if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
-                    this.plankDetectionArea.getBounds()
+                    this.plankDetectionAreasGroup.getBounds()
                 ) &&
                 this.stack[this.stack.length - 1].name === "plank"
             ) {
@@ -518,6 +700,16 @@ export default class LevelZero extends Phaser.Scene {
                 if (this.keyF?.isDown && !this.keyFPressed) {
                     this.keyFPressed = true;
                     this.useItem();
+                    this.levelCompleteText?.setVisible(true);
+                    // Animate level complete text
+                    this.tweens.add({
+                        targets: this.levelCompleteText,
+                        scale: 1,
+                        alpha: 1,
+                        duration: 1000,
+                        ease: "Bounce",
+                        delay: 500, // Delay the animation slightly
+                    });
                 }
             } else {
                 // Otherwise, hide the highlight box
@@ -526,43 +718,46 @@ export default class LevelZero extends Phaser.Scene {
             }
         }
 
-        // Climbing the laddder
+        // Climbing the ladder
         if (this.player && this.ladder && this.cursors) {
+            // Max distance player can be from ladder to climb it
+            const xTolerance = 30; // Tolerance for X position
+            const yTolerance = 145; // Tolerance for Y position
+            // Calculate horizontal and vertical distances between player and ladder
+            const deltaX = Math.abs(this.player.x - this.ladder.x);
+            const deltaY = Math.abs(this.player.y - this.ladder.y);
+
             if (
                 this.ladder.x === 680 &&
-                this.cursors.up.isDown &&
-                this.player.y < 800 &&
-                this.player.x >= 670 &&
-                this.player.x <= this.ladder.x + this.ladder.width &&
-                this.player.body?.touching.down
+                deltaX < xTolerance &&
+                deltaY < yTolerance &&
+                this.cursors.up.isDown
             ) {
+                this.climbing = true;
                 this.player.anims.play("jump_right", true);
-                this.player.setVelocityY(-650);
+                this.player.setVelocityY(-150);
+            } else {
+                this.climbing = false;
             }
         }
 
         if (this.player && this.plank && this.spikes) {
-            if (this.plank.x === 850) {
+            if (this.plank.x === 815) {
                 this.physics.world.enable(this.plank);
                 this.physics.add.collider(this.plank, this.spikes);
-                this.physics.add.collider(this.player, this.plank);
+                //this.physics.add.collider(this.player, this.plank);
             }
         }
 
-        // Making Text Boxes appear/dissapear: EtoPush DIALOGUE
-        if (this.player && this.plank) {
-            if (
-                Phaser.Math.Distance.Between(
-                    this.player.x,
-                    this.player.y,
-                    this.plank.x,
-                    this.plank.y
-                ) < 100
-            ) {
-                this.pushDialogue?.setVisible(true);
-            } else {
-                this.pushDialogue?.setVisible(false);
-            }
+        // Check if player touches the spikes and restart level if so
+        if (this.player && this.spikes) {
+            this.physics.add.overlap(
+                this.player,
+                this.spikes,
+                this.playerDie,
+                undefined,
+                this
+            );
         }
 
         // FtoPop DIALOGUE
@@ -570,7 +765,7 @@ export default class LevelZero extends Phaser.Scene {
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
-                    this.plankDetectionArea.getBounds()
+                    this.plankDetectionArea1.getBounds()
                 ) &&
                 this.stack[this.stack.length - 1].name === "plank"
             ) {
@@ -581,6 +776,87 @@ export default class LevelZero extends Phaser.Scene {
         }
         if (!(this.stack.length > 0)) {
             this.popDialogue?.setVisible(false);
+        }
+
+        // Making Text Boxes appear/dissapear: EtoPush DIALOGUE
+        if (this.player && this.plank) {
+            if (
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.plank.x,
+                    this.plank.y
+                ) < 100 &&
+                !this.collectedItems.includes(this.plank)
+            ) {
+                this.pushDialogue?.setVisible(true);
+            } else {
+                this.pushDialogue?.setVisible(false);
+            }
+        }
+
+        // E to push button1: ladder
+        if (this.player && this.ladder) {
+            if (
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.ladder.x,
+                    this.ladder.y
+                ) < 100 &&
+                !this.collectedItems.includes(this.ladder)
+            ) {
+                this.pushButton1?.setVisible(true);
+            } else {
+                this.pushButton1?.setVisible(false);
+            }
+        }
+
+        // E to push button2: key
+        if (this.player && this.key) {
+            if (
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.key.x,
+                    this.key.y
+                ) < 100 &&
+                !this.collectedItems.includes(this.key)
+            ) {
+                this.pushButton2?.setVisible(true);
+            } else {
+                this.pushButton2?.setVisible(false);
+            }
+        }
+
+        // F to push button1: ladder
+        if (this.player && this.stack.length > 0) {
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.ladderDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "ladder"
+            ) {
+                this.popButton1?.setVisible(true);
+            } else {
+                this.popButton1?.setVisible(false);
+            }
+        }
+
+        // F to push button: key
+        if (this.player && this.stack.length > 0) {
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.keyDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "key"
+            ) {
+                this.popButton2?.setVisible(true);
+            } else {
+                this.popButton2?.setVisible(false);
+            }
         }
     }
 }
