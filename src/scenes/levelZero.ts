@@ -282,11 +282,7 @@ export default class LevelZero extends Phaser.Scene {
             fontFamily: "Verdana",
         });
 
-        for (let i = 0; i < this.lives; i++) {
-            this.hearts?.push(
-                this.add.sprite(190 + i * 50, 35, "heart").setScale(0.5)
-            );
-        }
+        this.createHearts();
 
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
@@ -559,6 +555,16 @@ export default class LevelZero extends Phaser.Scene {
         }
     }
 
+    private createHearts(){
+        this.hearts = [];
+
+        for (let i = 0; i < this.lives; i++) {
+            this.hearts.push(
+                this.add.sprite(190 + i * 50, 35, "heart").setScale(0.5)
+            );
+        }
+    }
+
     private loseLife(){
         if (!this.isColliding && this.player){
             this.isColliding = true;            
@@ -601,8 +607,8 @@ export default class LevelZero extends Phaser.Scene {
             // Reset the stack and collected items
             this.stack = [];
             this.collectedItems = [];
-            this.hearts = [];
             this.lives = 3;
+            this.createHearts();
         })
     }
 
