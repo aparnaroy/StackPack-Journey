@@ -4,6 +4,7 @@ import PreloadScene from "./scenes/preloadScene";
 import TitleScreen from "./scenes/titleScreen";
 import GameMap from "./scenes/gameMap";
 import LevelZero from "./scenes/levelZero";
+import youDiedScene from "./scenes/youDiedScene";
 
 const DEFAULT_WIDTH = 1280;
 const DEFAULT_HEIGHT = 720;
@@ -20,7 +21,7 @@ export const CONFIG = {
         width: DEFAULT_WIDTH,
         height: DEFAULT_HEIGHT,
     },
-    scene: [PreloadScene, MainScene, TitleScreen, GameMap, LevelZero],
+    scene: [PreloadScene, MainScene, TitleScreen, GameMap, LevelZero, youDiedScene],
     physics: {
         default: "arcade",
         arcade: {
