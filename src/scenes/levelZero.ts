@@ -11,6 +11,11 @@ export default class LevelZero extends Phaser.Scene {
     private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
 
+    private pushDialogue?: Phaser.GameObjects.Image;
+    private popDialogue?: Phaser.GameObjects.Image;
+    private pushButton?: Phaser.GameObjects.Image;
+    private popButton?: Phaser.GameObjects.Image;
+
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
     private keyE?: Phaser.Input.Keyboard.Key;
@@ -73,6 +78,11 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("plank", "assets/plank.png");
         this.load.image("door", "assets/door.png");
         this.load.image("opendoor", "assets/open-door.png");
+
+        this.load.image("EButton", "assets/EButton.png");
+        this.load.image("FButton", "assets/FButton.png");
+        this.load.image("EtoPush", "assets/EtoPush.png");
+        this.load.image("FtoPop", "assets/FtoPop.png");
     }
 
     create() {
@@ -246,6 +256,18 @@ export default class LevelZero extends Phaser.Scene {
         this.keyDetectionArea = this.add.rectangle(875, 150, 200, 200);
         this.physics.world.enable(this.keyDetectionArea);
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
+
+        // Text Boxes
+        this.pushDialogue = this.add.image(350, 550, "EtoPush").setScale(1, 1);
+        this.popDialogue = this.add.image(750, 650, "FtoPop").setScale(1, 1);
+        //const FtoPop = this.add.image(750, 650, "FtoPop").setScale(1, 1);
+        //const EButton1 = this.add.image(1100, 650, "EButton").setScale(1, 1);
+        //const EButton2 = this.add.image(1250, 730, "EButton").setScale(1, 1);
+        //const FButton1 = this.add.image(750, 500, "FButton").setScale(1, 1);
+        //const FButton2 = this.add.image(900, 300, "FButton").setScale(1, 1);
+
+        this.pushDialogue.setVisible(false);
+        this.popDialogue.setVisible(false);
     }
 
     private updateStackView() {
@@ -525,6 +547,40 @@ export default class LevelZero extends Phaser.Scene {
                 this.physics.add.collider(this.plank, this.spikes);
                 this.physics.add.collider(this.player, this.plank);
             }
+        }
+
+        // Making Text Boxes appear/dissapear: EtoPush DIALOGUE
+        if (this.player && this.plank) {
+            if (
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.plank.x,
+                    this.plank.y
+                ) < 100
+            ) {
+                this.pushDialogue?.setVisible(true);
+            } else {
+                this.pushDialogue?.setVisible(false);
+            }
+        }
+
+        // FtoPop DIALOGUE
+        if (this.player && this.stack.length > 0) {
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.plankDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "plank"
+            ) {
+                this.popDialogue?.setVisible(true);
+            } else {
+                this.popDialogue?.setVisible(false);
+            }
+        }
+        if (!(this.stack.length > 0)) {
+            this.popDialogue?.setVisible(false);
         }
     }
 }
