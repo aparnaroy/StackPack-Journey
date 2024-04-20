@@ -17,6 +17,7 @@ export default class LevelZero extends Phaser.Scene {
     private pushButton2?: Phaser.GameObjects.Image;
     private popButton1?: Phaser.GameObjects.Image;
     private popButton2?: Phaser.GameObjects.Image;
+    private movementInstruction?: Phaser.GameObjects.Image;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -95,6 +96,11 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("FButton", "assets/FButton.png");
         this.load.image("EtoPush", "assets/EtoPush.png");
         this.load.image("FtoPop", "assets/FtoPop.png");
+
+        this.load.image(
+            "MovementInstructions",
+            "assets/Movement-Instructions.png"
+        );
     }
 
     create() {
@@ -342,6 +348,9 @@ export default class LevelZero extends Phaser.Scene {
         this.pushButton2 = this.add.image(1250, 730, "EButton").setScale(1, 1);
         this.popButton1 = this.add.image(750, 500, "FButton").setScale(1, 1);
         this.popButton2 = this.add.image(900, 300, "FButton").setScale(1, 1);
+        this.movementInstruction = this.add
+            .image(200, 600, "MovementInstructions")
+            .setScale(1, 1);
 
         this.pushDialogue.setVisible(false);
         this.popDialogue.setVisible(false);
@@ -581,6 +590,19 @@ export default class LevelZero extends Phaser.Scene {
         // Key animation
         if (this.key) {
             this.key.anims.play("turn", true);
+        }
+
+        // show movement instructions until any key is pressed
+        if (this.player && this.cursors) {
+            if (
+                this.cursors.up.isDown ||
+                this.cursors.down.isDown ||
+                this.cursors.right.isDown ||
+                this.cursors.left.isDown ||
+                this.cursors.space.isDown
+            ) {
+                this.movementInstruction?.setVisible(false);
+            }
         }
 
         // Move the gal with arrow keys
