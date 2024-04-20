@@ -190,14 +190,20 @@ export default class LevelZero extends Phaser.Scene {
         this.anims.create({
             key:"hurt_right",
             frames: this.anims.generateFrameNumbers("gal_hurt_right", {
-                start: 1,
+                start: 0,
                 end: 1,
             }),
+            frameRate: 10,
             repeat: 0,
         });
         this.anims.create({
             key: "hurt_left",
-            frames: [{key: "gal_hurt_left", frame: 1}]
+            frames: this.anims.generateFrameNumbers("gal_hurt_left", {
+                start: 4,
+                end: 2,
+            }),
+            frameRate: 10,
+            repeat: 0,
         });
 
         this.cursors = this.input.keyboard?.createCursorKeys();
@@ -582,8 +588,12 @@ export default class LevelZero extends Phaser.Scene {
         if (!this.isColliding && this.player){
             this.isColliding = true;            
 
-            this.player.anims.play("hurt_right");
-            this.player.setVelocity(0);
+            this.player.setVelocity(0,0)
+            if (this.lastDirection === "right") {
+                this.player.anims.play("hurt_right");
+            } else {
+                this.player.anims.play("hurt_left");
+            }
             this.lives--;
             
             // Removing hearts from free pop
@@ -606,6 +616,7 @@ export default class LevelZero extends Phaser.Scene {
 
     private playerDie() {
         // Show You Died text
+
         this.playerDiedText?.setVisible(true);
 
         // Animate you died text and black background
