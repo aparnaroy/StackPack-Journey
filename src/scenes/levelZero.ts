@@ -537,7 +537,7 @@ export default class LevelZero extends Phaser.Scene {
 
         // Add the item to the grand list of collected items
         this.collectedItems.push(item);
-        this.updatePulsateEffect();
+        this.stopPulsateEffect();
 
         this.updateStackView();
     }
@@ -636,25 +636,49 @@ export default class LevelZero extends Phaser.Scene {
                     // Set item origin back to default (center)
                     poppedItem.setOrigin(0.5, 0.5);
 
+                    let originalScaleX = 0;
+                    let originalScaleY = 0;
                     // Move popped item to its original location
                     if (poppedItem.name === "ladder") {
                         poppedItem.setPosition(1050, 550);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
                     }
                     if (poppedItem.name === "plank") {
                         poppedItem.setPosition(350, 530);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
                     }
                     if (poppedItem.name === "key") {
                         poppedItem.setPosition(1200, 650);
+                        originalScaleX = 2.5;
+                        originalScaleY = 2.5;
                     }
 
                     this.tweens.add({
                         targets: poppedItem,
-                        scaleX: poppedItem.scaleX * 2,
-                        scaleY: poppedItem.scaleY * 2,
+                        scaleX: originalScaleX,
+                        scaleY: originalScaleY,
                         alpha: 1, // Fade in
                         duration: 300,
                         onComplete: () => {
                             this.updateStackView();
+                            if (poppedItem.name === "ladder") {
+                                this.createPulsateEffect(
+                                    this,
+                                    poppedItem,
+                                    1.1,
+                                    1000
+                                );
+                            }
+                            if (poppedItem.name === "plank") {
+                                this.createPulsateEffect(
+                                    this,
+                                    poppedItem,
+                                    1.15,
+                                    1000
+                                );
+                            }
                         },
                     });
                 },
@@ -704,7 +728,6 @@ export default class LevelZero extends Phaser.Scene {
 
             if (this.lives === 0) {
                 this.playerDie();
-                console.log("DIED");
             }
 
             // Reset isColliding flag
@@ -762,7 +785,7 @@ export default class LevelZero extends Phaser.Scene {
         });
     }
 
-    private updatePulsateEffect() {
+    private stopPulsateEffect() {
         // Stop pulsating collected items
         this.collectedItems.forEach((item) => {
             const tween = this.tweens.getTweensOf(item);
@@ -997,7 +1020,6 @@ export default class LevelZero extends Phaser.Scene {
             if (this.keyZ?.isDown && !this.keyZPressed) {
                 this.keyZPressed = true;
                 this.freePop();
-                //this.loseLife();
             }
         }
 
