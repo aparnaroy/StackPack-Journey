@@ -1,15 +1,13 @@
 import Phaser from "phaser";
 
-export default class youDiedScene extends Phaser.Scene{
+export default class youDiedScene extends Phaser.Scene {
     constructor() {
-        super({key: "YouDiedScene"});
+        super({ key: "YouDiedScene" });
     }
 
-    preload(){
+    preload() {}
 
-    }
-
-    create(){
+    create() {
         const playerDiedText = this.add.text(
             this.cameras.main.width / 2,
             this.cameras.main.height / 2,
@@ -44,8 +42,8 @@ export default class youDiedScene extends Phaser.Scene{
                     this.scene.stop("YouDiedScene");
                     // Hard coded for now -- fix later
                     this.scene.start("Level0");
-                })
-            }
+                });
+            },
         });
     }
 }
