@@ -10,9 +10,6 @@ export default class youDiedScene extends Phaser.Scene{
     }
 
     create(){
-        //const previousLevelKey = this.scene.settings.data.previousLevelKey;
-        console.log(this.scene.settings.data);
-
         const playerDiedText = this.add.text(
             this.cameras.main.width / 2,
             this.cameras.main.height / 2,
@@ -46,7 +43,7 @@ export default class youDiedScene extends Phaser.Scene{
                 this.time.delayedCall(1000, () => {
                     this.scene.stop("YouDiedScene");
                     // Hard coded for now -- fix later
-                    this.scene.resume("Level0");
+                    this.scene.start("Level0");
                 })
             }
         });
