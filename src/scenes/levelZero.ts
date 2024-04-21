@@ -680,14 +680,14 @@ export default class LevelZero extends Phaser.Scene {
                 this.player.x,
                 this.player.y,
                 this.glowingSpot.x,
-                this.glowingSpot.y
-            ) < 100
+                this.glowingSpot.y + 20
+            ) < 90
         ) {
             this.orderInstruction?.setVisible(true);
+            this.glowingSpot.setVisible(false);
+            this.glowingSpot.setPosition(1200, 560);
             setTimeout(() => {
                 this.orderInstruction?.setVisible(false);
-                this.glowingSpot?.setVisible(false);
-                this.glowingSpot?.setPosition(1200, 560);
             }, 4000);
         }
 
