@@ -591,8 +591,14 @@ export default class LevelZero extends Phaser.Scene {
                                 duration: 800,
                                 onComplete: () => {
                                     this.player?.disableBody(true, true);
-                                    // TODO: Transition to game map or next level
-                                    // To re-eanble the player later:
+                                    // TODO: Add leve complete popup (w/ restart and continue options)
+                                    // Transition to game map
+                                    setTimeout(() => {
+                                        this.scene.start("game-map", {
+                                            level1JustUnlocked: true,
+                                        });
+                                    }, 2000);
+                                    // To re-enable the player later:
                                     /*this.player?.enableBody(
                                         true,
                                         this.player.x,
