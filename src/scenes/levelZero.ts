@@ -615,13 +615,8 @@ export default class LevelZero extends Phaser.Scene {
 
     // Animation for using free pop
     private freePop() {
-        const isTweening = this.tweens
-            .getTweens()
-            .some((tween) => tween.isPlaying());
-
-        // If a push or pop animation is currently in progress, don't pop (cuz it causes a bug)
-        if (isTweening) {
-            return;
+        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
+            return; // Prevent popping if a push is in progress
         }
 
         // Remove the top item from the stackpack
