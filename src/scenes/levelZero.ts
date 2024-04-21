@@ -29,6 +29,7 @@ export default class LevelZero extends Phaser.Scene {
     private keyFPressed: boolean = false; // Flag to check if 'E' was pressed to prevent using multiple items from one long key press
     private lastDirection: string = "right";
     private climbing: boolean = false;
+    private isPushing: boolean = false; // Flag to make sure you can't pop an item while it is still being pushed
 
     private ladderDetectionArea: Phaser.GameObjects.Rectangle;
     private ladderHighlightBox: Phaser.GameObjects.Rectangle;
@@ -408,6 +409,20 @@ export default class LevelZero extends Phaser.Scene {
         );
         this.blackBackground.setDepth(4);
         this.blackBackground.setAlpha(0);
+
+        // Make plank and ladder items continuously pulsate
+        this.createPulsateEffect(
+            this,
+            this.plank,
+            1.15, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+        this.createPulsateEffect(
+            this,
+            this.ladder,
+            1.1, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
     }
 
     private updateStackView() {
@@ -432,6 +447,9 @@ export default class LevelZero extends Phaser.Scene {
                 y: stackItemY,
                 duration: 800,
                 ease: "Cubic.InOut",
+                onComplete: () => {
+                    this.isPushing = false;
+                },
             });
         });
     }
@@ -440,6 +458,8 @@ export default class LevelZero extends Phaser.Scene {
         if (this.collectedItems.includes(item)) {
             return;
         }
+
+        this.isPushing = true;
 
         // Save the x and y scales of the collected item
         const currScaleX = item.scaleX;
@@ -483,18 +503,14 @@ export default class LevelZero extends Phaser.Scene {
 
         // Add the item to the grand list of collected items
         this.collectedItems.push(item);
+        this.updatePulsateEffect();
 
         this.updateStackView();
     }
 
     private useItem() {
-        const isTweening = this.tweens
-            .getTweens()
-            .some((tween) => tween.isPlaying());
-
-        // If a push or pop animation is currently in progress, don't pop (cuz it causes a bug)
-        if (isTweening) {
-            return;
+        if (this.isPushing) {
+            return; // Prevent popping if an animation is in progress
         }
 
         // Remove the top item from the stackpack
@@ -584,6 +600,36 @@ export default class LevelZero extends Phaser.Scene {
         // Reload the scene to reset everything
         this.time.delayedCall(800, () => {
             this.scene.start("Level0");
+        });
+    }
+
+    private createPulsateEffect(
+        scene: Phaser.Scene,
+        target: Phaser.GameObjects.GameObject,
+        scaleFactor: number,
+        duration: number
+    ): Phaser.Tweens.Tween | null {
+        // Check if the item has been collected
+        if (this.collectedItems.includes(target as Phaser.GameObjects.Sprite)) {
+            return null; // Don't create the tween if the item has been collected
+        }
+        return scene.tweens.add({
+            targets: target,
+            scaleX: `*=${scaleFactor}`,
+            scaleY: `*=${scaleFactor}`,
+            duration: duration,
+            yoyo: true, // Reverse back to original scale
+            repeat: -1, // Repeat indefinitely
+        });
+    }
+
+    private updatePulsateEffect() {
+        // Stop pulsating collected items
+        this.collectedItems.forEach((item) => {
+            const tween = this.tweens.getTweensOf(item);
+            if (tween.length > 1) {
+                tween[0].stop();
+            }
         });
     }
 
