@@ -392,18 +392,6 @@ export default class LevelZero extends Phaser.Scene {
         // Set initial properties for animation
         this.levelCompleteText.setScale(0);
         this.levelCompleteText.setAlpha(0);
-
-        // Temporary how to play text
-        this.howToPlayText = this.add.text(
-            20,
-            150,
-            "Press 'E' to collect (push) items \nPress 'F' to use (pop) items where you need them\n(Make sure they're at the top of your StackPack!)\nGood luck unlocking the door!",
-            {
-                fontSize: "26px",
-                color: "#03572a",
-                fontFamily: "Verdana",
-            }
-        );
     }
 
     private updateStackView() {
@@ -559,7 +547,7 @@ export default class LevelZero extends Phaser.Scene {
         }
     }
 
-    // Animation for using free pop 
+    // Animation for using free pop
     private freePop() {
         const isTweening = this.tweens
             .getTweens()
@@ -592,7 +580,6 @@ export default class LevelZero extends Phaser.Scene {
                     }
                     if (poppedItem.name === "key") {
                         poppedItem.setPosition(1200, 650);
-                        
                     }
 
                     this.tweens.add({
@@ -670,7 +657,6 @@ export default class LevelZero extends Phaser.Scene {
                 item.destroy();
             });
             this.stack = [];
-            this.collectedItems = [];
             this.updateStackView();
             this.collectedItems = [];
             this.lives = 3;
@@ -764,7 +750,7 @@ export default class LevelZero extends Phaser.Scene {
             this.keyFPressed = false; // Reset the keyFPressed flag when the F key is released
         }
 
-        // CHeck if 'Z' key is released 
+        // CHeck if 'Z' key is released
         if (this.keyZ?.isUp) {
             this.keyZPressed = false;
         }
@@ -827,8 +813,8 @@ export default class LevelZero extends Phaser.Scene {
         }
 
         // Check if player wants to use free pop
-        if (this.player && this.stack.length > 0){
-            if(this.keyZ?.isDown && !this.keyZPressed){
+        if (this.player && this.stack.length > 0) {
+            if (this.keyZ?.isDown && !this.keyZPressed) {
                 this.keyZPressed = true;
                 this.freePop();
                 this.loseLife();
