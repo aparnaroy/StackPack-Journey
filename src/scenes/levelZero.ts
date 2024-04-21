@@ -29,7 +29,7 @@ export default class LevelZero extends Phaser.Scene {
     private keyFPressed: boolean = false; // Flag to check if 'E' was pressed to prevent using multiple items from one long key press
     private lastDirection: string = "right";
     private climbing: boolean = false;
-    private isPushing: boolean = false; // Flag to make sure you can't pop an item while it is still being pushed
+    private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
 
     private ladderDetectionArea: Phaser.GameObjects.Rectangle;
     private ladderHighlightBox: Phaser.GameObjects.Rectangle;
@@ -448,7 +448,7 @@ export default class LevelZero extends Phaser.Scene {
                 duration: 800,
                 ease: "Cubic.InOut",
                 onComplete: () => {
-                    this.isPushing = false;
+                    this.isPushingMap[item.name] = false;
                 },
             });
         });
@@ -459,7 +459,7 @@ export default class LevelZero extends Phaser.Scene {
             return;
         }
 
-        this.isPushing = true;
+        this.isPushingMap[item.name] = true;
 
         // Save the x and y scales of the collected item
         const currScaleX = item.scaleX;
@@ -509,8 +509,8 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private useItem() {
-        if (this.isPushing) {
-            return; // Prevent popping if an animation is in progress
+        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
+            return; // Prevent popping if a push is in progress
         }
 
         // Remove the top item from the stackpack
