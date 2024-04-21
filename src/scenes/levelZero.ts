@@ -49,6 +49,7 @@ export default class LevelZero extends Phaser.Scene {
     private hearts?: Phaser.GameObjects.Sprite[] = [];
     private lives: number = 3;
     private isColliding: boolean = false;
+    private collidingWithSpikes: boolean = false;
 
     constructor() {
         super({ key: "Level0" });
@@ -90,18 +91,18 @@ export default class LevelZero extends Phaser.Scene {
             { frameWidth: 128, frameHeight: 128 }
         );
         this.load.spritesheet("gal_climb", "assets/Pink_Monster_Climb_4.png", {
-            frameWidth: 32,
-            frameHeight: 32,
+            frameWidth: 128,
+            frameHeight: 128,
         });
         this.load.spritesheet(
             "gal_hurt_right",
             "assets/Pink_Monster_Hurt_4.png",
-            { frameWidth: 32, frameHeight: 32 }
+            { frameWidth: 128, frameHeight: 128 }
         );
         this.load.spritesheet(
             "gal_hurt_left",
             "assets/Pink_Monster_Hurt_Left4.png",
-            { frameWidth: 32, frameHeight: 32 }
+            { frameWidth: 128, frameHeight: 128 }
         );
 
         this.load.image("play", "assets/play-button.png");
@@ -127,7 +128,6 @@ export default class LevelZero extends Phaser.Scene {
         );
 
         this.load.image("OrderInstructions", "assets/Order-Instructions.png");
-
     }
     create() {
         const backgroundImage = this.add
@@ -212,6 +212,7 @@ export default class LevelZero extends Phaser.Scene {
                 start: 0,
                 end: 3,
             }),
+            frameRate: 15,
         });
         this.anims.create({
             key: "hurt_right",
@@ -619,10 +620,13 @@ export default class LevelZero extends Phaser.Scene {
             return; // Prevent popping if a push is in progress
         }
 
-        // Remove the top item from the stackpack
-        const poppedItem = this.stack.pop();
+        this.loseLife();
 
-        if (poppedItem) {
+        // Remove the top item from the stackpack and from grand list of collected items
+        const poppedItem = this.stack.pop();
+        this.collectedItems.pop();
+
+        if (poppedItem && this.lives !== 0) {
             // Animation to fade item out from stackpack and then fade in in its new location
             this.tweens.add({
                 targets: poppedItem,
@@ -632,7 +636,7 @@ export default class LevelZero extends Phaser.Scene {
                     // Set item origin back to default (center)
                     poppedItem.setOrigin(0.5, 0.5);
 
-                    // Move popped item to location it will be used
+                    // Move popped item to its original location
                     if (poppedItem.name === "ladder") {
                         poppedItem.setPosition(1050, 550);
                     }
@@ -655,6 +659,7 @@ export default class LevelZero extends Phaser.Scene {
                     });
                 },
             });
+            //this.loseLife();
         }
     }
 
@@ -683,11 +688,23 @@ export default class LevelZero extends Phaser.Scene {
             // Removing hearts from free pop
             const heartToRemove = this.hearts?.pop();
             if (heartToRemove) {
-                heartToRemove.destroy();
+                //heartToRemove.destroy();
+                this.tweens.add({
+                    targets: heartToRemove,
+                    scaleX: 0.8,
+                    scaleY: 0.8,
+                    duration: 200,
+                    yoyo: true,
+                    onComplete: () => {
+                        heartToRemove.setTint(0x000000); // Make heart black
+                        heartToRemove.setScale(0.5); // Reset the heart's scale
+                    },
+                });
             }
 
             if (this.lives === 0) {
                 this.playerDie();
+                console.log("DIED");
             }
 
             // Reset isColliding flag
@@ -695,7 +712,10 @@ export default class LevelZero extends Phaser.Scene {
                 500,
                 () => {
                     this.isColliding = false;
-                    this.player?.setPosition(100, 450);
+                    if (this.collidingWithSpikes) {
+                        this.player?.setPosition(100, 450); // Reset player's position
+                        this.collidingWithSpikes = false;
+                    }
                 },
                 [],
                 this
@@ -714,9 +734,6 @@ export default class LevelZero extends Phaser.Scene {
             this.player?.clearTint();
 
             // Reset the stack and collected items
-            this.stack.forEach((item) => {
-                item.destroy();
-            });
             this.stack = [];
             this.updateStackView();
             this.collectedItems = [];
@@ -757,8 +774,8 @@ export default class LevelZero extends Phaser.Scene {
 
     update() {
         // Continuously make glowing spot small and big
-        const minScaleX = 0.15; // Minimum scale on x-axis
-        const maxScaleX = 0.35; // Maximum scale on x-axis
+        const minScaleX = 0.18; // Minimum scale on x-axis
+        const maxScaleX = 0.31; // Maximum scale on x-axis
 
         // Calculate the scale factor based on the sine function
         const scaleFactor = Math.sin(this.time.now / 400) * 0.5 + 0.5;
@@ -913,7 +930,7 @@ export default class LevelZero extends Phaser.Scene {
             this.keyFPressed = false; // Reset the keyFPressed flag when the F key is released
         }
 
-        // CHeck if 'Z' key is released
+        // Check if 'Z' key is released
         if (this.keyZ?.isUp) {
             this.keyZPressed = false;
         }
@@ -980,7 +997,7 @@ export default class LevelZero extends Phaser.Scene {
             if (this.keyZ?.isDown && !this.keyZPressed) {
                 this.keyZPressed = true;
                 this.freePop();
-                this.loseLife();
+                //this.loseLife();
             }
         }
 
@@ -1019,7 +1036,10 @@ export default class LevelZero extends Phaser.Scene {
             this.physics.add.collider(
                 this.player,
                 this.spikes,
-                this.loseLife,
+                () => {
+                    this.collidingWithSpikes = true;
+                    this.loseLife();
+                },
                 undefined,
                 this
             );
