@@ -25,8 +25,10 @@ export default class LevelZero extends Phaser.Scene {
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
     private keyE?: Phaser.Input.Keyboard.Key;
     private keyF?: Phaser.Input.Keyboard.Key;
+    private keyZ?: Phaser.Input.Keyboard.Key;
     private keyEPressed: boolean = false; // Flag to check if 'E' was pressed to prevent picking up multiple items from one long key press
     private keyFPressed: boolean = false; // Flag to check if 'E' was pressed to prevent using multiple items from one long key press
+    private keyZPressed: boolean = false; // Flag to check if 'Z' was pressed
     private lastDirection: string = "right";
     private climbing: boolean = false;
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
@@ -42,8 +44,11 @@ export default class LevelZero extends Phaser.Scene {
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
 
     private levelCompleteText?: Phaser.GameObjects.Text;
-    private playerDiedText?: Phaser.GameObjects.Text;
-    private blackBackground: Phaser.GameObjects.Rectangle;
+
+    private freePopText?: Phaser.GameObjects.Text;
+    private hearts?: Phaser.GameObjects.Sprite[] = [];
+    private lives: number = 3;
+    private isColliding: boolean = false;
 
     constructor() {
         super({ key: "Level0" });
@@ -84,6 +89,20 @@ export default class LevelZero extends Phaser.Scene {
             "assets/Pink_Monster_Jump_8.png",
             { frameWidth: 128, frameHeight: 128 }
         );
+        this.load.spritesheet("gal_climb", "assets/Pink_Monster_Climb_4.png", {
+            frameWidth: 32,
+            frameHeight: 32,
+        });
+        this.load.spritesheet(
+            "gal_hurt_right",
+            "assets/Pink_Monster_Hurt_4.png",
+            { frameWidth: 32, frameHeight: 32 }
+        );
+        this.load.spritesheet(
+            "gal_hurt_left",
+            "assets/Pink_Monster_Hurt_Left4.png",
+            { frameWidth: 32, frameHeight: 32 }
+        );
 
         this.load.image("play", "assets/play-button.png");
         this.load.image("level0-platform", "assets/platform.png");
@@ -95,6 +114,7 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("plank", "assets/plank.png");
         this.load.image("door", "assets/door.png");
         this.load.image("opendoor", "assets/open-door.png");
+        this.load.image("heart", "assets/heart_16.png");
 
         this.load.image("EButton", "assets/EButton.png");
         this.load.image("FButton", "assets/FButton.png");
@@ -107,8 +127,8 @@ export default class LevelZero extends Phaser.Scene {
         );
 
         this.load.image("OrderInstructions", "assets/Order-Instructions.png");
-    }
 
+    }
     create() {
         const backgroundImage = this.add
             .image(0, 0, "level0-background")
@@ -186,6 +206,31 @@ export default class LevelZero extends Phaser.Scene {
                 end: 7,
             }),
         });
+        this.anims.create({
+            key: "climb",
+            frames: this.anims.generateFrameNumbers("gal_climb", {
+                start: 0,
+                end: 3,
+            }),
+        });
+        this.anims.create({
+            key: "hurt_right",
+            frames: this.anims.generateFrameNumbers("gal_hurt_right", {
+                start: 0,
+                end: 1,
+            }),
+            frameRate: 10,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: "hurt_left",
+            frames: this.anims.generateFrameNumbers("gal_hurt_left", {
+                start: 4,
+                end: 2,
+            }),
+            frameRate: 10,
+            repeat: 0,
+        });
 
         this.cursors = this.input.keyboard?.createCursorKeys();
 
@@ -259,6 +304,15 @@ export default class LevelZero extends Phaser.Scene {
         this.door = this.physics.add.image(887, 150, "door").setScale(0.1, 0.1);
         this.physics.add.collider(this.door, this.platforms);
 
+        // Creating lives
+        this.freePopText = this.add.text(20, 20, "Free Pops:", {
+            fontSize: "26px",
+            color: "#03572a",
+            fontFamily: "Verdana",
+        });
+
+        this.createHearts();
+
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
 
@@ -293,12 +347,15 @@ export default class LevelZero extends Phaser.Scene {
         spike3.setSize(spike3.width - 30, spike3.height - 30).setOffset(15, 14);
         spike4.setSize(spike4.width - 30, spike4.height - 30).setOffset(15, 14);
 
-        // Define keys 'E' and 'F' for collecting and using items respectively
+        // Define keys 'E' and 'F' and 'Z' for collecting and using items respectively
         this.keyE = this.input.keyboard?.addKey(
             Phaser.Input.Keyboard.KeyCodes.E
         );
         this.keyF = this.input.keyboard?.addKey(
             Phaser.Input.Keyboard.KeyCodes.F
+        );
+        this.keyZ = this.input.keyboard?.addKey(
+            Phaser.Input.Keyboard.KeyCodes.Z
         );
 
         // Creating dectection areas when using the ladder
@@ -385,30 +442,6 @@ export default class LevelZero extends Phaser.Scene {
         // Set initial properties for animation
         this.levelCompleteText.setScale(0);
         this.levelCompleteText.setAlpha(0);
-
-        // Create player died text
-        this.playerDiedText = this.add.text(
-            this.cameras.main.width / 2,
-            this.cameras.main.height / 2,
-            "You Died",
-            { fontSize: "96px", color: "#8c0615", fontFamily: "Verdana" }
-        );
-        this.playerDiedText.setOrigin(0.5);
-        this.playerDiedText.setVisible(false);
-        this.playerDiedText.setDepth(5);
-
-        this.playerDiedText.setScale(0);
-        this.playerDiedText.setAlpha(0);
-
-        this.blackBackground = this.add.rectangle(
-            this.cameras.main.width / 2,
-            this.cameras.main.height / 2,
-            this.cameras.main.width,
-            this.cameras.main.height,
-            0x000000
-        );
-        this.blackBackground.setDepth(4);
-        this.blackBackground.setAlpha(0);
 
         // Make plank and ladder items continuously pulsate
         this.createPulsateEffect(
@@ -580,26 +613,120 @@ export default class LevelZero extends Phaser.Scene {
         }
     }
 
+    // Animation for using free pop
+    private freePop() {
+        const isTweening = this.tweens
+            .getTweens()
+            .some((tween) => tween.isPlaying());
+
+        // If a push or pop animation is currently in progress, don't pop (cuz it causes a bug)
+        if (isTweening) {
+            return;
+        }
+
+        // Remove the top item from the stackpack
+        const poppedItem = this.stack.pop();
+
+        if (poppedItem) {
+            // Animation to fade item out from stackpack and then fade in in its new location
+            this.tweens.add({
+                targets: poppedItem,
+                alpha: 0, // Fade out
+                duration: 200,
+                onComplete: () => {
+                    // Set item origin back to default (center)
+                    poppedItem.setOrigin(0.5, 0.5);
+
+                    // Move popped item to location it will be used
+                    if (poppedItem.name === "ladder") {
+                        poppedItem.setPosition(1050, 550);
+                    }
+                    if (poppedItem.name === "plank") {
+                        poppedItem.setPosition(350, 530);
+                    }
+                    if (poppedItem.name === "key") {
+                        poppedItem.setPosition(1200, 650);
+                    }
+
+                    this.tweens.add({
+                        targets: poppedItem,
+                        scaleX: poppedItem.scaleX * 2,
+                        scaleY: poppedItem.scaleY * 2,
+                        alpha: 1, // Fade in
+                        duration: 300,
+                        onComplete: () => {
+                            this.updateStackView();
+                        },
+                    });
+                },
+            });
+        }
+    }
+
+    private createHearts() {
+        this.hearts = [];
+
+        for (let i = 0; i < this.lives; i++) {
+            this.hearts.push(
+                this.add.sprite(190 + i * 50, 35, "heart").setScale(0.5)
+            );
+        }
+    }
+
+    private loseLife() {
+        if (!this.isColliding && this.player) {
+            this.isColliding = true;
+
+            this.player.setVelocity(0, 0);
+            if (this.lastDirection === "right") {
+                this.player.anims.play("hurt_right");
+            } else {
+                this.player.anims.play("hurt_left");
+            }
+            this.lives--;
+
+            // Removing hearts from free pop
+            const heartToRemove = this.hearts?.pop();
+            if (heartToRemove) {
+                heartToRemove.destroy();
+            }
+
+            if (this.lives === 0) {
+                this.playerDie();
+            }
+
+            // Reset isColliding flag
+            this.time.delayedCall(
+                500,
+                () => {
+                    this.isColliding = false;
+                    this.player?.setPosition(100, 450);
+                },
+                [],
+                this
+            );
+        }
+    }
+
     private playerDie() {
-        // Show You Died text
-        this.playerDiedText?.setVisible(true);
+        this.player?.setVelocity(0, 0);
+        this.player?.setTint(0xff0000);
 
-        // Animate you died text and black background
-        this.tweens.add({
-            targets: [this.playerDiedText, this.blackBackground],
-            scale: 1,
-            alpha: 1,
-            duration: 100,
-            ease: "Bounce",
-        });
+        this.time.delayedCall(300, () => {
+            this.scene.launch("YouDiedScene", {
+                previousLevelKey: this.scene.key,
+            });
+            this.player?.clearTint();
 
-        // Reset the stack and collected items
-        this.stack = [];
-        this.collectedItems = [];
-
-        // Reload the scene to reset everything
-        this.time.delayedCall(800, () => {
-            this.scene.start("Level0");
+            // Reset the stack and collected items
+            this.stack.forEach((item) => {
+                item.destroy();
+            });
+            this.stack = [];
+            this.updateStackView();
+            this.collectedItems = [];
+            this.lives = 3;
+            this.createHearts();
         });
     }
 
@@ -714,28 +841,30 @@ export default class LevelZero extends Phaser.Scene {
         // Move the gal with arrow keys
         // Inside your update function or wherever you handle player movement
         if (this.player && this.cursors) {
-            if (
-                this.cursors.up.isDown &&
-                this.player.body?.touching.down &&
-                !this.climbing
-            ) {
-                this.player.anims.play("jump_right", true);
-                this.player.setVelocityY(-530);
-            } else if (this.cursors.right.isDown) {
-                this.player.setVelocityX(290);
-                this.player.anims.play("right", true);
-                this.lastDirection = "right"; // Update last direction
-            } else if (this.cursors.left.isDown) {
-                this.player.setVelocityX(-290);
-                this.player.anims.play("left", true);
-                this.lastDirection = "left"; // Update last direction
-            } else if (!this.climbing) {
-                this.player.setVelocityX(0);
-                // Check last direction and play corresponding idle animation
-                if (this.lastDirection === "right") {
-                    this.player.anims.play("idle_right", true);
-                } else {
-                    this.player.anims.play("idle_left", true);
+            if (!this.isColliding) {
+                if (
+                    this.cursors.up.isDown &&
+                    this.player.body?.touching.down &&
+                    !this.climbing
+                ) {
+                    this.player.anims.play("jump_right", true);
+                    this.player.setVelocityY(-530);
+                } else if (this.cursors.right.isDown) {
+                    this.player.setVelocityX(290);
+                    this.player.anims.play("right", true);
+                    this.lastDirection = "right"; // Update last direction
+                } else if (this.cursors.left.isDown) {
+                    this.player.setVelocityX(-290);
+                    this.player.anims.play("left", true);
+                    this.lastDirection = "left"; // Update last direction
+                } else if (!this.climbing) {
+                    this.player.setVelocityX(0);
+                    // Check last direction and play corresponding idle animation
+                    if (this.lastDirection === "right") {
+                        this.player.anims.play("idle_right", true);
+                    } else {
+                        this.player.anims.play("idle_left", true);
+                    }
                 }
             }
         }
@@ -787,6 +916,11 @@ export default class LevelZero extends Phaser.Scene {
         // Check if 'F' key is released
         if (this.keyF?.isUp) {
             this.keyFPressed = false; // Reset the keyFPressed flag when the F key is released
+        }
+
+        // CHeck if 'Z' key is released
+        if (this.keyZ?.isUp) {
+            this.keyZPressed = false;
         }
 
         // Check if player is near detection area
@@ -846,6 +980,15 @@ export default class LevelZero extends Phaser.Scene {
             }
         }
 
+        // Check if player wants to use free pop
+        if (this.player && this.stack.length > 0) {
+            if (this.keyZ?.isDown && !this.keyZPressed) {
+                this.keyZPressed = true;
+                this.freePop();
+                this.loseLife();
+            }
+        }
+
         // Climbing the ladder
         if (this.player && this.ladder && this.cursors) {
             // Max distance player can be from ladder to climb it
@@ -862,7 +1005,7 @@ export default class LevelZero extends Phaser.Scene {
                 this.cursors.up.isDown
             ) {
                 this.climbing = true;
-                this.player.anims.play("jump_right", true);
+                this.player.anims.play("climb", true);
                 this.player.setVelocityY(-150);
             } else {
                 this.climbing = false;
@@ -873,16 +1016,15 @@ export default class LevelZero extends Phaser.Scene {
             if (this.plank.x === 815) {
                 this.physics.world.enable(this.plank);
                 this.physics.add.collider(this.plank, this.spikes);
-                //this.physics.add.collider(this.player, this.plank);
             }
         }
 
         // Check if player touches the spikes and restart level if so
         if (this.player && this.spikes) {
-            this.physics.add.overlap(
+            this.physics.add.collider(
                 this.player,
                 this.spikes,
-                this.playerDie,
+                this.loseLife,
                 undefined,
                 this
             );
