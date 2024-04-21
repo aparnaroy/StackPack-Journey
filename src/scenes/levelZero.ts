@@ -19,6 +19,7 @@ export default class LevelZero extends Phaser.Scene {
     private popButton2?: Phaser.GameObjects.Image;
     private movementInstruction?: Phaser.GameObjects.Image;
     private orderInstruction?: Phaser.GameObjects.Image;
+    private freepopDialogue?: Phaser.GameObjects.Image;
     private glowingSpot?: Phaser.GameObjects.Image;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
@@ -121,6 +122,7 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("FButton", "assets/FButton.png");
         this.load.image("EtoPush", "assets/EtoPush.png");
         this.load.image("FtoPop", "assets/FtoPop.png");
+        this.load.image("ZtoFreePop", "assets/ZtoFreePop.png");
 
         this.load.image(
             "MovementInstructions",
@@ -422,6 +424,10 @@ export default class LevelZero extends Phaser.Scene {
             .image(1090, 380, "OrderInstructions")
             .setScale(0.45);
         this.orderInstruction.setVisible(false);
+        this.freepopDialogue = this.add
+            .image(210, 230, "ZtoFreePop")
+            .setScale(1, 1);
+        this.freepopDialogue.setVisible(false);
 
         this.pushDialogue.setVisible(false);
         this.popDialogue.setVisible(false);
@@ -798,7 +804,7 @@ export default class LevelZero extends Phaser.Scene {
     update() {
         // Continuously make glowing spot small and big
         const minScaleX = 0.18; // Minimum scale on x-axis
-        const maxScaleX = 0.31; // Maximum scale on x-axis
+        const maxScaleX = 0.27; // Maximum scale on x-axis
 
         // Calculate the scale factor based on the sine function
         const scaleFactor = Math.sin(this.time.now / 400) * 0.5 + 0.5;
@@ -833,7 +839,7 @@ export default class LevelZero extends Phaser.Scene {
         ) {
             this.glowingSpot.setPosition(1115, 560);
         }
-        // At ladder and key area
+        // After pushing ladder
         if (
             this.player &&
             this.glowingSpot &&
@@ -842,15 +848,19 @@ export default class LevelZero extends Phaser.Scene {
                 this.player.x,
                 this.player.y,
                 this.glowingSpot.x,
-                this.glowingSpot.y + 20
+                this.glowingSpot.y + 150
             ) < 90
         ) {
             this.orderInstruction?.setVisible(true);
             this.glowingSpot.setVisible(false);
-            this.glowingSpot.setPosition(1200, 560);
+            this.glowingSpot.setPosition(0, 560);
             setTimeout(() => {
                 this.orderInstruction?.setVisible(false);
+                this.freepopDialogue?.setVisible(true);
             }, 4000);
+            setTimeout(() => {
+                this.freepopDialogue?.setVisible(false);
+            }, 8000);
         }
 
         // Key animation
