@@ -127,7 +127,7 @@ export default class LevelZero extends Phaser.Scene {
         );
 
         this.load.image("OrderInstructions", "assets/Order-Instructions.png");
-        this.load.image("pop-button", "assets/freePop.png");
+        this.load.image("pop-button", "assets/freePop2.png");
     }
     create() {
         const backgroundImage = this.add
@@ -309,7 +309,7 @@ export default class LevelZero extends Phaser.Scene {
         this.createHearts();
 
         // Creating Free Pop Button
-        const popButton = this.add.image(225, 65,"pop-button").setScale(1.10)
+        const popButton = this.add.image(225, 35,"pop-button").setScale(0.5)
         popButton.setInteractive();
 
         const originalScale = popButton.scaleX;
