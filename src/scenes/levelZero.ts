@@ -46,7 +46,6 @@ export default class LevelZero extends Phaser.Scene {
 
     private levelCompleteText?: Phaser.GameObjects.Text;
 
-    private freePopText?: Phaser.GameObjects.Text;
     private hearts?: Phaser.GameObjects.Sprite[] = [];
     private lives: number = 3;
     private isColliding: boolean = false;
@@ -308,12 +307,6 @@ export default class LevelZero extends Phaser.Scene {
         this.physics.add.collider(this.door, this.platforms);
 
         // Creating lives
-        this.freePopText = this.add.text(20, 20, "Free Pops:", {
-            fontSize: "26px",
-            color: "#03572a",
-            fontFamily: "Verdana",
-        });
-
         this.createHearts();
 
         // Set the depth of the character/player sprite to a high value
