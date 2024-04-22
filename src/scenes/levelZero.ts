@@ -131,7 +131,6 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("FButton", "assets/FButton.png");
         this.load.image("EtoPush", "assets/EtoPush.png");
         this.load.image("FtoPop", "assets/FtoPop.png");
-        this.load.image("ZtoFreePop", "assets/ZtoFreePop.png");
 
         this.load.image(
             "MovementInstructions",
@@ -139,6 +138,11 @@ export default class LevelZero extends Phaser.Scene {
         );
 
         this.load.image("OrderInstructions", "assets/Order-Instructions.png");
+
+        this.load.image(
+            "FreePopInstructions",
+            "assets/FreePop-Instructions.png"
+        );
         this.load.image("pop-button", "assets/freePop2.png");
     }
 
@@ -327,7 +331,7 @@ export default class LevelZero extends Phaser.Scene {
         this.createHearts();
 
         // Creating Free Pop Button
-        const popButton = this.add.image(225, 35,"pop-button").setScale(0.5)
+        const popButton = this.add.image(225, 35, "pop-button").setScale(0.31);
         popButton.setInteractive();
 
         const originalScale = popButton.scaleX;
@@ -465,8 +469,8 @@ export default class LevelZero extends Phaser.Scene {
             .setScale(0.45);
         this.orderInstruction.setVisible(false);
         this.freepopDialogue = this.add
-            .image(210, 230, "ZtoFreePop")
-            .setScale(1, 1);
+            .image(190, 130, "FreePopInstructions")
+            .setScale(0.41);
         this.freepopDialogue.setVisible(false);
 
         this.pushDialogue.setVisible(false);
@@ -688,11 +692,16 @@ export default class LevelZero extends Phaser.Scene {
 
         this.loseLife();
 
-        // Remove the top item from the stackpack and from grand list of collected items
+        // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
-        this.collectedItems.pop();
 
         if (poppedItem && this.lives !== 0) {
+            // Remove popped item from grand list of collected items
+            const index = this.collectedItems.indexOf(poppedItem);
+            if (index !== -1) {
+                this.collectedItems.splice(index, 1);
+            }
+
             // Animation to fade item out from stackpack and then fade in in its new location
             this.tweens.add({
                 targets: poppedItem,
