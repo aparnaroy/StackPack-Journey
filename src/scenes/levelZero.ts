@@ -26,10 +26,8 @@ export default class LevelZero extends Phaser.Scene {
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
     private keyE?: Phaser.Input.Keyboard.Key;
     private keyF?: Phaser.Input.Keyboard.Key;
-    private keyZ?: Phaser.Input.Keyboard.Key;
     private keyEPressed: boolean = false; // Flag to check if 'E' was pressed to prevent picking up multiple items from one long key press
     private keyFPressed: boolean = false; // Flag to check if 'E' was pressed to prevent using multiple items from one long key press
-    private keyZPressed: boolean = false; // Flag to check if 'Z' was pressed
     private lastDirection: string = "right";
     private climbing: boolean = false;
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
@@ -129,6 +127,7 @@ export default class LevelZero extends Phaser.Scene {
         );
 
         this.load.image("OrderInstructions", "assets/Order-Instructions.png");
+        this.load.image("pop-button", "assets/freePop.png");
     }
     create() {
         const backgroundImage = this.add
@@ -309,6 +308,39 @@ export default class LevelZero extends Phaser.Scene {
         // Creating lives
         this.createHearts();
 
+        // Creating Free Pop Button
+        const popButton = this.add.image(225, 65,"pop-button").setScale(1.10)
+        popButton.setInteractive();
+
+        const originalScale = popButton.scaleX;
+        const hoverScale = originalScale * 1.05;
+
+        // Change scale on hover
+        popButton.on("pointerover", () => {
+            this.tweens.add({
+                targets: popButton,
+                scaleX: hoverScale,
+                scaleY: hoverScale,
+                duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+        });
+
+        // Restore original scale when pointer leaves
+        popButton.on("pointerout", () => {
+            this.tweens.add({
+                targets: popButton,
+                scaleX: originalScale,
+                scaleY: originalScale,
+                duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+        });
+
+        popButton.on("pointerup", () => {
+            this.freePop();
+        });
+
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
 
@@ -349,9 +381,6 @@ export default class LevelZero extends Phaser.Scene {
         );
         this.keyF = this.input.keyboard?.addKey(
             Phaser.Input.Keyboard.KeyCodes.F
-        );
-        this.keyZ = this.input.keyboard?.addKey(
-            Phaser.Input.Keyboard.KeyCodes.Z
         );
 
         // Creating dectection areas when using the ladder
@@ -688,7 +717,6 @@ export default class LevelZero extends Phaser.Scene {
                     });
                 },
             });
-            //this.loseLife();
         }
     }
 
@@ -962,11 +990,6 @@ export default class LevelZero extends Phaser.Scene {
             this.keyFPressed = false; // Reset the keyFPressed flag when the F key is released
         }
 
-        // Check if 'Z' key is released
-        if (this.keyZ?.isUp) {
-            this.keyZPressed = false;
-        }
-
         // Check if player is near detection area
         if (this.player && this.stack.length > 0) {
             if (
@@ -1021,14 +1044,6 @@ export default class LevelZero extends Phaser.Scene {
                 // Otherwise, hide the highlight box
                 this.ladderHighlightBox.setVisible(false);
                 this.plankHighlightBox.setVisible(false);
-            }
-        }
-
-        // Check if player wants to use free pop
-        if (this.player && this.stack.length > 0) {
-            if (this.keyZ?.isDown && !this.keyZPressed) {
-                this.keyZPressed = true;
-                this.freePop();
             }
         }
 

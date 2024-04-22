@@ -18,7 +18,6 @@ export default class TitleScreen extends Phaser.Scene {
             this.cameras.main.width / backgroundImage.width,
             this.cameras.main.height / backgroundImage.height
         );
-        //this.add.image(400, 300, "title-screen");
 
         // Go to levels map on play button click
         const playButton = this.add.image(

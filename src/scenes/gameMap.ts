@@ -53,7 +53,6 @@ export default class GameMap extends Phaser.Scene {
             this.cameras.main.width / backgroundImage.width,
             this.cameras.main.height / backgroundImage.height
         );
-        //this.add.image(400, 300, "game-map");
 
         const originalScale = 0.43;
         const hoverScale = 0.46;
