@@ -764,7 +764,7 @@ export default class LevelZero extends Phaser.Scene {
     private createHearts() {
         this.hearts = [];
 
-        for (let i = 0; i < this.lives; i++) {
+        for (let i = 0; i < 3; i++) {
             this.hearts.push(
                 this.add.sprite(35 + i * 50, 35, "heart").setScale(0.5)
             );
