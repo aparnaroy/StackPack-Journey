@@ -1,5 +1,12 @@
 import Phaser from "phaser";
 
+interface GameMapData {
+    level0State: number;
+    level1State: number;
+    level2State: number;
+    level3State: number;
+}
+
 export default class LevelZero extends Phaser.Scene {
     private player?: Phaser.Physics.Arcade.Sprite;
     private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -48,6 +55,11 @@ export default class LevelZero extends Phaser.Scene {
     private lives: number = 3;
     private isColliding: boolean = false;
     private collidingWithSpikes: boolean = false;
+
+    private level0State: number;
+    private level1State: number;
+    private level2State: number;
+    private level3State: number;
 
     constructor() {
         super({ key: "Level0" });
@@ -119,7 +131,6 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("FButton", "assets/FButton.png");
         this.load.image("EtoPush", "assets/EtoPush.png");
         this.load.image("FtoPop", "assets/FtoPop.png");
-        this.load.image("ZtoFreePop", "assets/ZtoFreePop.png");
 
         this.load.image(
             "MovementInstructions",
@@ -127,9 +138,20 @@ export default class LevelZero extends Phaser.Scene {
         );
 
         this.load.image("OrderInstructions", "assets/Order-Instructions.png");
+
+        this.load.image(
+            "FreePopInstructions",
+            "assets/FreePop-Instructions.png"
+        );
         this.load.image("pop-button", "assets/freePop2.png");
     }
-    create() {
+
+    create(data: GameMapData) {
+        this.level0State = data.level0State;
+        this.level1State = data.level1State;
+        this.level2State = data.level2State;
+        this.level3State = data.level3State;
+
         const backgroundImage = this.add
             .image(0, 0, "level0-background")
             .setOrigin(0, 0);
@@ -309,7 +331,7 @@ export default class LevelZero extends Phaser.Scene {
         this.createHearts();
 
         // Creating Free Pop Button
-        const popButton = this.add.image(225, 35,"pop-button").setScale(0.5)
+        const popButton = this.add.image(225, 35, "pop-button").setScale(0.31);
         popButton.setInteractive();
 
         const originalScale = popButton.scaleX;
@@ -447,8 +469,8 @@ export default class LevelZero extends Phaser.Scene {
             .setScale(0.45);
         this.orderInstruction.setVisible(false);
         this.freepopDialogue = this.add
-            .image(210, 230, "ZtoFreePop")
-            .setScale(1, 1);
+            .image(190, 130, "FreePopInstructions")
+            .setScale(0.41);
         this.freepopDialogue.setVisible(false);
 
         this.pushDialogue.setVisible(false);
@@ -613,13 +635,27 @@ export default class LevelZero extends Phaser.Scene {
                                 duration: 800,
                                 onComplete: () => {
                                     this.player?.disableBody(true, true);
-                                    // TODO: Add leve complete popup (w/ restart and continue options)
-                                    // Transition to game map
-                                    setTimeout(() => {
-                                        this.scene.start("game-map", {
-                                            level1JustUnlocked: true,
-                                        });
-                                    }, 2000);
+                                    // TODO: Add level complete popup (w/ restart and continue options)
+                                    // Transition to game map: unlock level 1 if it's not already unlocked
+                                    if (this.level1State == 0) {
+                                        setTimeout(() => {
+                                            this.scene.start("game-map", {
+                                                level0State: 3,
+                                                level1State: 1,
+                                                level2State: this.level2State,
+                                                level3State: this.level3State,
+                                            });
+                                        }, 2000);
+                                    } else {
+                                        setTimeout(() => {
+                                            this.scene.start("game-map", {
+                                                level0State: 3,
+                                                level1State: this.level1State,
+                                                level2State: this.level2State,
+                                                level3State: this.level3State,
+                                            });
+                                        }, 2000);
+                                    }
                                     // To re-enable the player later:
                                     /*this.player?.enableBody(
                                         true,
@@ -656,11 +692,16 @@ export default class LevelZero extends Phaser.Scene {
 
         this.loseLife();
 
-        // Remove the top item from the stackpack and from grand list of collected items
+        // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
-        this.collectedItems.pop();
 
         if (poppedItem && this.lives !== 0) {
+            // Remove popped item from grand list of collected items
+            const index = this.collectedItems.indexOf(poppedItem);
+            if (index !== -1) {
+                this.collectedItems.splice(index, 1);
+            }
+
             // Animation to fade item out from stackpack and then fade in in its new location
             this.tweens.add({
                 targets: poppedItem,
