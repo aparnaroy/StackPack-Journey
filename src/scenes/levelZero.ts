@@ -144,6 +144,9 @@ export default class LevelZero extends Phaser.Scene {
             "assets/FreePop-Instructions.png"
         );
         this.load.image("pop-button", "assets/freePop2.png");
+
+        this.load.image("pause-button", "assets/pause2.png");
+        this.load.image("pause-popup", "assets/paused-popup.png")
     }
 
     create(data: GameMapData) {
@@ -331,7 +334,7 @@ export default class LevelZero extends Phaser.Scene {
         this.createHearts();
 
         // Creating Free Pop Button
-        const popButton = this.add.image(225, 35, "pop-button").setScale(0.31);
+        const popButton = this.add.image(225, 115, "pop-button").setScale(0.31);
         popButton.setInteractive();
 
         const originalScale = popButton.scaleX;
@@ -361,6 +364,45 @@ export default class LevelZero extends Phaser.Scene {
 
         popButton.on("pointerup", () => {
             this.freePop();
+        });
+
+        // Creating Pause Popup 
+        var pausePopup = this.add.image(650, 350, "pause-popup")
+        pausePopup.setOrigin(0.5)
+        pausePopup.setDepth(1);
+        pausePopup.setVisible(false);
+
+        // Creating Pause Button
+        const pauseButton = this.add.image(30, 30, "pause-button").setScale(0.25);
+        pauseButton.setInteractive();
+
+        const pauseOriginalScale = pauseButton.scaleX;
+        const pauseHoverScale = pauseOriginalScale * 1.05;
+
+        // Change scale on hover
+        pauseButton.on("pointerover", () => {
+            this.tweens.add({
+                targets: pauseButton,
+                scaleX: pauseHoverScale,
+                scaleY: pauseHoverScale,
+                duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+        });
+
+        // Restore original scale when pointer leaves
+        pauseButton.on("pointerout", () => {
+            this.tweens.add({
+                targets: pauseButton,
+                scaleX: pauseOriginalScale,
+                scaleY: pauseOriginalScale,
+                duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+        });
+
+        pauseButton.on("pointerup", () => {
+            pausePopup.setVisible(true);
         });
 
         // Set the depth of the character/player sprite to a high value
@@ -766,7 +808,7 @@ export default class LevelZero extends Phaser.Scene {
 
         for (let i = 0; i < 3; i++) {
             this.hearts.push(
-                this.add.sprite(35 + i * 50, 35, "heart").setScale(0.5)
+                this.add.sprite(35 + i * 50, 115, "heart").setScale(0.5)
             );
         }
     }

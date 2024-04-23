@@ -23,5 +23,6 @@
 -   Spikes 2: https://www.gamedeveloperstudio.com/graphics/viewgraphic.php?page-name=Animated-floor-spikes-game-asset&item=1u5v5h4w8i7s7t806o
 -   Hearts: https://opengameart.org/content/heart-full-and-empty-for-health
 -   Level Complete & Pause: https://www.freepik.com/free-vector/set-game-menu-selection-rpg-adventure-game-including-menu-level-selection-options_14245132.htm#fromView=search&page=1&position=7&uuid=041f1bcf-fd58-4f6b-a720-a753efcecd7a
--   Level Pause: https://www.vecteezy.com/vector-art/2128831-set-of-game-ui-level-complete-pause-menu-exit-and-rate-us-pop-up-for-gui-asset-elements-vector-illustration
+-   Level Pause: https://pzuh.itch.io/free-game-gui
+-   <a href='https://pngtree.com/freepng/casual-game-button-set-stock-illustration_5981555.html'>png image from pngtree.com/</a>
 
