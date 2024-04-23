@@ -64,7 +64,7 @@ export default class GameMap extends Phaser.Scene {
         level0Button.setInteractive();
 
         level0Button.on("pointerup", () => {
-            this.scene.start("Level0");
+            this.scene.start("Level1");
         });
 
         // Change scale on hover
@@ -115,7 +115,7 @@ export default class GameMap extends Phaser.Scene {
                             level1Button.setInteractive();
 
                             level1Button.on("pointerup", () => {
-                                this.scene.start("MainScene");
+                                this.scene.start("Level1");
                             });
 
                             // Change scale on hover
