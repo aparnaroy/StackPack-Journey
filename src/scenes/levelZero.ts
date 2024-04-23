@@ -146,7 +146,7 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("pop-button", "assets/freePop2.png");
 
         this.load.image("pause-button", "assets/pause2.png");
-        this.load.image("pause-popup", "assets/paused-popup.png")
+        this.load.image("pause-popup", "assets/paused-popup.png");
     }
 
     create(data: GameMapData) {
@@ -366,14 +366,61 @@ export default class LevelZero extends Phaser.Scene {
             this.freePop();
         });
 
-        // Creating Pause Popup 
-        var pausePopup = this.add.image(650, 350, "pause-popup")
-        pausePopup.setOrigin(0.5)
+        // Creating Pause Group for Buttons and Pause Popup
+        const pauseGroup = this.add.group();
+
+        // Creating Pause Popup
+        const pausePopup = this.add.image(650, 350, "pause-popup");
+        pausePopup.setOrigin(0.5);
         pausePopup.setDepth(1);
-        pausePopup.setVisible(false);
+        pauseGroup.add(pausePopup);
+
+        // Exit button for Pause popup
+        const exitButton = this.add
+            .rectangle(640, 530, 200, 75, 0xff0000)
+            .setDepth(1);
+        exitButton.setOrigin(0.5);
+        exitButton.setInteractive();
+        pauseGroup.add(exitButton);
+
+        // Return button for Pause popup
+        const returnButton = this.add
+            .rectangle(640, 425, 200, 75, 0xff0000)
+            .setDepth(1);
+        returnButton.setOrigin(0.5);
+        returnButton.setInteractive();
+        pauseGroup.add(returnButton);
+
+        // Resume button for Pause popup
+        const resumeButton = this.add
+            .rectangle(640, 325, 200, 75, 0xff0000)
+            .setDepth(1);
+        resumeButton.setOrigin(0.5);
+        resumeButton.setInteractive();
+        pauseGroup.add(resumeButton);
+
+        // No music button for Pause popup
+        const muteMusic = this.add
+            .rectangle(585, 220, 90, 90, 0xff0000)
+            .setDepth(1);
+        muteMusic.setOrigin(0.5);
+        muteMusic.setInteractive();
+        pauseGroup.add(muteMusic);
+
+        // No sound button for Pause popup
+        const muteSound = this.add
+            .rectangle(700, 220, 90, 90, 0xff0000)
+            .setDepth(1);
+        muteSound.setOrigin(0.5);
+        muteSound.setInteractive();
+        pauseGroup.add(muteSound);
+
+        pauseGroup.setVisible(false);
 
         // Creating Pause Button
-        const pauseButton = this.add.image(30, 30, "pause-button").setScale(0.25);
+        const pauseButton = this.add
+            .image(30, 30, "pause-button")
+            .setScale(0.25);
         pauseButton.setInteractive();
 
         const pauseOriginalScale = pauseButton.scaleX;
@@ -402,7 +449,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
-            pausePopup.setVisible(true);
+            pauseGroup.setVisible(true);
         });
 
         // Set the depth of the character/player sprite to a high value
