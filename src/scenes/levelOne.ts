@@ -207,20 +207,41 @@ export default class LevelOne extends Phaser.Scene {
         this.platforms = this.physics.add.staticGroup();
         this.ground = this.platforms.create(
             600,
-            790,
+            770,
             "LgPlatform"
         ) as Phaser.Physics.Arcade.Image;
         this.ground.setSize(this.ground.width + 1100, this.ground.height - 370);
-        //this.ground.setScale(5).refreshBody();
-        //this.ground.setAlpha(0);
 
         const platform1 = this.platforms
-            .create(350, 585, "SmPlatform")
-            .setScale(1, 1);
-        platform1.setSize(platform1.width - 110, platform1.height - 490);
-
+            .create(290, 585, "SmPlatform")
+            .setScale(0.7, 0.7);
+        const platform2 = this.platforms
+            .create(350, 340, "MdPlatform")
+            .setScale(0.7, 0.7);
+        const platform3 = this.platforms
+            .create(810, 450, "LgPlatform")
+            .setScale(1.3, 0.75);
+        const platform4 = this.platforms
+            .create(900, 250, "SmPlatform")
+            .setScale(0.7, 0.7);
+        platform1
+            .setSize(platform1.width - 210, platform1.height - 550)
+            .setOffset(110, 260);
+        platform2
+            .setSize(platform2.width - 150, platform2.height - 550)
+            .setOffset(75, 260);
+        platform3
+            .setSize(platform2.width + 60, platform2.height - 550)
+            .setOffset(-30, 260);
+        platform4
+            .setSize(platform2.width - 210, platform2.height - 550)
+            .setOffset(105, 260);
         this.physics.add.collider(this.player, this.platforms);
         this.key = this.add.sprite(1200, 650, "key").setScale(2.5, 2.5);
+
+        this.player
+            .setSize(this.player.width - 64, this.player.height)
+            .setOffset(32, 0);
     }
 
     update() {
@@ -234,7 +255,7 @@ export default class LevelOne extends Phaser.Scene {
             if (!this.isColliding) {
                 if (this.cursors.up.isDown && this.player.body?.touching.down) {
                     this.player.anims.play("jump_right", true);
-                    this.player.setVelocityY(-530);
+                    this.player.setVelocityY(-470);
                 } else if (this.cursors.right.isDown) {
                     this.player.setVelocityX(290);
                     this.player.anims.play("right", true);
