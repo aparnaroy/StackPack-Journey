@@ -152,6 +152,8 @@ export default class LevelZero extends Phaser.Scene {
         this.level2State = data.level2State;
         this.level3State = data.level3State;
 
+        this.lastDirection = "right";
+
         const backgroundImage = this.add
             .image(0, 0, "level0-background")
             .setOrigin(0, 0);
@@ -470,7 +472,7 @@ export default class LevelZero extends Phaser.Scene {
         this.orderInstruction.setVisible(false);
         this.freepopDialogue = this.add
             .image(190, 130, "FreePopInstructions")
-            .setScale(0.41);
+            .setScale(0.45);
         this.freepopDialogue.setVisible(false);
 
         this.pushDialogue.setVisible(false);
@@ -762,6 +764,7 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private createHearts() {
+        this.lives = 3;
         this.hearts = [];
 
         for (let i = 0; i < 3; i++) {
