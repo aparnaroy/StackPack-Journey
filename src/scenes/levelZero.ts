@@ -383,8 +383,6 @@ export default class LevelZero extends Phaser.Scene {
         exitButton.setInteractive();
         pauseGroup.add(exitButton);
 
-        //const originalFillColor = exitButton.fillColor;
-
         exitButton.on("pointerover", () => {
             exitButton.setFillStyle(0xffff00).setAlpha(0.5);
         });
@@ -398,20 +396,45 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         // Return button for Pause popup
-        const returnButton = this.add
-            .rectangle(640, 425, 200, 75, 0xff0000)
+        const restartButton = this.add
+            .rectangle(640, 425, 200, 75)
             .setDepth(1);
-        returnButton.setOrigin(0.5);
-        returnButton.setInteractive();
-        pauseGroup.add(returnButton);
+        restartButton.setOrigin(0.5);
+        restartButton.setInteractive();
+        pauseGroup.add(restartButton);
+
+        restartButton.on("pointerover", () => {
+            restartButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        restartButton.on("pointerout", () => {
+            restartButton.setFillStyle();
+        });
+
+        restartButton.on("pointerup", () => {
+            this.scene.start("Level0");
+            
+        });
 
         // Resume button for Pause popup
         const resumeButton = this.add
-            .rectangle(640, 325, 200, 75, 0xff0000)
+            .rectangle(640, 325, 200, 75)
             .setDepth(1);
         resumeButton.setOrigin(0.5);
         resumeButton.setInteractive();
         pauseGroup.add(resumeButton);
+
+        resumeButton.on("pointerover", () => {
+            resumeButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        resumeButton.on("pointerout", () => {
+            resumeButton.setFillStyle();
+        });
+
+        resumeButton.on("pointerup", () => {
+            resumeButton.setVisible(false);
+        });
 
         // No music button for Pause popup
         const muteMusic = this.add
