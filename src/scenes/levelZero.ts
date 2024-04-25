@@ -377,11 +377,25 @@ export default class LevelZero extends Phaser.Scene {
 
         // Exit button for Pause popup
         const exitButton = this.add
-            .rectangle(640, 530, 200, 75, 0xff0000)
+            .rectangle(640, 530, 200, 75)
             .setDepth(1);
         exitButton.setOrigin(0.5);
         exitButton.setInteractive();
         pauseGroup.add(exitButton);
+
+        //const originalFillColor = exitButton.fillColor;
+
+        exitButton.on("pointerover", () => {
+            exitButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        exitButton.on("pointerout", () => {
+            exitButton.setFillStyle();
+        });
+
+        exitButton.on("pointerup", () => {
+            pauseGroup.setVisible(false);
+        });
 
         // Return button for Pause popup
         const returnButton = this.add
