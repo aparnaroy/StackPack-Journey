@@ -392,7 +392,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
-            pauseGroup.setVisible(false);
+            this.scene.start("game-map")
         });
 
         // Return button for Pause popup
@@ -433,24 +433,50 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         resumeButton.on("pointerup", () => {
-            resumeButton.setVisible(false);
+            pauseGroup.setVisible(false);
         });
 
-        // No music button for Pause popup
+        // No music button for Pause popup 
         const muteMusic = this.add
-            .rectangle(585, 220, 90, 90, 0xff0000)
+            .rectangle(585, 220, 90, 90)
             .setDepth(1);
         muteMusic.setOrigin(0.5);
         muteMusic.setInteractive();
         pauseGroup.add(muteMusic);
 
+        muteMusic.on("pointerover", () => {
+            muteMusic.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        muteMusic.on("pointerout", () => {
+            muteMusic.setFillStyle();
+        });
+
+        // Has to get fixed once we have sound
+        muteMusic.on("pointerup", () => {
+            pauseGroup.setVisible(false);
+        });
+
         // No sound button for Pause popup
         const muteSound = this.add
-            .rectangle(700, 220, 90, 90, 0xff0000)
+            .rectangle(700, 220, 90, 90)
             .setDepth(1);
         muteSound.setOrigin(0.5);
         muteSound.setInteractive();
         pauseGroup.add(muteSound);
+
+        muteSound.on("pointerover", () => {
+            muteSound.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        muteSound.on("pointerout", () => {
+            muteSound.setFillStyle();
+        });
+
+        // Has to get fixed once we have sound
+        muteSound.on("pointerup", () => {
+            pauseGroup.setVisible(false);
+        });
 
         pauseGroup.setVisible(false);
 
