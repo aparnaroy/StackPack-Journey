@@ -510,9 +510,9 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         // Creating timer
-        this.timerText = this.add.text(45, 30, "Time: 0", {
+        this.timerText = this.add.text(60, 15, "Time: 0", {
             fontSize: "32px",
-            color: "#ffffff",
+            color: "#000000",
         });
         this.startTime = this.time.now;
 
