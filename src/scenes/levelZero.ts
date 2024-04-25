@@ -61,6 +61,11 @@ export default class LevelZero extends Phaser.Scene {
     private level2State: number;
     private level3State: number;
 
+    private timerText: Phaser.GameObjects.Text;
+    private startTime: number;
+    private elapsedTime = 0;
+
+
     constructor() {
         super({ key: "Level0" });
     }
@@ -376,9 +381,7 @@ export default class LevelZero extends Phaser.Scene {
         pauseGroup.add(pausePopup);
 
         // Exit button for Pause popup
-        const exitButton = this.add
-            .rectangle(640, 530, 200, 75)
-            .setDepth(1);
+        const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(1);
         exitButton.setOrigin(0.5);
         exitButton.setInteractive();
         pauseGroup.add(exitButton);
@@ -392,13 +395,11 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
-            this.scene.start("game-map")
+            this.scene.start("game-map");
         });
 
         // Return button for Pause popup
-        const restartButton = this.add
-            .rectangle(640, 425, 200, 75)
-            .setDepth(1);
+        const restartButton = this.add.rectangle(640, 425, 200, 75).setDepth(1);
         restartButton.setOrigin(0.5);
         restartButton.setInteractive();
         pauseGroup.add(restartButton);
@@ -413,13 +414,10 @@ export default class LevelZero extends Phaser.Scene {
 
         restartButton.on("pointerup", () => {
             this.scene.start("Level0");
-            
         });
 
         // Resume button for Pause popup
-        const resumeButton = this.add
-            .rectangle(640, 320, 200, 75)
-            .setDepth(1);
+        const resumeButton = this.add.rectangle(640, 320, 200, 75).setDepth(1);
         resumeButton.setOrigin(0.5);
         resumeButton.setInteractive();
         pauseGroup.add(resumeButton);
@@ -436,10 +434,8 @@ export default class LevelZero extends Phaser.Scene {
             pauseGroup.setVisible(false);
         });
 
-        // No music button for Pause popup 
-        const muteMusic = this.add
-            .rectangle(585, 217, 90, 90)
-            .setDepth(1);
+        // No music button for Pause popup
+        const muteMusic = this.add.rectangle(585, 217, 90, 90).setDepth(1);
         muteMusic.setOrigin(0.5);
         muteMusic.setInteractive();
         pauseGroup.add(muteMusic);
@@ -458,9 +454,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         // No sound button for Pause popup
-        const muteSound = this.add
-            .rectangle(700, 217, 90, 90)
-            .setDepth(1);
+        const muteSound = this.add.rectangle(700, 217, 90, 90).setDepth(1);
         muteSound.setOrigin(0.5);
         muteSound.setInteractive();
         pauseGroup.add(muteSound);
@@ -514,6 +508,13 @@ export default class LevelZero extends Phaser.Scene {
         pauseButton.on("pointerup", () => {
             pauseGroup.setVisible(true);
         });
+
+        // Creating timer
+        this.timerText = this.add.text(45, 30, "Time: 0", {
+            fontSize: "32px",
+            color: "#ffffff",
+        });
+        this.startTime = this.time.now;
 
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
@@ -1021,6 +1022,14 @@ export default class LevelZero extends Phaser.Scene {
         });
     }
 
+    private formatTime(milliseconds: number){
+        var mins = Math.floor(milliseconds / 60000);
+        var secs = Math.floor((milliseconds % 60000) / 1000);
+        //var milliseconds = Math.floor((milliseconds % 1000));
+
+        return mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0')
+    }
+
     update() {
         // Continuously make glowing spot small and big
         const minScaleX = 0.18; // Minimum scale on x-axis
@@ -1382,5 +1391,9 @@ export default class LevelZero extends Phaser.Scene {
                 this.popButton2?.setVisible(false);
             }
         }
+
+        // Updating timer
+        this.elapsedTime = this.time.now - this.startTime;
+        this.timerText.setText("Time: "+ this.formatTime(this.elapsedTime))
     }
 }
