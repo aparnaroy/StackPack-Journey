@@ -334,7 +334,7 @@ export default class LevelZero extends Phaser.Scene {
         this.createHearts();
 
         // Creating Free Pop Button
-        const popButton = this.add.image(225, 115, "pop-button").setScale(0.31);
+        const popButton = this.add.image(225, 80, "pop-button").setScale(0.31);
         popButton.setInteractive();
 
         const originalScale = popButton.scaleX;
@@ -418,7 +418,7 @@ export default class LevelZero extends Phaser.Scene {
 
         // Resume button for Pause popup
         const resumeButton = this.add
-            .rectangle(640, 325, 200, 75)
+            .rectangle(640, 320, 200, 75)
             .setDepth(1);
         resumeButton.setOrigin(0.5);
         resumeButton.setInteractive();
@@ -438,7 +438,7 @@ export default class LevelZero extends Phaser.Scene {
 
         // No music button for Pause popup 
         const muteMusic = this.add
-            .rectangle(585, 220, 90, 90)
+            .rectangle(585, 217, 90, 90)
             .setDepth(1);
         muteMusic.setOrigin(0.5);
         muteMusic.setInteractive();
@@ -459,7 +459,7 @@ export default class LevelZero extends Phaser.Scene {
 
         // No sound button for Pause popup
         const muteSound = this.add
-            .rectangle(700, 220, 90, 90)
+            .rectangle(700, 217, 90, 90)
             .setDepth(1);
         muteSound.setOrigin(0.5);
         muteSound.setInteractive();
@@ -918,7 +918,7 @@ export default class LevelZero extends Phaser.Scene {
 
         for (let i = 0; i < 3; i++) {
             this.hearts.push(
-                this.add.sprite(35 + i * 50, 115, "heart").setScale(0.5)
+                this.add.sprite(32 + i * 50, 80, "heart").setScale(0.5)
             );
         }
     }
