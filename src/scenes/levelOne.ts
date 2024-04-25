@@ -1,8 +1,7 @@
 import Phaser from "phaser";
-import PhaserLogo from "../objects/phaserLogo";
-import FpsText from "../objects/fpsText";
 
 export default class LevelOne extends Phaser.Scene {
+    // General Assets
     private player?: Phaser.Physics.Arcade.Sprite;
     private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
     private key?: Phaser.GameObjects.Sprite;
@@ -12,9 +11,41 @@ export default class LevelOne extends Phaser.Scene {
     private vineItem?: Phaser.GameObjects.Sprite;
     private stone?: Phaser.GameObjects.Sprite;
     private ground?: Phaser.Physics.Arcade.Image;
+    private monkey?: Phaser.Physics.Arcade.Sprite;
+    private river?: Phaser.Physics.Arcade.Sprite;
+    private groundRectangle?: Phaser.GameObjects.Rectangle;
+    private stackRectangle?: Phaser.GameObjects.Rectangle;
 
+    // Highlight Boxes
+    private stoneDetectionBox?: Phaser.GameObjects.Rectangle;
+    private stoneHighlightBox?: Phaser.GameObjects.Rectangle;
+    private stonePlatform?: Phaser.Physics.Arcade.Image;
+    private stonePlatforms?: Phaser.Physics.Arcade.StaticGroup;
+
+    private mushroomDetectionBox?: Phaser.GameObjects.Rectangle;
+    private mushroomHighlightBox?: Phaser.GameObjects.Rectangle;
+
+    private bananaDetectionBox?: Phaser.GameObjects.Rectangle;
+    private bananaHighlightBox?: Phaser.GameObjects.Rectangle;
+
+    private vineDetectionBox?: Phaser.GameObjects.Rectangle;
+    private vineHighlightBox?: Phaser.GameObjects.Rectangle;
+
+    // Functionality
+    private stack: Phaser.GameObjects.Sprite[] = [];
+    private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
+    private keyE?: Phaser.Input.Keyboard.Key;
+    private keyF?: Phaser.Input.Keyboard.Key;
+    private keyEPressed: boolean = false; // Flag to check if 'E' was pressed to prevent picking up multiple items from one long key press
+    private keyFPressed: boolean = false;
+    private isPushingMap: { [key: string]: boolean } = {};
+    private hearts?: Phaser.GameObjects.Sprite[] = [];
+    private lives: number = 3;
+
+    // For Player animations
     private lastDirection: string = "right";
     private isColliding: boolean = false;
+    private collidingWithWater: boolean = false;
 
     constructor() {
         super({ key: "Level1" });
@@ -95,6 +126,9 @@ export default class LevelOne extends Phaser.Scene {
         this.load.image("monkey", "assets/level1/monkey.png");
         this.load.image("mushroom", "assets/level1/mushroom.png");
         this.load.image("vineItem", "assets/level1/vineItem.png");
+        this.load.image("stone", "assets/level1/stone.png");
+        this.load.image("river", "assets/level1/river.png");
+        this.load.image("heart", "assets/heart_16.png");
     }
 
     create() {
@@ -112,7 +146,7 @@ export default class LevelOne extends Phaser.Scene {
         stackpack.setScale(0.26, 0.26);
 
         this.player = this.physics.add
-            .sprite(100, 450, "gal_right")
+            .sprite(100, 600, "gal_right")
             .setScale(0.77, 0.77)
             .setOrigin(0.5, 0.5);
         this.player.setCollideWorldBounds(true);
@@ -212,6 +246,16 @@ export default class LevelOne extends Phaser.Scene {
         ) as Phaser.Physics.Arcade.Image;
         this.ground.setSize(this.ground.width + 1100, this.ground.height - 370);
 
+        this.groundRectangle = this.add.rectangle(
+            600,
+            770,
+            1400,
+            200,
+            0x172808
+        );
+
+        this.groundRectangle.depth = 99;
+
         const platform1 = this.platforms
             .create(290, 585, "SmPlatform")
             .setScale(0.7, 0.7);
@@ -237,11 +281,481 @@ export default class LevelOne extends Phaser.Scene {
             .setSize(platform2.width - 210, platform2.height - 550)
             .setOffset(105, 260);
         this.physics.add.collider(this.player, this.platforms);
-        this.key = this.add.sprite(1200, 650, "key").setScale(2.5, 2.5);
+
+        // KEY ITEM
+        this.key = this.add.sprite(290, 270, "key").setScale(2.5, 2.5);
+        this.physics.add.collider(this.key, this.platforms);
+        this.key.setSize(this.key.width - 100, this.key.height - 100);
 
         this.player
-            .setSize(this.player.width - 64, this.player.height)
-            .setOffset(32, 0);
+            .setSize(this.player.width - 64, this.player.height - 12)
+            .setOffset(32, 10).depth = 100;
+
+        // ALL ITEMS SPAWNING
+        this.banana = this.physics.add
+            .sprite(900, 380, "banana")
+            .setScale(0.5, 0.5);
+        this.physics.add.collider(this.banana, this.platforms);
+        this.banana.setSize(this.banana.width - 100, this.banana.height - 400);
+
+        this.stone = this.physics.add
+            .sprite(300, 620, "stone")
+            .setScale(0.3, 0.3);
+        this.physics.add.collider(this.stone, this.platforms);
+        this.stone.setSize(this.stone.width + 200, this.stone.height + 20);
+        this.stone.setName("stone");
+
+        this.mushroom = this.physics.add
+            .sprite(300, 500, "mushroom")
+            .setScale(0.5, 0.5);
+        this.physics.add.collider(this.mushroom, this.platforms);
+        this.mushroom.setSize(
+            this.mushroom.width - 100,
+            this.mushroom.height - 400
+        );
+
+        this.monkey = this.physics.add
+            .sprite(390, 200, "monkey")
+            .setScale(0.5, 0.5);
+        this.physics.add.collider(this.monkey, this.platforms);
+        this.monkey.setSize(this.monkey.width - 300, this.monkey.height - 200);
+
+        this.vineItem = this.physics.add
+            .sprite(700, 350, "vineItem")
+            .setScale(0.5, 0.5);
+        this.physics.add.collider(this.vineItem, this.platforms);
+        this.vineItem.setSize(
+            this.vineItem.width - 100,
+            this.vineItem.height - 350
+        );
+
+        this.river = this.physics.add
+            .sprite(700, 500, "river")
+            .setScale(0.8, 0.8);
+        this.physics.add.collider(this.river, this.platforms);
+        this.river
+            .setSize(this.river.width - 20, this.river.height - 450)
+            .setOffset(10, 200);
+        this.physics.add.collider(this.river, this.player);
+        this.river.setPushable(false);
+
+        // Handling Pushing.Popping
+        this.keyE = this.input.keyboard?.addKey(
+            Phaser.Input.Keyboard.KeyCodes.E
+        );
+        this.keyF = this.input.keyboard?.addKey(
+            Phaser.Input.Keyboard.KeyCodes.F
+        );
+
+        // PULSATING
+        this.createPulsateEffect(
+            this,
+            this.mushroom,
+            1.1, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+        this.createPulsateEffect(
+            this,
+            this.banana,
+            1.1, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+        this.createPulsateEffect(
+            this,
+            this.vineItem,
+            1.1, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+        this.createPulsateEffect(
+            this,
+            this.stone,
+            1.1, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+
+        // Create Lives
+        this.createHearts();
+
+        // Invisible check boxes
+        /*const stackPlatform = this.platforms
+            .create(1170, 300, "SmPlatform")
+            .setScale(0.5, 0.5);
+        this.physics.add.collider(stackPlatform, this.stone);
+        stackPlatform.setSize(
+            stackPlatform.width - 300,
+            stackPlatform.height - 500
+        );
+        stackPlatform.setOffset(150, 250);
+        stackPlatform.setVisible(false);*/
+
+        this.stoneDetectionBox = this.add.rectangle(540, 400, 100, 150);
+        this.physics.world.enable(this.stoneDetectionBox);
+        this.physics.add.collider(this.stoneDetectionBox, this.ground);
+        this.physics.add.collider(this.stoneDetectionBox, this.river);
+
+        this.stoneHighlightBox = this.add.rectangle(
+            700,
+            600,
+            100,
+            80,
+            0xffff00
+        );
+        this.stoneHighlightBox.setAlpha(0.3);
+        this.stoneHighlightBox.setVisible(false);
+
+        this.stonePlatforms = this.physics.add.staticGroup();
+        this.stonePlatform = this.stonePlatforms.create(
+            700,
+            600,
+            "SmPlatform"
+        ) as Phaser.Physics.Arcade.Image;
+        this.stonePlatform
+            .setSize(
+                this.stonePlatform.width - 250,
+                this.stonePlatform.height - 500
+            )
+            .setScale(0.5, 0.5);
+        this.stonePlatform.setVisible(false);
+        this.physics.add.collider(this.stonePlatform, this.player);
+        this.stonePlatform.disableBody(true, true);
+
+        // setting depths
+        this.stone.depth = 1;
+        this.river.depth = 0;
+    }
+
+    // HELPER FUNCTIONS
+    private updateStackView() {
+        const offsetX = 1170; // starting X position for stack items
+        const offsetY = 270; // starting Y position for stack items
+        const padding = 20;
+
+        let currTotalHeight = 0;
+
+        this.stack.forEach((item) => {
+            // Calculate and set (x, y) position of stack items in stackpack view
+            item.setOrigin(0.5, 0);
+            const stackItemX = offsetX;
+            const stackItemY =
+                offsetY - item.displayHeight - currTotalHeight - padding;
+            currTotalHeight += item.displayHeight + padding;
+
+            // Animation to drop the item into its position in the stackpack
+            this.tweens.add({
+                targets: item,
+                x: stackItemX,
+                y: stackItemY,
+                duration: 800,
+                ease: "Cubic.InOut",
+                onComplete: () => {
+                    this.isPushingMap[item.name] = false;
+                },
+            });
+        });
+    }
+    private collectItem(item: Phaser.GameObjects.Sprite) {
+        if (this.collectedItems.includes(item)) {
+            return;
+        }
+
+        this.isPushingMap[item.name] = true;
+
+        // Save the x and y scales of the collected item
+        const currScaleX = item.scaleX;
+        const currScaleY = item.scaleY;
+
+        // Animation to make item bigger, then smaller, and then fly up to stackpack
+        this.tweens.add({
+            targets: item,
+            scaleX: currScaleX * 1.5, // Scale up item size for a bit
+            scaleY: currScaleY * 1.5,
+            duration: 180,
+            ease: "Exponential.InOut",
+            onComplete: () => {
+                this.tweens.add({
+                    targets: item,
+                    scaleX: currScaleX, // Scale down item back to normal
+                    scaleY: currScaleY,
+                    duration: 150,
+                    ease: "Exponential.InOut",
+                    onComplete: () => {
+                        // Move item to the stackpack view
+                        this.tweens.add({
+                            targets: item,
+                            x: 1170,
+                            y: -10, // Y position of item before it is dropped into its actual position in stackpack
+                            scaleX: currScaleX * 0.5, // Scale down the item for stackpack view
+                            scaleY: currScaleY * 0.5,
+                            rotation: Math.PI * 2, // Rotate the item while moving it to stackpack
+                            duration: 940,
+                            ease: "Cubic.In",
+                            onComplete: () => {
+                                // Add the item to the stack
+                                this.stack.push(item);
+                                this.updateStackView();
+                            },
+                        });
+                    },
+                });
+            },
+        });
+
+        // Add the item to the grand list of collected items
+        this.collectedItems.push(item);
+        this.stopPulsateEffect();
+
+        this.updateStackView();
+    }
+
+    private useItem() {
+        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
+            return; // Prevent popping if a push is in progress
+        }
+
+        // Remove the top item from the stackpack
+        const poppedItem = this.stack.pop();
+
+        if (poppedItem) {
+            // Animation to fade item out from stackpack and then fade in in its new location
+            this.tweens.add({
+                targets: poppedItem,
+                alpha: 0, // Fade out
+                duration: 200,
+                onComplete: () => {
+                    // Set item origin back to default (center)
+                    poppedItem.setOrigin(0.5, 0.5);
+
+                    // Move popped item to location it will be used
+                    if (poppedItem.name === "stone") {
+                        poppedItem.setPosition(700, 580).setScale(0.2, 0.2);
+                        this.stoneHighlightBox?.setVisible(false);
+                        this.stonePlatform?.enableBody(true, 710, 718);
+                    }
+                    /*if (poppedItem.name === "plank") {
+                        poppedItem.setPosition(815, 600);
+                        this.plankHighlightBox.setVisible(false);
+                        this.plankPlatform?.enableBody(true, 938, 650);
+                    }
+                    if (poppedItem.name === "key") {
+                        this.popButton2?.setVisible(false);
+                        this.door?.setTexture("opendoor");
+                        // Make the player get sucked into the door
+                        if (this.player && this.door) {
+                            this.tweens.add({
+                                targets: this.player,
+                                scaleX: 0.27,
+                                scaleY: 0.27,
+                                rotation: Math.PI * 3,
+                                x: this.door.x - 10,
+                                y: this.door.y + 15,
+                                duration: 800,
+                                onComplete: () => {
+                                    this.player?.disableBody(true, true);
+                                    // TODO: Add leve complete popup (w/ restart and continue options)
+                                    // Transition to game map
+                                    setTimeout(() => {
+                                        this.scene.start("game-map", {
+                                            level1JustUnlocked: true,
+                                        });
+                                    }, 2000);
+                                },
+                            });
+                        }
+                    }*/
+
+                    this.tweens.add({
+                        targets: poppedItem,
+                        scaleX: poppedItem.scaleX * 2,
+                        scaleY: poppedItem.scaleY * 2,
+                        alpha: 1, // Fade in
+                        duration: 300,
+                        onComplete: () => {
+                            this.updateStackView();
+                        },
+                    });
+                },
+            });
+        }
+    }
+
+    // Animation for using free pop
+    private freePop() {
+        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
+            return; // Prevent popping if a push is in progress
+        }
+
+        //this.loseLife();
+
+        // Remove the top item from the stackpack and from grand list of collected items
+        const poppedItem = this.stack.pop();
+        this.collectedItems.pop();
+
+        if (poppedItem && this.lives !== 0) {
+            // Animation to fade item out from stackpack and then fade in in its new location
+            this.tweens.add({
+                targets: poppedItem,
+                alpha: 0, // Fade out
+                duration: 200,
+                onComplete: () => {
+                    // Set item origin back to default (center)
+                    poppedItem.setOrigin(0.5, 0.5);
+
+                    let originalScaleX = 0;
+                    let originalScaleY = 0;
+                    // Move popped item to its original location
+                    if (poppedItem.name === "ladder") {
+                        poppedItem.setPosition(1050, 550);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
+                    }
+                    if (poppedItem.name === "plank") {
+                        poppedItem.setPosition(350, 530);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
+                    }
+                    if (poppedItem.name === "key") {
+                        poppedItem.setPosition(1200, 650);
+                        originalScaleX = 2.5;
+                        originalScaleY = 2.5;
+                    }
+
+                    this.tweens.add({
+                        targets: poppedItem,
+                        scaleX: originalScaleX,
+                        scaleY: originalScaleY,
+                        alpha: 1, // Fade in
+                        duration: 300,
+                        onComplete: () => {
+                            this.updateStackView();
+                            if (poppedItem.name === "ladder") {
+                                this.createPulsateEffect(
+                                    this,
+                                    poppedItem,
+                                    1.1,
+                                    1000
+                                );
+                            }
+                            if (poppedItem.name === "plank") {
+                                this.createPulsateEffect(
+                                    this,
+                                    poppedItem,
+                                    1.15,
+                                    1000
+                                );
+                            }
+                        },
+                    });
+                },
+            });
+        }
+    }
+
+    private createHearts() {
+        this.hearts = [];
+
+        for (let i = 0; i < this.lives; i++) {
+            this.hearts.push(
+                this.add.sprite(35 + i * 50, 35, "heart").setScale(0.5)
+            );
+        }
+    }
+
+    /*private loseLife() {
+        if (!this.isColliding && this.player) {
+            this.isColliding = true;
+
+            this.player.setVelocity(0, 0);
+            if (this.lastDirection === "right") {
+                this.player.anims.play("hurt_right");
+            } else {
+                this.player.anims.play("hurt_left");
+            }
+            this.lives--;
+
+            // Removing hearts from free pop
+            const heartToRemove = this.hearts?.pop();
+            if (heartToRemove) {
+                //heartToRemove.destroy();
+                this.tweens.add({
+                    targets: heartToRemove,
+                    scaleX: 0.8,
+                    scaleY: 0.8,
+                    duration: 200,
+                    yoyo: true,
+                    onComplete: () => {
+                        heartToRemove.setTint(0x000000); // Make heart black
+                        heartToRemove.setScale(0.5); // Reset the heart's scale
+                    },
+                });
+            }
+
+            if (this.lives === 0) {
+                this.playerDie();
+            }
+
+            // Reset isColliding flag
+            this.time.delayedCall(
+                500,
+                () => {
+                    this.isColliding = false;
+                    if (this.collidingWithRiver) {
+                        this.player?.setPosition(100, 450); // Reset player's position
+                        this.collidingWithRiver = false;
+                    }
+                },
+                [],
+                this
+            );
+        }
+    } */
+
+    private playerDie() {
+        this.player?.setVelocity(0, 0);
+        this.player?.setTint(0xff0000);
+
+        this.time.delayedCall(300, () => {
+            this.scene.launch("YouDiedScene", {
+                previousLevelKey: this.scene.key,
+            });
+            this.player?.clearTint();
+
+            // Reset the stack and collected items
+            this.stack = [];
+            this.updateStackView();
+            this.collectedItems = [];
+            this.lives = 3;
+            this.createHearts();
+        });
+    }
+
+    private createPulsateEffect(
+        scene: Phaser.Scene,
+        target: Phaser.GameObjects.GameObject,
+        scaleFactor: number,
+        duration: number
+    ): Phaser.Tweens.Tween | null {
+        // Check if the item has been collected
+        if (this.collectedItems.includes(target as Phaser.GameObjects.Sprite)) {
+            return null; // Don't create the tween if the item has been collected
+        }
+        return scene.tweens.add({
+            targets: target,
+            scaleX: `*=${scaleFactor}`,
+            scaleY: `*=${scaleFactor}`,
+            duration: duration,
+            yoyo: true, // Reverse back to original scale
+            repeat: -1, // Repeat indefinitely
+        });
+    }
+
+    private stopPulsateEffect() {
+        // Stop pulsating collected items
+        this.collectedItems.forEach((item) => {
+            const tween = this.tweens.getTweensOf(item);
+            if (tween.length > 1) {
+                tween[0].stop();
+            }
+        });
     }
 
     update() {
@@ -273,6 +787,74 @@ export default class LevelOne extends Phaser.Scene {
                         this.player.anims.play("idle_left", true);
                     }
                 }
+            }
+        }
+
+        // ITEM COLLECTION
+        if (this.player && this.keyE?.isDown && !this.keyEPressed) {
+            this.keyEPressed = true; // Set the flag for the E key being pressed to true
+
+            // Check if the player is close enough to the key, ladder, or plank, and if so, collect it
+            if (
+                this.key &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.key.x,
+                    this.key.y
+                ) < 100
+            ) {
+                this.collectItem(this.key);
+            }
+            if (
+                this.stone &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.stone.x,
+                    this.stone.y
+                ) < 100
+            ) {
+                this.collectItem(this.stone);
+            }
+            if (
+                this.mushroom &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.mushroom.x,
+                    this.mushroom.y
+                ) < 100
+            ) {
+                this.collectItem(this.mushroom);
+            }
+        }
+        // Check if 'E' key is released
+        if (this.keyE?.isUp) {
+            this.keyEPressed = false; // Reset the keyEPressed flag when the E key is released
+        }
+
+        // Check if 'F' key is released
+        if (this.keyF?.isUp) {
+            this.keyFPressed = false; // Reset the keyFPressed flag when the F key is released
+        }
+
+        // Detection Box Checks
+        if (this.player && this.stack.length > 0 && this.stoneDetectionBox) {
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.stoneDetectionBox.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "stone"
+            ) {
+                this.stoneHighlightBox?.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else {
+                this.stoneHighlightBox?.setVisible(false);
             }
         }
     }
