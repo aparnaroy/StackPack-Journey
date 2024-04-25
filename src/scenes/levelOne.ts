@@ -7,9 +7,10 @@ export default class LevelOne extends Phaser.Scene {
     private key?: Phaser.GameObjects.Sprite;
     private platforms?: Phaser.Physics.Arcade.StaticGroup;
     private banana?: Phaser.GameObjects.Sprite;
-    private mushroom?: Phaser.GameObjects.Sprite;
+    private bananaBubble?: Phaser.GameObjects.Image;
+    private mushroom?: Phaser.Physics.Arcade.Sprite;
     private vineItem?: Phaser.GameObjects.Sprite;
-    private stone?: Phaser.GameObjects.Sprite;
+    private stone?: Phaser.Physics.Arcade.Sprite;
     private ground?: Phaser.Physics.Arcade.Image;
     private monkey?: Phaser.Physics.Arcade.Sprite;
     private river?: Phaser.Physics.Arcade.Sprite;
@@ -24,6 +25,7 @@ export default class LevelOne extends Phaser.Scene {
 
     private mushroomDetectionBox?: Phaser.GameObjects.Rectangle;
     private mushroomHighlightBox?: Phaser.GameObjects.Rectangle;
+    private mushroomPopped?: boolean = false;
 
     private bananaDetectionBox?: Phaser.GameObjects.Rectangle;
     private bananaHighlightBox?: Phaser.GameObjects.Rectangle;
@@ -286,6 +288,7 @@ export default class LevelOne extends Phaser.Scene {
         this.key = this.add.sprite(290, 270, "key").setScale(2.5, 2.5);
         this.physics.add.collider(this.key, this.platforms);
         this.key.setSize(this.key.width - 100, this.key.height - 100);
+        this.key.setName("key");
 
         this.player
             .setSize(this.player.width - 64, this.player.height - 12)
@@ -297,6 +300,7 @@ export default class LevelOne extends Phaser.Scene {
             .setScale(0.5, 0.5);
         this.physics.add.collider(this.banana, this.platforms);
         this.banana.setSize(this.banana.width - 100, this.banana.height - 400);
+        this.banana.setName("banana");
 
         this.stone = this.physics.add
             .sprite(300, 620, "stone")
@@ -313,12 +317,17 @@ export default class LevelOne extends Phaser.Scene {
             this.mushroom.width - 100,
             this.mushroom.height - 400
         );
+        this.mushroom.setName("mushroom");
+        this.mushroom.setPushable(false);
 
         this.monkey = this.physics.add
             .sprite(390, 200, "monkey")
             .setScale(0.5, 0.5);
         this.physics.add.collider(this.monkey, this.platforms);
         this.monkey.setSize(this.monkey.width - 300, this.monkey.height - 200);
+        this.monkey.setName("monkey");
+        this.monkey.setPushable(false);
+        this.physics.add.collider(this.monkey, this.player);
 
         this.vineItem = this.physics.add
             .sprite(700, 350, "vineItem")
@@ -328,9 +337,10 @@ export default class LevelOne extends Phaser.Scene {
             this.vineItem.width - 100,
             this.vineItem.height - 350
         );
+        this.vineItem.setName("vineItem");
 
         this.river = this.physics.add
-            .sprite(700, 500, "river")
+            .sprite(700, 630, "river")
             .setScale(0.8, 0.8);
         this.physics.add.collider(this.river, this.platforms);
         this.river
@@ -338,6 +348,11 @@ export default class LevelOne extends Phaser.Scene {
             .setOffset(10, 200);
         this.physics.add.collider(this.river, this.player);
         this.river.setPushable(false);
+        this.river.setName("river");
+
+        this.bananaBubble = this.add
+            .image(280, 130, "bananaBubble")
+            .setScale(0.7, 0.7);
 
         // Handling Pushing.Popping
         this.keyE = this.input.keyboard?.addKey(
@@ -388,7 +403,7 @@ export default class LevelOne extends Phaser.Scene {
         stackPlatform.setOffset(150, 250);
         stackPlatform.setVisible(false);*/
 
-        this.stoneDetectionBox = this.add.rectangle(540, 400, 100, 150);
+        this.stoneDetectionBox = this.add.rectangle(540, 600, 100, 150);
         this.physics.world.enable(this.stoneDetectionBox);
         this.physics.add.collider(this.stoneDetectionBox, this.ground);
         this.physics.add.collider(this.stoneDetectionBox, this.river);
@@ -418,6 +433,34 @@ export default class LevelOne extends Phaser.Scene {
         this.stonePlatform.setVisible(false);
         this.physics.add.collider(this.stonePlatform, this.player);
         this.stonePlatform.disableBody(true, true);
+
+        this.mushroomDetectionBox = this.add.rectangle(1070, 600, 100, 150);
+        this.physics.world.enable(this.mushroomDetectionBox);
+        this.physics.add.collider(this.mushroomDetectionBox, this.ground);
+
+        this.mushroomHighlightBox = this.add.rectangle(
+            1160,
+            640,
+            100,
+            150,
+            0xffff00
+        );
+        this.mushroomHighlightBox.setAlpha(0.3);
+        this.mushroomHighlightBox.setVisible(false);
+
+        this.bananaDetectionBox = this.add.rectangle(440, 200, 100, 150);
+        this.physics.world.enable(this.bananaDetectionBox);
+        this.physics.add.collider(this.bananaDetectionBox, this.platforms);
+
+        this.bananaHighlightBox = this.add.rectangle(
+            280,
+            120,
+            80,
+            80,
+            0xffff00
+        );
+        this.bananaHighlightBox.setAlpha(0.3);
+        this.bananaHighlightBox.setVisible(false);
 
         // setting depths
         this.stone.depth = 1;
@@ -530,6 +573,25 @@ export default class LevelOne extends Phaser.Scene {
                         poppedItem.setPosition(700, 580).setScale(0.2, 0.2);
                         this.stoneHighlightBox?.setVisible(false);
                         this.stonePlatform?.enableBody(true, 710, 718);
+                    }
+                    if (poppedItem.name === "mushroom") {
+                        poppedItem.setPosition(1160, 560);
+                        poppedItem.setSize(
+                            poppedItem.width - 200,
+                            poppedItem.height - 400
+                        );
+                        this.mushroomHighlightBox?.setVisible(false);
+                        this.mushroomPopped = true;
+                        if (this.player) {
+                            this.physics.add.collider(this.player, poppedItem);
+                        }
+                    }
+                    if (poppedItem.name === "banana") {
+                        poppedItem.setVisible(false);
+                        this.bananaHighlightBox?.setVisible(false);
+                        //this.monkey?.setVisible(false);
+                        this.bananaBubble?.setVisible(false);
+                        this.monkey?.disableBody(true, true);
                     }
                     /*if (poppedItem.name === "plank") {
                         poppedItem.setPosition(815, 600);
@@ -828,6 +890,28 @@ export default class LevelOne extends Phaser.Scene {
             ) {
                 this.collectItem(this.mushroom);
             }
+            if (
+                this.banana &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.banana.x,
+                    this.banana.y
+                ) < 100
+            ) {
+                this.collectItem(this.banana);
+            }
+            if (
+                this.vineItem &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.vineItem.x,
+                    this.vineItem.y
+                ) < 100
+            ) {
+                this.collectItem(this.vineItem);
+            }
         }
         // Check if 'E' key is released
         if (this.keyE?.isUp) {
@@ -839,8 +923,14 @@ export default class LevelOne extends Phaser.Scene {
             this.keyFPressed = false; // Reset the keyFPressed flag when the F key is released
         }
 
-        // Detection Box Checks
-        if (this.player && this.stack.length > 0 && this.stoneDetectionBox) {
+        // Detection Box Checks for popping
+        if (
+            this.player &&
+            this.stack.length > 0 &&
+            this.stoneDetectionBox &&
+            this.mushroomDetectionBox &&
+            this.bananaDetectionBox
+        ) {
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
@@ -853,8 +943,48 @@ export default class LevelOne extends Phaser.Scene {
                     this.keyFPressed = true;
                     this.useItem();
                 }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.mushroomDetectionBox.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "mushroom"
+            ) {
+                this.mushroomHighlightBox?.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.bananaDetectionBox.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "banana"
+            ) {
+                this.bananaHighlightBox?.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
             } else {
                 this.stoneHighlightBox?.setVisible(false);
+                this.mushroomHighlightBox?.setVisible(false);
+                this.bananaHighlightBox?.setVisible(false);
+            }
+        }
+
+        // On top of Mushroom Check
+        if (this.player && this.mushroom) {
+            let playerBounds = this.player.getBounds();
+            let mushroomBounds = this.mushroom.getBounds();
+            if (
+                playerBounds.bottom > mushroomBounds.top &&
+                playerBounds.left > mushroomBounds.left &&
+                playerBounds.right < mushroomBounds.right &&
+                this.mushroomPopped
+            ) {
+                this.player.setVelocityY(-600);
             }
         }
     }
