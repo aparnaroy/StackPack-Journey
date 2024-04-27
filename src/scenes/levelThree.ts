@@ -431,7 +431,6 @@ export default class LevelThree extends Phaser.Scene {
         this.key.setName("key");
 
         // Creating usage areas: fire, toxic gas, skeleton, danger sign, lift, tree, door
-
         this.fire = this.add.sprite(340, 410, "fire").setScale(0.5, 0.5);
         this.fire.setName("fire");
 
@@ -520,6 +519,38 @@ export default class LevelThree extends Phaser.Scene {
         this.door
             .setSize(this.door.width, this.door.height - 60)
             .setOffset(0, 0);
+
+        // Make collectable items continuously pulsate
+        this.createPulsateEffect(
+            this,
+            this.water,
+            1.15, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+        this.createPulsateEffect(
+            this,
+            this.gasMask,
+            1.15, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+        this.createPulsateEffect(
+            this,
+            this.sword,
+            1.15, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+        this.createPulsateEffect(
+            this,
+            this.toolbox,
+            1.15, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+        this.createPulsateEffect(
+            this,
+            this.chainsaw,
+            1.15, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
     }
 
     private updateStackView() {
