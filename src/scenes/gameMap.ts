@@ -43,10 +43,6 @@ export default class GameMap extends Phaser.Scene {
             "level3-completed",
             "assets/level3-button-completed.png"
         );
-        this.load.image("level0-button", "assets/level0-button.png");
-        this.load.image("level1-button", "assets/level1-button.png");
-        this.load.image("level2-button", "assets/level2-button.png");
-        this.load.image("level3-button", "assets/level3-button.png");
     }
 
     create(data: GameMapData) {
@@ -283,11 +279,12 @@ export default class GameMap extends Phaser.Scene {
             level3Button.setTexture("level3-unlocked");
         }
         // If level 3 is completed
-        else if (this.level1State == 3) {
+        else if (this.level3State == 3) {
             level3Button.setTexture("level3-completed");
         }
 
         // If level 3 is unlocked or completed, make it clickable
+        // this.level3State > 0
         if (this.level3State > 0) {
             level3Button.setInteractive();
 
