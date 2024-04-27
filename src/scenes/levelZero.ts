@@ -398,7 +398,7 @@ export default class LevelZero extends Phaser.Scene {
         spike3.setSize(spike3.width - 30, spike3.height - 30).setOffset(15, 14);
         spike4.setSize(spike4.width - 30, spike4.height - 30).setOffset(15, 14);
 
-        // Define keys 'E' and 'F' and 'Z' for collecting and using items respectively
+        // Define keys 'E' and 'F' for collecting and using items respectively
         this.keyE = this.input.keyboard?.addKey(
             Phaser.Input.Keyboard.KeyCodes.E
         );

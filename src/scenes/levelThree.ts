@@ -12,11 +12,28 @@ export default class LevelThree extends Phaser.Scene {
     private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
     private key?: Phaser.GameObjects.Sprite;
     private platforms?: Phaser.Physics.Arcade.StaticGroup;
-    private spikes?: Phaser.Physics.Arcade.StaticGroup;
-    private ladder?: Phaser.GameObjects.Sprite;
-    private plank?: Phaser.GameObjects.Sprite;
-    private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
+    private lava?: Phaser.Physics.Arcade.StaticGroup;
+    private stones?: Phaser.Physics.Arcade.StaticGroup;
+    private liftPlatforms?: Phaser.Physics.Arcade.StaticGroup;
+    private liftFloor?: Phaser.Physics.Arcade.Image;
+    private liftWall1?: Phaser.Physics.Arcade.Image;
+    private liftWall2?: Phaser.Physics.Arcade.Image;
+
+    private water?: Phaser.GameObjects.Sprite;
+    private gasMask?: Phaser.GameObjects.Sprite;
+    private sword?: Phaser.GameObjects.Sprite;
+    private toolbox?: Phaser.GameObjects.Sprite;
+    private chainsaw?: Phaser.GameObjects.Sprite;
+
+    private fire?: Phaser.GameObjects.Sprite;
+    private toxicGas?: Phaser.GameObjects.Sprite;
+    private gasBarrel?: Phaser.GameObjects.Sprite;
+    private skeleton?: Phaser.GameObjects.Sprite;
+    private dangerSign?: Phaser.GameObjects.Sprite;
+    private lift?: Phaser.GameObjects.Sprite;
+    private tree?: Phaser.GameObjects.Sprite;
+    private door?: Phaser.Physics.Arcade.Image;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -25,18 +42,7 @@ export default class LevelThree extends Phaser.Scene {
     private keyEPressed: boolean = false; // Flag to check if 'E' was pressed to prevent picking up multiple items from one long key press
     private keyFPressed: boolean = false; // Flag to check if 'E' was pressed to prevent using multiple items from one long key press
     private lastDirection: string = "right";
-    private climbing: boolean = false;
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
-
-    private ladderDetectionArea: Phaser.GameObjects.Rectangle;
-    private ladderHighlightBox: Phaser.GameObjects.Rectangle;
-    private plankDetectionArea1: Phaser.GameObjects.Rectangle;
-    private plankDetectionArea2: Phaser.GameObjects.Rectangle;
-    private plankDetectionAreasGroup: Phaser.GameObjects.Container;
-    private plankHighlightBox: Phaser.GameObjects.Rectangle;
-    private plankPlatforms?: Phaser.Physics.Arcade.StaticGroup;
-    private plankPlatform?: Phaser.Physics.Arcade.Image;
-    private keyDetectionArea: Phaser.GameObjects.Rectangle;
 
     private levelCompleteText?: Phaser.GameObjects.Text;
 
@@ -102,15 +108,40 @@ export default class LevelThree extends Phaser.Scene {
             { frameWidth: 128, frameHeight: 128 }
         );
 
-        this.load.image("level0-platform", "assets/platform.png");
+        this.load.image("ground", "assets/level3/first-platform.png");
+        this.load.image("level3-platform", "assets/level3/lava-platform.png");
         this.load.image(
-            "spike",
-            "assets/spikes2/keyframes/long_metal_spike.png"
+            "level3-platform-small",
+            "assets/level3/lava-platform-small.png"
         );
-        this.load.image("ladder", "assets/ladder.png");
-        this.load.image("plank", "assets/plank.png");
-        this.load.image("door", "assets/door.png");
-        this.load.image("opendoor", "assets/open-door.png");
+        this.load.image("lava", "assets/level3/lava.png");
+        this.load.image("stone1", "assets/level3/stone1.png");
+        this.load.image("stone2", "assets/level3/stone2.png");
+        this.load.image("stone3", "assets/level3/stone3.png");
+
+        // Collectable items
+        this.load.image("water", "assets/level3/water-bucket.png");
+        this.load.image("gas-mask", "assets/level3/gas-mask.png");
+        this.load.image("sword", "assets/level3/sword.png");
+        this.load.image("toolbox", "assets/level3/toolbox.png");
+        this.load.image("chainsaw", "assets/level3/chainsaw.png");
+
+        // Usage areas
+        this.load.image("fire", "assets/level3/fire.png");
+        this.load.image("toxic-gas", "assets/level3/toxic-gas.png");
+        this.load.image("barrel", "assets/level3/toxic-gas-barrel.png");
+        this.load.image("skeleton", "assets/level3/skeleton-man.png");
+        this.load.image(
+            "danger-sign",
+            "assets/level3/electric-danger-sign.png"
+        );
+        this.load.image("lift-off", "assets/level3/lift-off.png");
+        this.load.image("lift-on", "assets/level3/lift-on.png");
+        this.load.image("tree", "assets/level3/dead-tree.png");
+        this.load.image("tree-cut", "assets/level3/dead-tree-cut.png");
+
+        this.load.image("door", "assets/level3/red-door.png");
+        this.load.image("opendoor", "assets/level3/red-door-open.png");
         this.load.image("heart", "assets/heart_16.png");
         this.load.image("pop-button", "assets/freePop2.png");
     }
@@ -147,7 +178,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         this.player = this.physics.add
-            .sprite(100, 450, "gal_right")
+            .sprite(300, 450, "gal_right")
             .setScale(0.77, 0.77)
             .setOrigin(0.5, 0.5);
         this.player.setCollideWorldBounds(true);
@@ -226,76 +257,6 @@ export default class LevelThree extends Phaser.Scene {
 
         this.cursors = this.input.keyboard?.createCursorKeys();
 
-        // Create platforms
-        this.platforms = this.physics.add.staticGroup();
-        this.ground = this.platforms.create(
-            650,
-            790,
-            "level0-platform"
-        ) as Phaser.Physics.Arcade.Image;
-
-        this.ground.setScale(5).refreshBody();
-        this.ground.setAlpha(0); // Hide the ground platform
-
-        const platform1 = this.platforms
-            .create(350, 585, "level0-platform")
-            .setScale(1, 1);
-        const platform2 = this.platforms
-            .create(650, 500, "level0-platform")
-            .setScale(0.75, 0.75);
-        const platform3 = this.platforms
-            .create(875, 300, "level0-platform")
-            .setScale(1, 0.75);
-
-        this.physics.add.collider(this.player, this.platforms);
-
-        // Create objects: key, ladder, plank, spikes, door
-        this.key = this.add.sprite(1200, 650, "key").setScale(2.5, 2.5);
-        this.key.setName("key");
-        this.physics.add.collider(this.key, this.platforms);
-
-        this.ladder = this.add.sprite(1050, 550, "ladder").setScale(0.5, 0.5);
-        this.ladder.setName("ladder");
-
-        this.plank = this.add.sprite(350, 530, "plank").setScale(0.5, 0.5);
-        this.plank.setName("plank");
-
-        this.plankPlatforms = this.physics.add.staticGroup();
-        this.plankPlatform = this.plankPlatforms.create(
-            815,
-            600,
-            "plank"
-        ) as Phaser.Physics.Arcade.Image;
-
-        this.plankPlatform
-            .setSize(
-                this.plankPlatform.width - 246,
-                this.plankPlatform.height - 60
-            )
-            .setOffset(123, 55);
-
-        this.physics.add.collider(this.player, this.plankPlatform);
-
-        this.plankPlatform.disableBody(true, true);
-        this.plankPlatform.setVisible(false);
-
-        this.spikes = this.physics.add.staticGroup();
-        const spike1 = this.spikes
-            .create(740, 675, "spike")
-            .setScale(0.75, 0.75);
-        const spike2 = this.spikes
-            .create(790, 675, "spike")
-            .setScale(0.75, 0.75);
-        const spike3 = this.spikes
-            .create(840, 675, "spike")
-            .setScale(0.75, 0.75);
-        const spike4 = this.spikes
-            .create(890, 675, "spike")
-            .setScale(0.75, 0.75);
-
-        this.door = this.physics.add.image(887, 150, "door").setScale(0.1, 0.1);
-        this.physics.add.collider(this.door, this.platforms);
-
         // Creating lives
         this.createHearts();
 
@@ -306,7 +267,7 @@ export default class LevelThree extends Phaser.Scene {
         const originalScale = popButton.scaleX;
         const hoverScale = originalScale * 1.05;
 
-        // Change scale on hover
+        // Pop button hover animation
         popButton.on("pointerover", () => {
             this.tweens.add({
                 targets: popButton,
@@ -316,8 +277,6 @@ export default class LevelThree extends Phaser.Scene {
                 ease: "Linear", // Easing function for the tween
             });
         });
-
-        // Restore original scale when pointer leaves
         popButton.on("pointerout", () => {
             this.tweens.add({
                 targets: popButton,
@@ -327,46 +286,11 @@ export default class LevelThree extends Phaser.Scene {
                 ease: "Linear", // Easing function for the tween
             });
         });
-
         popButton.on("pointerup", () => {
             this.freePop();
         });
 
-        // Set the depth of the character/player sprite to a high value
-        this.player.setDepth(1);
-
-        // Set the depth of other game objects to lower values
-        this.key.setDepth(0);
-        this.ladder.setDepth(0);
-        this.plank.setDepth(0);
-        this.spikes.setDepth(0);
-        this.door.setDepth(0);
-
-        // Resize collision boxes of player and everything else that can be collided with
-        this.player
-            .setSize(this.player.width - 64, this.player.height)
-            .setOffset(32, 0);
-
-        platform1
-            .setSize(platform1.width - 12, platform1.height - 28)
-            .setOffset(8, 5);
-        platform2
-            .setSize(platform2.width - 80, platform2.height - 35)
-            .setOffset(40, 8);
-        platform3
-            .setSize(platform3.width - 10, platform3.height - 30)
-            .setOffset(7, 7);
-
-        this.door
-            .setSize(this.door.width, this.door.height - 60)
-            .setOffset(0, 0);
-
-        spike1.setSize(spike1.width - 30, spike1.height - 30).setOffset(15, 14);
-        spike2.setSize(spike2.width - 30, spike2.height - 30).setOffset(15, 14);
-        spike3.setSize(spike3.width - 30, spike3.height - 30).setOffset(15, 14);
-        spike4.setSize(spike4.width - 30, spike4.height - 30).setOffset(15, 14);
-
-        // Define keys 'E' and 'F' and 'Z' for collecting and using items respectively
+        // Define keys 'E' and 'F' for collecting and using items respectively
         this.keyE = this.input.keyboard?.addKey(
             Phaser.Input.Keyboard.KeyCodes.E
         );
@@ -374,82 +298,228 @@ export default class LevelThree extends Phaser.Scene {
             Phaser.Input.Keyboard.KeyCodes.F
         );
 
-        // Creating dectection areas when using the ladder
-        this.ladderDetectionArea = this.add.rectangle(680, 400, 100, 150);
-        this.physics.world.enable(this.ladderDetectionArea);
-        this.physics.add.collider(this.ladderDetectionArea, this.ground);
-        this.physics.add.collider(this.ladderDetectionArea, this.platforms);
-
-        // Creating a highlighted rectangle to indicate where ladder can be used
-        this.ladderHighlightBox = this.add.rectangle(
-            680,
-            400,
-            100,
+        // Create platforms
+        this.platforms = this.physics.add.staticGroup();
+        this.ground = this.platforms.create(
             150,
-            0xffff00
-        );
-        this.ladderHighlightBox.setAlpha(0.25);
-        this.ladderHighlightBox.setVisible(false);
+            720,
+            "ground"
+        ) as Phaser.Physics.Arcade.Image;
+        const floor = this.platforms.create(
+            300,
+            770,
+            "ground"
+        ) as Phaser.Physics.Arcade.Image;
 
-        // Creating dectection areas when using the plank
-        this.plankDetectionArea1 = this.add.rectangle(670, 0, 100, 150);
-        this.physics.world.enable(this.plankDetectionArea1);
-        this.physics.add.collider(this.plankDetectionArea1, this.ground);
+        this.ground.setScale(0.5).refreshBody();
+        this.ground.setAlpha(1); // Hide the ground platform
 
-        this.plankDetectionArea2 = this.add.rectangle(920, 0, 100, 150);
-        this.physics.world.enable(this.plankDetectionArea2);
-        this.physics.add.collider(this.plankDetectionArea2, this.ground);
+        floor.setScale(3, 0.5).refreshBody().setAlpha(0);
 
-        this.plankDetectionAreasGroup = this.add.container();
-        this.plankDetectionAreasGroup.add(this.plankDetectionArea1);
-        this.plankDetectionAreasGroup.add(this.plankDetectionArea2);
+        const platform1 = this.platforms
+            .create(580, 695, "level3-platform-small")
+            .setScale(0.27, 0.3)
+            .refreshBody();
+        const platform2 = this.platforms
+            .create(820, 695, "level3-platform-small")
+            .setScale(0.27, 0.3)
+            .refreshBody();
+        const platform3 = this.platforms
+            .create(1140, 600, "level3-platform")
+            .setScale(0.38, 0.3)
+            .refreshBody();
+        const platform4 = this.platforms
+            .create(220, 485, "level3-platform")
+            .setScale(0.6, 0.3)
+            .refreshBody();
+        const platform5 = this.platforms
+            .create(750, 260, "level3-platform")
+            .setScale(0.7, 0.26)
+            .refreshBody();
 
-        // Creating a highlighted rectangle to indicate where plank can be used
-        this.plankHighlightBox = this.add.rectangle(
-            815,
-            210,
-            215,
-            50,
-            0xffff00
-        );
-        this.physics.world.enable(this.plankHighlightBox);
-        this.physics.add.collider(this.plankHighlightBox, this.ground);
-        this.physics.add.collider(this.plankHighlightBox, this.spikes);
-        this.plankHighlightBox.setAlpha(0.25);
-        this.plankHighlightBox.setVisible(false);
+        this.physics.add.collider(this.player, this.platforms);
 
-        // Creating detection area when using key
-        this.keyDetectionArea = this.add.rectangle(875, 150, 200, 200);
-        this.physics.world.enable(this.keyDetectionArea);
-        this.physics.add.collider(this.keyDetectionArea, this.platforms);
+        this.stones = this.physics.add.staticGroup();
+        const stone0 = this.stones
+            .create(552, 470, "stone2")
+            .setScale(0.045, 0.045)
+            .refreshBody();
+        stone0.setFlipX(true);
+        const stone1 = this.stones
+            .create(630, 475, "stone1")
+            .setScale(0.04, 0.04)
+            .refreshBody();
+        const stone2 = this.stones
+            .create(700, 470, "stone2")
+            .setScale(0.04, 0.04)
+            .refreshBody();
+        const stone3 = this.stones
+            .create(795, 473, "stone3")
+            .setScale(0.04, 0.04)
+            .refreshBody();
+        const stone4 = this.stones
+            .create(885, 489, "stone1")
+            .setScale(0.04, 0.035)
+            .refreshBody();
 
-        // Create level complete text
-        this.levelCompleteText = this.add.text(
-            this.cameras.main.width / 2,
-            this.cameras.main.height / 2,
-            "Level Complete!",
-            { fontSize: "96px", color: "#03572a", fontFamily: "Verdana" }
-        );
-        this.levelCompleteText.setOrigin(0.5);
-        this.levelCompleteText.setVisible(false);
+        this.physics.add.collider(this.player, this.stones);
 
-        // Set initial properties for animation
-        this.levelCompleteText.setScale(0);
-        this.levelCompleteText.setAlpha(0);
+        // Create lift platform
+        this.liftPlatforms = this.physics.add.staticGroup();
 
-        // Make plank and ladder items continuously pulsate
-        this.createPulsateEffect(
-            this,
-            this.plank,
-            1.15, // Scale factor for pulsating effect
-            1000 // Duration of each tween cycle in milliseconds
-        );
-        this.createPulsateEffect(
-            this,
-            this.ladder,
-            1.1, // Scale factor for pulsating effect
-            1000 // Duration of each tween cycle in milliseconds
-        );
+        this.liftFloor = this.liftPlatforms.create(
+            95,
+            430,
+            "lift-off"
+        ) as Phaser.Physics.Arcade.Image;
+        this.liftFloor.setScale(0.23, 0.35).refreshBody();
+        this.liftFloor
+            .setSize(
+                this.liftFloor.width * 0.23 - 60,
+                this.liftFloor.height * 0.35 - 65
+            )
+            .setOffset(30, 45);
+        this.liftFloor.setVisible(true);
+
+        this.liftWall1 = this.liftPlatforms.create(
+            32,
+            425,
+            "lift-off"
+        ) as Phaser.Physics.Arcade.Image;
+        this.liftWall1.setScale(0.02, 0.23).refreshBody();
+        this.liftWall1.setVisible(false);
+
+        this.liftWall2 = this.liftPlatforms.create(
+            159,
+            425,
+            "lift-off"
+        ) as Phaser.Physics.Arcade.Image;
+        this.liftWall2.setScale(0.02, 0.23).refreshBody();
+        this.liftWall2.setVisible(false);
+
+        this.physics.add.collider(this.player, this.liftPlatforms);
+
+        this.lava = this.physics.add.staticGroup();
+        this.lava.create(360, 650, "lava").setScale(0.75, 0.75);
+        this.lava.create(360 + 192, 650, "lava").setScale(0.75, 0.75);
+        this.lava.create(360 + 2 * 192, 650, "lava").setScale(0.75, 0.75);
+        this.lava.create(360 + 3 * 192, 650, "lava").setScale(0.75, 0.75);
+        this.lava.create(360 + 4 * 192, 650, "lava").setScale(0.75, 0.75);
+        this.lava.create(360 + 5 * 192, 650, "lava").setScale(0.75, 0.75);
+
+        // Creating collectable items: water, gas mask, sword, toolbox, chainsaw, key
+        this.water = this.add.sprite(1230, 510, "water").setScale(0.2, 0.2);
+        this.water.setName("water");
+
+        this.gasMask = this.add.sprite(160, 610, "gas-mask").setScale(0.4, 0.4);
+        this.gasMask.setName("gas-mask");
+
+        this.sword = this.add.sprite(50, 600, "sword").setScale(0.2, 0.2);
+        this.sword.setRotation(Phaser.Math.DegToRad(10));
+        this.sword.setName("sword");
+
+        this.toolbox = this.add.sprite(820, 610, "toolbox").setScale(0.2, 0.2);
+        this.toolbox.setName("toolbox");
+
+        this.chainsaw = this.add
+            .sprite(245, 385, "chainsaw")
+            .setScale(0.45, 0.45);
+        this.chainsaw.setRotation(Phaser.Math.DegToRad(85));
+        this.chainsaw.setName("chainsaw");
+
+        this.key = this.add.sprite(580, 610, "key").setScale(2.5, 2.5);
+        this.key.setName("key");
+
+        // Creating usage areas: fire, toxic gas, skeleton, danger sign, lift, tree, door
+
+        this.fire = this.add.sprite(340, 410, "fire").setScale(0.5, 0.5);
+        this.fire.setName("fire");
+
+        this.toxicGas = this.add
+            .sprite(1100, 373, "toxic-gas")
+            .setScale(0.28, 0.28);
+        this.toxicGas.setName("toxic-gas");
+
+        this.gasBarrel = this.add
+            .sprite(1125, 500, "barrel")
+            .setScale(0.25, 0.25);
+        this.gasBarrel.setName("barrel");
+
+        this.skeleton = this.add
+            .sprite(830, 190, "skeleton")
+            .setScale(0.2, 0.2);
+        this.skeleton.setName("skeleton");
+
+        this.dangerSign = this.add
+            .sprite(95, 355, "danger-sign")
+            .setScale(0.38, 0.4);
+        this.dangerSign.setName("danger-sign");
+
+        //this.lift = this.add.sprite(120, 425, "lift-off").setScale(0.3, 0.35);
+        this.liftFloor.setName("lift");
+
+        this.tree = this.add.sprite(600, 130, "tree").setScale(0.5, 0.5);
+        this.tree.setName("tree");
+
+        this.door = this.physics.add.image(980, 100, "door").setScale(0.1, 0.1);
+        this.physics.add.collider(this.door, this.platforms);
+
+        // Set the depth of the player and skeleton sprites to a high value
+        this.player.setDepth(5);
+        this.skeleton.setDepth(4);
+
+        this.liftFloor.setDepth(6);
+        this.toxicGas.setDepth(3);
+
+        // Set the depth of other game objects to lower values
+        this.gasBarrel.setDepth(2);
+        this.ground.setDepth(1);
+
+        // Resize collision boxes of player and everything that can be collided with
+        this.player
+            .setSize(this.player.width - 64, this.player.height)
+            .setOffset(32, 0);
+
+        this.ground
+            .setSize(
+                this.ground.width * 0.5 - 30,
+                this.ground.height * 0.5 - 10
+            )
+            .setOffset(15, 5);
+        platform1
+            .setSize(platform1.width * 0.27 - 16, platform1.height * 0.3 - 28)
+            .setOffset(8, 7);
+        platform2
+            .setSize(platform2.width * 0.27 - 16, platform2.height * 0.3 - 28)
+            .setOffset(8, 7);
+        platform3
+            .setSize(platform3.width * 0.35 - 24, platform3.height * 0.3 - 75)
+            .setOffset(12, 9);
+        platform4
+            .setSize(platform4.width * 0.6 - 34, platform4.height * 0.3 - 75)
+            .setOffset(17, 6);
+        platform5
+            .setSize(platform5.width * 0.7 - 50, platform5.height * 0.3 - 75)
+            .setOffset(25, 6);
+        stone0
+            .setSize(stone0.width * 0.045 - 30, stone0.height * 0.045 - 40)
+            .setOffset(15, 5);
+        stone1
+            .setSize(stone1.width * 0.04 - 30, stone1.height * 0.04 - 60)
+            .setOffset(15, 5);
+        stone2
+            .setSize(stone2.width * 0.04 - 26, stone2.height * 0.04 - 35)
+            .setOffset(13, 2);
+        stone3
+            .setSize(stone3.width * 0.04 - 26, stone3.height * 0.04 - 45)
+            .setOffset(15, 5);
+        stone4
+            .setSize(stone4.width * 0.04 - 30, stone4.height * 0.035 - 54)
+            .setOffset(15, 5);
+
+        this.door
+            .setSize(this.door.width, this.door.height - 60)
+            .setOffset(0, 0);
     }
 
     private updateStackView() {
@@ -556,12 +626,12 @@ export default class LevelThree extends Phaser.Scene {
                     // Move popped item to location it will be used
                     if (poppedItem.name === "ladder") {
                         poppedItem.setPosition(680, 385);
-                        this.ladderHighlightBox.setVisible(false);
+                        //this.ladderHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "plank") {
                         poppedItem.setPosition(815, 600);
-                        this.plankHighlightBox.setVisible(false);
-                        this.plankPlatform?.enableBody(true, 938, 650);
+                        //this.plankHighlightBox.setVisible(false);
+                        //this.plankPlatform?.enableBody(true, 938, 650);
                     }
                     if (poppedItem.name === "key") {
                         this.door?.setTexture("opendoor");
@@ -803,26 +873,27 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     update() {
+        // Key animation
+        if (this.key) {
+            this.key.anims.play("turn", true);
+        }
+
         // Move the gal with arrow keys
         // Inside your update function or wherever you handle player movement
         if (this.player && this.cursors) {
             if (!this.isColliding) {
-                if (
-                    this.cursors.up.isDown &&
-                    this.player.body?.touching.down &&
-                    !this.climbing
-                ) {
+                if (this.cursors.up.isDown && this.player.body?.touching.down) {
                     this.player.anims.play("jump_right", true);
-                    this.player.setVelocityY(-530);
+                    this.player.setVelocityY(-450);
                 } else if (this.cursors.right.isDown) {
-                    this.player.setVelocityX(290);
+                    this.player.setVelocityX(280);
                     this.player.anims.play("right", true);
                     this.lastDirection = "right"; // Update last direction
                 } else if (this.cursors.left.isDown) {
-                    this.player.setVelocityX(-290);
+                    this.player.setVelocityX(-280);
                     this.player.anims.play("left", true);
                     this.lastDirection = "left"; // Update last direction
-                } else if (!this.climbing) {
+                } else {
                     this.player.setVelocityX(0);
                     // Check last direction and play corresponding idle animation
                     if (this.lastDirection === "right") {
@@ -834,46 +905,6 @@ export default class LevelThree extends Phaser.Scene {
             }
         }
 
-        // Collect item if 'E' key is pressed
-        if (this.player && this.keyE?.isDown && !this.keyEPressed) {
-            this.keyEPressed = true; // Set the flag for the E key being pressed to true
-
-            // Check if the player is close enough to the key, ladder, or plank, and if so, collect it
-            if (
-                this.key &&
-                Phaser.Math.Distance.Between(
-                    this.player.x,
-                    this.player.y,
-                    this.key.x,
-                    this.key.y
-                ) < 100
-            ) {
-                this.collectItem(this.key);
-            }
-            if (
-                this.ladder &&
-                Phaser.Math.Distance.Between(
-                    this.player.x,
-                    this.player.y,
-                    this.ladder.x,
-                    this.ladder.y
-                ) < 100
-            ) {
-                this.collectItem(this.ladder);
-            }
-            if (
-                this.plank &&
-                Phaser.Math.Distance.Between(
-                    this.player.x,
-                    this.player.y,
-                    this.plank.x,
-                    this.plank.y
-                ) < 100
-            ) {
-                this.collectItem(this.plank);
-            }
-        }
-
         // Check if 'E' key is released
         if (this.keyE?.isUp) {
             this.keyEPressed = false; // Reset the keyEPressed flag when the E key is released
@@ -882,107 +913,6 @@ export default class LevelThree extends Phaser.Scene {
         // Check if 'F' key is released
         if (this.keyF?.isUp) {
             this.keyFPressed = false; // Reset the keyFPressed flag when the F key is released
-        }
-
-        // Check if player is near detection area
-        if (this.player && this.stack.length > 0) {
-            if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.ladderDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "ladder"
-            ) {
-                // If player overlaps with ladder detection area, show the highlight box
-                this.ladderHighlightBox.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.plankDetectionAreasGroup.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "plank"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.plankHighlightBox.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.keyDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "key"
-            ) {
-                // If player overlaps with key detection area, open door
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                    this.levelCompleteText?.setVisible(true);
-                    // Animate level complete text
-                    this.tweens.add({
-                        targets: this.levelCompleteText,
-                        scale: 1,
-                        alpha: 1,
-                        duration: 1000,
-                        ease: "Bounce",
-                        delay: 500, // Delay the animation slightly
-                    });
-                }
-            } else {
-                // Otherwise, hide the highlight box
-                this.ladderHighlightBox.setVisible(false);
-                this.plankHighlightBox.setVisible(false);
-            }
-        }
-
-        // Climbing the ladder
-        if (this.player && this.ladder && this.cursors) {
-            // Max distance player can be from ladder to climb it
-            const xTolerance = 30; // Tolerance for X position
-            const yTolerance = 145; // Tolerance for Y position
-            // Calculate horizontal and vertical distances between player and ladder
-            const deltaX = Math.abs(this.player.x - this.ladder.x);
-            const deltaY = Math.abs(this.player.y - this.ladder.y);
-
-            if (
-                this.ladder.x === 680 &&
-                deltaX < xTolerance &&
-                deltaY < yTolerance &&
-                this.cursors.up.isDown
-            ) {
-                this.climbing = true;
-                this.player.anims.play("climb", true);
-                this.player.setVelocityY(-150);
-            } else {
-                this.climbing = false;
-            }
-        }
-
-        if (this.player && this.plank && this.spikes) {
-            if (this.plank.x === 815) {
-                this.physics.world.enable(this.plank);
-                this.physics.add.collider(this.plank, this.spikes);
-            }
-        }
-
-        // Check if player touches the spikes and restart level if so
-        if (this.player && this.spikes) {
-            this.physics.add.collider(
-                this.player,
-                this.spikes,
-                () => {
-                    this.collidingWithSpikes = true;
-                    this.loseLife();
-                },
-                undefined,
-                this
-            );
         }
     }
 }
