@@ -47,6 +47,13 @@ export default class LevelThree extends Phaser.Scene {
     private chainsawHighlightBox: Phaser.GameObjects.Rectangle;
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
 
+    private lavaArea: Phaser.GameObjects.Rectangle;
+    private toxicGasArea: Phaser.GameObjects.Rectangle;
+    private fireArea: Phaser.GameObjects.Rectangle;
+    private liftArea: Phaser.GameObjects.Rectangle;
+    private treeArea: Phaser.GameObjects.Rectangle;
+    private skeletonArea: Phaser.GameObjects.Rectangle;
+
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
     private keyE?: Phaser.Input.Keyboard.Key;
@@ -61,7 +68,7 @@ export default class LevelThree extends Phaser.Scene {
     private hearts?: Phaser.GameObjects.Sprite[] = [];
     private lives: number = 3;
     private isColliding: boolean = false;
-    private collidingWithSpikes: boolean = false;
+    private collidingWithDeath: boolean = false;
 
     private level0State: number;
     private level1State: number;
@@ -190,7 +197,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         this.player = this.physics.add
-            .sprite(300, 450, "gal_right")
+            .sprite(300, 550, "gal_right")
             .setScale(0.77, 0.77)
             .setOrigin(0.5, 0.5);
         this.player.setCollideWorldBounds(true);
@@ -596,7 +603,7 @@ export default class LevelThree extends Phaser.Scene {
         this.waterHighlightBox.setVisible(false);
 
         // Creating detection area for using toolbox
-        this.toolboxDetectionArea = this.add.rectangle(135, 360, 210, 170);
+        this.toolboxDetectionArea = this.add.rectangle(205, 360, 90, 170);
         this.physics.world.enable(this.toolboxDetectionArea);
         this.physics.add.collider(this.toolboxDetectionArea, this.platforms);
 
@@ -647,6 +654,31 @@ export default class LevelThree extends Phaser.Scene {
         this.keyDetectionArea = this.add.rectangle(968, 105, 150, 200);
         this.physics.world.enable(this.keyDetectionArea);
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
+
+        // Defining lava area for dying
+        this.lavaArea = this.add.rectangle(840, 670, 940, 20);
+        this.physics.world.enable(this.lavaArea);
+        this.physics.add.collider(this.lavaArea, floor);
+
+        // Defining toxic gas area for dying
+        this.toxicGasArea = this.add.rectangle(1125, 400, 45, 250);
+        this.physics.world.enable(this.toxicGasArea);
+        this.physics.add.collider(this.toxicGasArea, this.platforms);
+
+        // Defining fire area for dying
+        this.fireArea = this.add.rectangle(340, 380, 80, 100);
+        this.physics.world.enable(this.fireArea);
+        this.physics.add.collider(this.fireArea, this.platforms);
+
+        // Defining lift area for dying
+        this.liftArea = this.add.rectangle(95, 340, 100, 150);
+        this.physics.world.enable(this.liftArea);
+        this.physics.add.collider(this.liftArea, this.platforms);
+
+        // Defining tree area for dying
+        this.treeArea = this.add.rectangle(625, 100, 100, 200);
+        this.physics.world.enable(this.treeArea);
+        this.physics.add.collider(this.treeArea, this.platforms);
     }
 
     private updateStackView() {
@@ -757,8 +789,9 @@ export default class LevelThree extends Phaser.Scene {
                     poppedItem.setOrigin(0.5, 0.5);
 
                     // Move popped item to location it will be used
-                    if (poppedItem.name === "ladder") {
+                    if (poppedItem.name === "gas-mask") {
                         poppedItem.setPosition(680, 385);
+                        //this.toxicGasArea.setPosition(-100, -100);
                         //this.ladderHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "plank") {
@@ -945,9 +978,9 @@ export default class LevelThree extends Phaser.Scene {
                 500,
                 () => {
                     this.isColliding = false;
-                    if (this.collidingWithSpikes) {
-                        this.player?.setPosition(100, 450); // Reset player's position
-                        this.collidingWithSpikes = false;
+                    if (this.collidingWithDeath) {
+                        this.player?.setPosition(300, 550); // Reset player's position
+                        this.collidingWithDeath = false;
                     }
                 },
                 [],
@@ -1219,5 +1252,63 @@ export default class LevelThree extends Phaser.Scene {
                 this.chainsawHighlightBox.setVisible(false);
             }
         }
+
+        // Lose life if player touches lava
+        if (this.player) {
+            this.physics.add.collider(
+                this.player,
+                this.lavaArea,
+                () => {
+                    this.collidingWithDeath = true;
+                    this.loseLife();
+                },
+                undefined,
+                this
+            );
+        }
+        // Lose life if player touches toxic gas
+        if (
+            this.player &&
+            Phaser.Geom.Intersects.RectangleToRectangle(
+                this.player.getBounds(),
+                this.toxicGasArea.getBounds()
+            )
+        ) {
+            this.collidingWithDeath = true;
+            this.loseLife();
+        }
+        // Lose life if player touches fire
+        if (
+            this.player &&
+            Phaser.Geom.Intersects.RectangleToRectangle(
+                this.player.getBounds(),
+                this.fireArea.getBounds()
+            )
+        ) {
+            this.collidingWithDeath = true;
+            this.loseLife();
+        }
+        // Lose life if player touches lift (while it's not repaired)
+        if (
+            this.player &&
+            Phaser.Geom.Intersects.RectangleToRectangle(
+                this.player.getBounds(),
+                this.liftArea.getBounds()
+            )
+        ) {
+            this.collidingWithDeath = true;
+            this.loseLife();
+        }
+        if (
+            this.player &&
+            Phaser.Geom.Intersects.RectangleToRectangle(
+                this.player.getBounds(),
+                this.treeArea.getBounds()
+            )
+        ) {
+            this.collidingWithDeath = true;
+            this.loseLife();
+        }
+        // TODO: Add check to see if player collides with skeleton and lose life if so
     }
 }
