@@ -15,7 +15,7 @@ export default class LevelThree extends Phaser.Scene {
     private ground?: Phaser.Physics.Arcade.Image;
     private lava?: Phaser.Physics.Arcade.StaticGroup;
     private stones?: Phaser.Physics.Arcade.StaticGroup;
-    private liftPlatforms?: Phaser.Physics.Arcade.StaticGroup;
+    private liftPlatforms!: Phaser.Physics.Arcade.Group;
 
     private water?: Phaser.GameObjects.Sprite;
     private gasMask?: Phaser.GameObjects.Sprite;
@@ -402,7 +402,10 @@ export default class LevelThree extends Phaser.Scene {
         this.physics.add.collider(this.player, this.stones);
 
         // Create lift platform
-        this.liftPlatforms = this.physics.add.staticGroup();
+        this.liftPlatforms = this.physics.add.group({
+            immovable: true, // Make all platforms immovable by collisions
+            allowGravity: false, // Disable gravity for platforms
+        });
 
         this.liftFloor = this.liftPlatforms.create(
             95,
@@ -411,11 +414,8 @@ export default class LevelThree extends Phaser.Scene {
         ) as Phaser.Physics.Arcade.Image;
         this.liftFloor.setScale(0.23, 0.35).refreshBody();
         this.liftFloor
-            .setSize(
-                this.liftFloor.width * 0.23 - 60,
-                this.liftFloor.height * 0.35 - 65
-            )
-            .setOffset(30, 45);
+            .setSize(this.liftFloor.width - 270, this.liftFloor.height - 195)
+            .setOffset(135, 130);
         this.liftFloor.setVisible(true);
 
         this.liftWall1 = this.liftPlatforms.create(
@@ -423,7 +423,7 @@ export default class LevelThree extends Phaser.Scene {
             425,
             "lift-off"
         ) as Phaser.Physics.Arcade.Image;
-        this.liftWall1.setScale(0.02, 0.23).refreshBody();
+        this.liftWall1.setScale(0.02, 0.2).refreshBody();
         this.liftWall1.setVisible(false);
 
         this.liftWall2 = this.liftPlatforms.create(
@@ -431,9 +431,12 @@ export default class LevelThree extends Phaser.Scene {
             425,
             "lift-off"
         ) as Phaser.Physics.Arcade.Image;
-        this.liftWall2.setScale(0.02, 0.23).refreshBody();
+        this.liftWall2.setScale(0.02, 0.2).refreshBody();
         this.liftWall2.setVisible(false);
 
+        this.physics.add.collider(this.player, this.liftPlatforms);
+
+        // Add collision between player and platforms
         this.physics.add.collider(this.player, this.liftPlatforms);
 
         this.lava = this.physics.add.staticGroup();
@@ -828,15 +831,104 @@ export default class LevelThree extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "gas-mask") {
-                        poppedItem.setPosition(680, 385);
-                        this.toxicGas?.setVisible(false);
+                        poppedItem.setDepth(10);
+                        // Move the gas mask towards the player
+                        poppedItem.setPosition(this.player?.x, this.player?.y);
+                        // Scale down the gas mask to make it disappear
+                        this.tweens.add({
+                            targets: poppedItem,
+                            scaleX: 0,
+                            scaleY: 0,
+                            duration: 300,
+                            delay: 500,
+                            onComplete: () => {
+                                poppedItem.setVisible(false);
+                            },
+                        });
+                        this.tweens.add({
+                            targets: this.toxicGas,
+                            alpha: 0, // Fade out
+                            duration: 1200,
+                        });
                         this.toxicGasArea.setPosition(-100, -100);
                         this.gasMaskHighlightBox.setVisible(false);
                     }
-                    if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(815, 600);
-                        //this.plankHighlightBox.setVisible(false);
-                        //this.plankPlatform?.enableBody(true, 938, 650);
+                    if (poppedItem.name === "water") {
+                        // Play animation to tilt the water to the side
+                        this.tweens.add({
+                            targets: poppedItem,
+                            angle: -75, // Tilt the water to the side
+                            duration: 500, // Duration of the tilt animation
+                            yoyo: true, // Play the animation in reverse
+                            repeat: 0, // No repeat
+                            onStart: () => {
+                                poppedItem.setPosition(400, 315);
+                            },
+                            onComplete: () => {
+                                poppedItem.setVisible(false);
+                                this.tweens.add({
+                                    targets: this.fire,
+                                    alpha: 0, // Fade out
+                                    duration: 500,
+                                });
+                            },
+                        });
+                        this.fireArea.setPosition(-100, -100);
+                        this.waterHighlightBox.setVisible(false);
+                    }
+                    if (poppedItem.name === "toolbox") {
+                        poppedItem.setVisible(false);
+                        this.tweens.add({
+                            targets: this.dangerSign,
+                            alpha: 0, // Fade out
+                            duration: 500,
+                            onComplete: () => {
+                                this.liftFloor?.setTexture("lift-on");
+                                // Start the lift
+                                this.tweens.add({
+                                    targets: this.liftPlatforms.getChildren(), // Move all platforms in the group
+                                    y: "-=190", // Move the lift platforms up
+                                    delay: 600,
+                                    duration: 2200, // Duration of the movement
+                                    yoyo: true, // Platforms will return to their original position
+                                    repeat: -1, // Repeat indefinitely
+                                    ease: "Linear",
+                                });
+                            },
+                        });
+                        this.liftArea.setPosition(-100, -100);
+                        this.toolboxHighlightBox.setVisible(false);
+                    }
+                    if (poppedItem.name === "chainsaw") {
+                        // Play animation to rotate and move the chainsaw side to side
+                        if (this.chainsaw) {
+                            this.tweens.add({
+                                targets: poppedItem,
+                                angle: 45, // Rotate the chainsaw to the side
+                                x: 537 + 20, // Move the chainsaw a bit to the right
+                                duration: 500, // Duration of the rotation and movement
+                                yoyo: true, // Play the animation in reverse
+                                repeat: 0, // No repeat
+                                onStart: () => {
+                                    poppedItem.setDepth(3);
+                                    poppedItem.setPosition(537, 170);
+                                },
+                                onComplete: () => {
+                                    // Execute callback function after animation finishes
+                                    poppedItem.setVisible(false);
+                                    this.tree?.setScale(0.245);
+                                    this.tree?.setPosition(537, 205);
+                                    this.tree?.setTexture("tree-cut");
+                                },
+                            });
+                        }
+                        this.treeArea.setPosition(-100, -100);
+                        this.chainsawHighlightBox.setVisible(false);
+                    }
+                    if (poppedItem.name === "sword") {
+                        poppedItem.setVisible(false);
+                        // TODO: Finish sword use handling
+                        this.swordHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
                         this.door?.setTexture("opendoor");
@@ -1018,7 +1110,7 @@ export default class LevelThree extends Phaser.Scene {
                 () => {
                     this.isColliding = false;
                     if (this.collidingWithDeath) {
-                        this.player?.setPosition(400, 150); // Reset player's position
+                        this.player?.setPosition(300, 550); // Reset player's position
                         this.collidingWithDeath = false;
                     }
                 },
