@@ -35,6 +35,18 @@ export default class LevelThree extends Phaser.Scene {
     private tree?: Phaser.GameObjects.Sprite;
     private door?: Phaser.Physics.Arcade.Image;
 
+    private waterDetectionArea: Phaser.GameObjects.Rectangle;
+    private waterHighlightBox: Phaser.GameObjects.Rectangle;
+    private gasMaskDetectionArea: Phaser.GameObjects.Rectangle;
+    private gasMaskHighlightBox: Phaser.GameObjects.Rectangle;
+    private swordDetectionArea: Phaser.GameObjects.Rectangle;
+    private swordHighlightBox: Phaser.GameObjects.Rectangle;
+    private toolboxDetectionArea: Phaser.GameObjects.Rectangle;
+    private toolboxHighlightBox: Phaser.GameObjects.Rectangle;
+    private chainsawDetectionArea: Phaser.GameObjects.Rectangle;
+    private chainsawHighlightBox: Phaser.GameObjects.Rectangle;
+    private keyDetectionArea: Phaser.GameObjects.Rectangle;
+
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
     private keyE?: Phaser.Input.Keyboard.Key;
@@ -454,7 +466,6 @@ export default class LevelThree extends Phaser.Scene {
             .setScale(0.38, 0.4);
         this.dangerSign.setName("danger-sign");
 
-        //this.lift = this.add.sprite(120, 425, "lift-off").setScale(0.3, 0.35);
         this.liftFloor.setName("lift");
 
         this.tree = this.add.sprite(600, 130, "tree").setScale(0.5, 0.5);
@@ -551,18 +562,109 @@ export default class LevelThree extends Phaser.Scene {
             1.15, // Scale factor for pulsating effect
             1000 // Duration of each tween cycle in milliseconds
         );
+
+        // Creating detection area for using gas mask
+        this.gasMaskDetectionArea = this.add.rectangle(1005, 400, 130, 170);
+        this.physics.world.enable(this.gasMaskDetectionArea);
+        this.physics.add.collider(this.gasMaskDetectionArea, this.platforms);
+
+        // Creating a highlighted rectangle to indicate where to use gas mask
+        this.gasMaskHighlightBox = this.add.rectangle(
+            1125,
+            440,
+            120,
+            250,
+            0xffff00
+        );
+        this.gasMaskHighlightBox.setAlpha(0.25);
+        this.gasMaskHighlightBox.setVisible(false);
+
+        // Creating detection area for using water
+        this.waterDetectionArea = this.add.rectangle(450, 360, 110, 170);
+        this.physics.world.enable(this.waterDetectionArea);
+        this.physics.add.collider(this.waterDetectionArea, this.platforms);
+
+        // Creating a highlighted rectangle to indicate where to use water
+        this.waterHighlightBox = this.add.rectangle(
+            340,
+            410,
+            130,
+            120,
+            0xffff00
+        );
+        this.waterHighlightBox.setAlpha(0.25);
+        this.waterHighlightBox.setVisible(false);
+
+        // Creating detection area for using toolbox
+        this.toolboxDetectionArea = this.add.rectangle(135, 360, 210, 170);
+        this.physics.world.enable(this.toolboxDetectionArea);
+        this.physics.add.collider(this.toolboxDetectionArea, this.platforms);
+
+        // Creating a highlighted rectangle to indicate where to use toolbox
+        this.toolboxHighlightBox = this.add.rectangle(
+            95,
+            370,
+            160,
+            180,
+            0xffff00
+        );
+        this.toolboxHighlightBox.setAlpha(0.25);
+        this.toolboxHighlightBox.setVisible(false);
+
+        // Creating detection area for using chainsaw
+        this.chainsawDetectionArea = this.add.rectangle(510, 80, 100, 170);
+        this.physics.world.enable(this.chainsawDetectionArea);
+        this.physics.add.collider(this.chainsawDetectionArea, this.platforms);
+
+        // Creating a highlighted rectangle to indicate where to use chainsaw
+        this.chainsawHighlightBox = this.add.rectangle(
+            625,
+            130,
+            190,
+            240,
+            0xffff00
+        );
+        this.chainsawHighlightBox.setAlpha(0.25);
+        this.chainsawHighlightBox.setVisible(false);
+
+        // Creating detection area for using sword
+        this.swordDetectionArea = this.add.rectangle(645, 100, 100, 170);
+        this.physics.world.enable(this.swordDetectionArea);
+        this.physics.add.collider(this.swordDetectionArea, this.platforms);
+
+        // Creating a highlighted rectangle to indicate where to use sword
+        this.swordHighlightBox = this.add.rectangle(
+            830,
+            190,
+            250,
+            140,
+            0xffff00
+        );
+        this.swordHighlightBox.setAlpha(0.25);
+        this.swordHighlightBox.setVisible(false);
+
+        // Creating detection area for using key
+        this.keyDetectionArea = this.add.rectangle(968, 105, 150, 200);
+        this.physics.world.enable(this.keyDetectionArea);
+        this.physics.add.collider(this.keyDetectionArea, this.platforms);
     }
 
     private updateStackView() {
         const offsetX = 1170; // starting X position for stack items
         const offsetY = 270; // starting Y position for stack items
-        const padding = 20;
+        const padding = 8;
 
         let currTotalHeight = 0;
+
+        let stackItemScale = 1;
+        if (this.stack.length == 5) {
+            stackItemScale = 0.8;
+        }
 
         this.stack.forEach((item) => {
             // Calculate and set (x, y) position of stack items in stackpack view
             item.setOrigin(0.5, 0);
+            item.setScale(item.scale * stackItemScale);
             const stackItemX = offsetX;
             const stackItemY =
                 offsetY - item.displayHeight - currTotalHeight - padding;
@@ -936,6 +1038,79 @@ export default class LevelThree extends Phaser.Scene {
             }
         }
 
+        // Collect item if 'E' key is pressed
+        if (this.player && this.keyE?.isDown && !this.keyEPressed) {
+            this.keyEPressed = true; // Set the flag for the E key being pressed to true
+
+            // Check if the player is close enough to the water, gas mask, sword, toolbox, chainsaw, or key, and if so, collect it
+            if (
+                this.sword &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.sword.x,
+                    this.sword.y
+                ) < 100
+            ) {
+                this.collectItem(this.sword);
+            }
+            if (
+                this.gasMask &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.gasMask.x,
+                    this.gasMask.y
+                ) < 100
+            ) {
+                this.collectItem(this.gasMask);
+            }
+            if (
+                this.toolbox &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.toolbox.x,
+                    this.toolbox.y
+                ) < 100
+            ) {
+                this.collectItem(this.toolbox);
+            }
+            if (
+                this.water &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.water.x,
+                    this.water.y
+                ) < 100
+            ) {
+                this.collectItem(this.water);
+            }
+            if (
+                this.chainsaw &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.chainsaw.x,
+                    this.chainsaw.y
+                ) < 100
+            ) {
+                this.collectItem(this.chainsaw);
+            }
+            if (
+                this.key &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.key.x,
+                    this.key.y
+                ) < 100
+            ) {
+                this.collectItem(this.key);
+            }
+        }
+
         // Check if 'E' key is released
         if (this.keyE?.isUp) {
             this.keyEPressed = false; // Reset the keyEPressed flag when the E key is released
@@ -944,6 +1119,105 @@ export default class LevelThree extends Phaser.Scene {
         // Check if 'F' key is released
         if (this.keyF?.isUp) {
             this.keyFPressed = false; // Reset the keyFPressed flag when the F key is released
+        }
+
+        // Check if player is near detection area
+        if (this.player && this.stack.length > 0) {
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.gasMaskDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "gas-mask"
+            ) {
+                // If player overlaps with gas mask detection area, show the highlight box
+                this.gasMaskHighlightBox.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.swordDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "sword"
+            ) {
+                // If player overlaps with sword detection area, show the highlight box
+                this.swordHighlightBox.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.toolboxDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "toolbox"
+            ) {
+                // If player overlaps with toolbox detection area, show the highlight box
+                this.toolboxHighlightBox.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.waterDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "water"
+            ) {
+                // If player overlaps with water detection area, show the highlight box
+                this.waterHighlightBox.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.chainsawDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "chainsaw"
+            ) {
+                // If player overlaps with chainsaw detection area, show the highlight box
+                this.chainsawHighlightBox.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.keyDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "key"
+            ) {
+                // If player overlaps with key detection area, open door
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                    this.levelCompleteText?.setVisible(true);
+                    // Animate level complete text
+                    this.tweens.add({
+                        targets: this.levelCompleteText,
+                        scale: 1,
+                        alpha: 1,
+                        duration: 1000,
+                        ease: "Bounce",
+                        delay: 500, // Delay the animation slightly
+                    });
+                }
+            } else {
+                // Otherwise, hide the highlight box
+                this.gasMaskHighlightBox.setVisible(false);
+                this.swordHighlightBox.setVisible(false);
+                this.toolboxHighlightBox.setVisible(false);
+                this.waterHighlightBox.setVisible(false);
+                this.chainsawHighlightBox.setVisible(false);
+            }
         }
     }
 }

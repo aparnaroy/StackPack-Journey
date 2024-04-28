@@ -406,7 +406,7 @@ export default class LevelZero extends Phaser.Scene {
             Phaser.Input.Keyboard.KeyCodes.F
         );
 
-        // Creating dectection areas when using the ladder
+        // Creating detection areas when using the ladder
         this.ladderDetectionArea = this.add.rectangle(680, 400, 100, 150);
         this.physics.world.enable(this.ladderDetectionArea);
         this.physics.add.collider(this.ladderDetectionArea, this.ground);
@@ -423,7 +423,7 @@ export default class LevelZero extends Phaser.Scene {
         this.ladderHighlightBox.setAlpha(0.25);
         this.ladderHighlightBox.setVisible(false);
 
-        // Creating dectection areas when using the plank
+        // Creating detection areas when using the plank
         this.plankDetectionArea1 = this.add.rectangle(670, 0, 100, 150);
         this.physics.world.enable(this.plankDetectionArea1);
         this.physics.add.collider(this.plankDetectionArea1, this.ground);
