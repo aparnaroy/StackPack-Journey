@@ -49,8 +49,6 @@ export default class LevelZero extends Phaser.Scene {
     private plankPlatform?: Phaser.Physics.Arcade.Image;
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
 
-    private levelCompleteText?: Phaser.GameObjects.Text;
-
     private hearts?: Phaser.GameObjects.Sprite[] = [];
     private lives: number = 3;
     private isColliding: boolean = false;
@@ -64,7 +62,10 @@ export default class LevelZero extends Phaser.Scene {
     private timerText: Phaser.GameObjects.Text;
     private startTime: number;
     private pausedTime = 0;
+    private elapsedTime: number;
     private isPaused: boolean = false;
+
+    private threeStarsPopup: Phaser.GameObjects.Group;
 
     constructor() {
         super({ key: "Level0" });
@@ -526,8 +527,18 @@ export default class LevelZero extends Phaser.Scene {
 
         // Level complete popup - still working
         const completeExitButton = this.add
-            .circle(790, 185, 35, 0xff0000)
+            .circle(790, 185, 35)
             .setDepth(1);
+        completeExitButton.setInteractive();
+
+        completeExitButton.on("pointerover", () => {
+            completeExitButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        completeExitButton.on("pointerout", () => {
+            completeExitButton.setFillStyle();
+        });
+
         const completeReplayButton = this.add
             .circle(510, 505, 55, 0xff0000)
             .setDepth(1);
@@ -538,14 +549,20 @@ export default class LevelZero extends Phaser.Scene {
             .circle(800, 505, 55, 0xff0000)
             .setDepth(1);
 
-        const threeStars = this.add.group();
-        const threeStarsPopup = this.add.image(650, 350, "3stars");
-        threeStars.add(threeStarsPopup);
-        threeStars.add(completeExitButton);
-        threeStars.add(completeReplayButton);
-        threeStars.add(completeMenuButton);
-        threeStars.add(completeNextButton);
-        threeStars.setVisible(true);
+        this.threeStarsPopup = this.add.group();
+        const threeStars = this.add.image(650, 350, "3stars");
+        this.threeStarsPopup.add(threeStars);
+        this.threeStarsPopup.add(completeExitButton);
+        this.threeStarsPopup.add(completeReplayButton);
+        this.threeStarsPopup.add(completeMenuButton);
+        this.threeStarsPopup.add(completeNextButton);
+
+        completeExitButton.on("pointerup", () => {
+            if(this.threeStarsPopup){
+                this.threeStarsPopup.setVisible(false);
+            }
+        });
+        this.threeStarsPopup.setVisible(false);
 
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
@@ -663,20 +680,6 @@ export default class LevelZero extends Phaser.Scene {
         this.pushButton2.setVisible(false);
         this.popButton1.setVisible(false);
         this.popButton2.setVisible(false);
-
-        // Create level complete text
-        this.levelCompleteText = this.add.text(
-            this.cameras.main.width / 2,
-            this.cameras.main.height / 2,
-            "Level Complete!",
-            { fontSize: "96px", color: "#03572a", fontFamily: "Verdana" }
-        );
-        this.levelCompleteText.setOrigin(0.5);
-        this.levelCompleteText.setVisible(false);
-
-        // Set initial properties for animation
-        this.levelCompleteText.setScale(0);
-        this.levelCompleteText.setAlpha(0);
 
         // Make plank and ladder items continuously pulsate
         this.createPulsateEffect(
@@ -807,6 +810,7 @@ export default class LevelZero extends Phaser.Scene {
                     if (poppedItem.name === "key") {
                         this.popButton2?.setVisible(false);
                         this.door?.setTexture("opendoor");
+                        this.pauseTime();
                         // Make the player get sucked into the door
                         if (this.player && this.door) {
                             this.tweens.add({
@@ -819,7 +823,31 @@ export default class LevelZero extends Phaser.Scene {
                                 duration: 800,
                                 onComplete: () => {
                                     this.player?.disableBody(true, true);
+                                    var completedTime = this.add
+                                        .text(
+                                            640,
+                                            345,
+                                            this.formatTime(this.elapsedTime),
+                                            {
+                                                fontSize: "40px",
+                                                color: "#000000",
+                                            }
+                                        )
+                                        .setDepth(1).setVisible(false);
                                     // TODO: Add level complete popup (w/ restart and continue options)
+                                    if (this.elapsedTime < 30000) {
+                                        this.threeStarsPopup.add(completedTime);
+                                        this.threeStarsPopup.setVisible(true);
+                                    }
+                                    // Animate level complete text
+                                    this.tweens.add({
+                                        targets: this.threeStarsPopup,
+                                        alpha: 1,
+                                        duration: 5000,
+                                        ease: "Linear",
+                                        delay: 1000, // Delay the animation slightly
+                                    });
+                                    /*
                                     // Transition to game map: unlock level 1 if it's not already unlocked
                                     if (this.level1State == 0) {
                                         setTimeout(() => {
@@ -840,6 +868,7 @@ export default class LevelZero extends Phaser.Scene {
                                             });
                                         }, 2000);
                                     }
+                                    */
                                     // To re-enable the player later:
                                     /*this.player?.enableBody(
                                         true,
@@ -1073,6 +1102,13 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     update() {
+        // Updating timer
+        if (!this.isPaused) {
+            var currentTime = this.time.now;
+            this.elapsedTime = currentTime - this.startTime;
+            this.timerText.setText("Time: " + this.formatTime(this.elapsedTime));
+        }
+
         // Continuously make glowing spot small and big
         const minScaleX = 0.18; // Minimum scale on x-axis
         const maxScaleX = 0.27; // Maximum scale on x-axis
@@ -1273,17 +1309,6 @@ export default class LevelZero extends Phaser.Scene {
                 if (this.keyF?.isDown && !this.keyFPressed) {
                     this.keyFPressed = true;
                     this.useItem();
-                    //this.levelCompleteText?.setVisible(true);
-
-                    // Animate level complete text
-                    this.tweens.add({
-                        targets: this.levelCompleteText,
-                        scale: 1,
-                        alpha: 1,
-                        duration: 1000,
-                        ease: "Bounce",
-                        delay: 500, // Delay the animation slightly
-                    });
                 }
             } else {
                 // Otherwise, hide the highlight box
@@ -1433,13 +1458,6 @@ export default class LevelZero extends Phaser.Scene {
             } else {
                 this.popButton2?.setVisible(false);
             }
-        }
-
-        // Updating timer
-        if (!this.isPaused) {
-            var currentTime = this.time.now;
-            var elapsedTime = currentTime - this.startTime;
-            this.timerText.setText("Time: " + this.formatTime(elapsedTime));
         }
     }
 }
