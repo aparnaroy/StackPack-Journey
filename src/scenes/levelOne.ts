@@ -6,16 +6,17 @@ export default class LevelOne extends Phaser.Scene {
     private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
     private key?: Phaser.GameObjects.Sprite;
     private platforms?: Phaser.Physics.Arcade.StaticGroup;
-    private banana?: Phaser.GameObjects.Sprite;
+    private banana?: Phaser.Physics.Arcade.Sprite;
     private bananaBubble?: Phaser.GameObjects.Image;
     private mushroom?: Phaser.Physics.Arcade.Sprite;
-    private vineItem?: Phaser.GameObjects.Sprite;
+    private vineItem?: Phaser.Physics.Arcade.Sprite;
     private stone?: Phaser.Physics.Arcade.Sprite;
     private ground?: Phaser.Physics.Arcade.Image;
     private monkey?: Phaser.Physics.Arcade.Sprite;
     private river?: Phaser.Physics.Arcade.Sprite;
     private groundRectangle?: Phaser.GameObjects.Rectangle;
     private stackRectangle?: Phaser.GameObjects.Rectangle;
+    private vineSwing?: Phaser.GameObjects.Sprite;
 
     // Highlight Boxes
     private stoneDetectionBox?: Phaser.GameObjects.Rectangle;
@@ -43,6 +44,12 @@ export default class LevelOne extends Phaser.Scene {
     private isPushingMap: { [key: string]: boolean } = {};
     private hearts?: Phaser.GameObjects.Sprite[] = [];
     private lives: number = 3;
+    private stackY: number = 300;
+    private stoneStackImg: Phaser.GameObjects.Image;
+    private mushroomStackImg: Phaser.GameObjects.Image;
+    private bananaStackImg: Phaser.GameObjects.Image;
+    private vineStackImg: Phaser.GameObjects.Image;
+    private keyStackImg: Phaser.GameObjects.Image;
 
     // For Player animations
     private lastDirection: string = "right";
@@ -131,6 +138,9 @@ export default class LevelOne extends Phaser.Scene {
         this.load.image("stone", "assets/level1/stone.png");
         this.load.image("river", "assets/level1/river.png");
         this.load.image("heart", "assets/heart_16.png");
+        this.load.image("vineHook", "assets/level1/vineHook.png");
+        this.load.image("vine", "assets/level1/vine.png");
+        this.load.image("stackKey", "assets/level1/stackKey.png");
     }
 
     create() {
@@ -146,6 +156,8 @@ export default class LevelOne extends Phaser.Scene {
             .image(0, 0, "stackpack")
             .setPosition(1170, 165);
         stackpack.setScale(0.26, 0.26);
+
+        this.add.image(640, 70, "vineHook").setScale(0.6, 0.6);
 
         this.player = this.physics.add
             .sprite(100, 600, "gal_right")
@@ -354,6 +366,9 @@ export default class LevelOne extends Phaser.Scene {
             .image(280, 130, "bananaBubble")
             .setScale(0.7, 0.7);
 
+        this.vineSwing = this.add.sprite(655, 235, "vine").setScale(0.35, 0.35);
+        this.vineSwing.angle.toFixed(0);
+
         // Handling Pushing.Popping
         this.keyE = this.input.keyboard?.addKey(
             Phaser.Input.Keyboard.KeyCodes.E
@@ -465,9 +480,73 @@ export default class LevelOne extends Phaser.Scene {
         // setting depths
         this.stone.depth = 1;
         this.river.depth = 0;
+
+        // VINE SWING
+        parseInt(this.vineSwing.angle.toFixed(0)) == 60;
     }
 
     // HELPER FUNCTIONS
+
+    private vineSwingStart() {
+        if (this.vineSwing) {
+            this.vineSwing.angle = this.vineSwing.angle + 45;
+            this.tweens.add({
+                targets: this.vineSwing,
+                rotation: this.vineSwing.angle + 10,
+            });
+        }
+    }
+
+    private imageViewInStack(item: Phaser.GameObjects.Sprite) {
+        const buffer = 50;
+        if (item.name === "stone") {
+            this.stoneStackImg = this.add
+                .image(1170, this.stackY - buffer, item.name)
+                .setScale(0.15, 0.15)
+                .setSize(80, 80);
+        } else if (item.name === "mushroom") {
+            this.mushroomStackImg = this.add
+                .image(1170, this.stackY - buffer, item.name)
+                .setScale(0.15, 0.15)
+                .setSize(80, 80);
+        } else if (item.name === "banana") {
+            this.bananaStackImg = this.add
+                .image(1170, this.stackY - buffer, item.name)
+                .setScale(0.15, 0.15)
+                .setSize(80, 80);
+        } else if (item.name === "vineItem") {
+            this.vineStackImg = this.add
+                .image(1170, this.stackY - buffer, item.name)
+                .setScale(0.15, 0.15)
+                .setSize(80, 80);
+        } else if (item.name === "key") {
+            this.keyStackImg = this.add
+                .image(1170, this.stackY - buffer, "stackKey")
+                .setScale(1.4, 1.4)
+                .setSize(80, 80);
+        }
+        this.stackY -= buffer;
+    }
+
+    private imageViewOutStack(item: Phaser.GameObjects.Sprite) {
+        if (item.name === "stone") {
+            this.stoneStackImg.setVisible(false);
+            this.stackY = this.stackY + 50;
+        } else if (item.name === "mushroom") {
+            this.mushroomStackImg.setVisible(false);
+            this.stackY = this.stackY + 50;
+        } else if (item.name === "banana") {
+            this.bananaStackImg.setVisible(false);
+            this.stackY = this.stackY + 50;
+        } else if (item.name === "vineItem") {
+            this.vineStackImg.setVisible(false);
+            this.stackY = this.stackY + 50;
+        } else if (item.name === "key") {
+            this.keyStackImg.setVisible(false);
+            this.stackY = this.stackY + 50;
+        }
+    }
+
     private updateStackView() {
         const offsetX = 1170; // starting X position for stack items
         const offsetY = 270; // starting Y position for stack items
@@ -497,11 +576,15 @@ export default class LevelOne extends Phaser.Scene {
         });
     }
     private collectItem(item: Phaser.GameObjects.Sprite) {
+        this.vineSwingStart();
         if (this.collectedItems.includes(item)) {
             return;
         }
 
         this.isPushingMap[item.name] = true;
+        if (item.name === "mushroom" && this.mushroom) {
+            //this.mushroom.setGravity(0, 0);
+        }
 
         // Save the x and y scales of the collected item
         const currScaleX = item.scaleX;
@@ -536,6 +619,8 @@ export default class LevelOne extends Phaser.Scene {
                                 // Add the item to the stack
                                 this.stack.push(item);
                                 this.updateStackView();
+                                item.setVisible(false);
+                                this.imageViewInStack(item);
                             },
                         });
                     },
@@ -573,9 +658,11 @@ export default class LevelOne extends Phaser.Scene {
                         poppedItem.setPosition(700, 580).setScale(0.2, 0.2);
                         this.stoneHighlightBox?.setVisible(false);
                         this.stonePlatform?.enableBody(true, 710, 718);
+                        this.stone?.setVisible(true);
                     }
                     if (poppedItem.name === "mushroom") {
-                        poppedItem.setPosition(1160, 560);
+                        poppedItem.setPosition(1160, 500);
+                        //poppedItem.setPosition(1160, 560);
                         poppedItem.setSize(
                             poppedItem.width - 200,
                             poppedItem.height - 400
@@ -585,14 +672,19 @@ export default class LevelOne extends Phaser.Scene {
                         if (this.player) {
                             this.physics.add.collider(this.player, poppedItem);
                         }
+                        this.mushroom?.setVisible(true);
                     }
                     if (poppedItem.name === "banana") {
+                        if (this.banana) {
+                            this.banana.setVelocity(0, 0);
+                        }
                         poppedItem.setVisible(false);
                         this.bananaHighlightBox?.setVisible(false);
                         //this.monkey?.setVisible(false);
                         this.bananaBubble?.setVisible(false);
                         this.monkey?.disableBody(true, true);
                     }
+                    this.imageViewOutStack(poppedItem);
                     /*if (poppedItem.name === "plank") {
                         poppedItem.setPosition(815, 600);
                         this.plankHighlightBox.setVisible(false);
@@ -819,6 +911,8 @@ export default class LevelOne extends Phaser.Scene {
             }
         });
     }
+
+    private swing() {}
 
     update() {
         // KEY TURN
