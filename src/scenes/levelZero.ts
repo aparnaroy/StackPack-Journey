@@ -530,18 +530,24 @@ export default class LevelZero extends Phaser.Scene {
             .circle(790, 185, 35)
             .setDepth(1);
         completeExitButton.setInteractive();
-
         completeExitButton.on("pointerover", () => {
             completeExitButton.setFillStyle(0xffff00).setAlpha(0.5);
         });
-
         completeExitButton.on("pointerout", () => {
             completeExitButton.setFillStyle();
         });
 
         const completeReplayButton = this.add
-            .circle(510, 505, 55, 0xff0000)
+            .circle(510, 505, 55)
             .setDepth(1);
+        completeReplayButton.setInteractive();
+        completeReplayButton.on("pointerover", () => {
+            completeReplayButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeReplayButton.on("pointerout", () => {
+            completeReplayButton.setFillStyle();
+        });
+
         const completeMenuButton = this.add
             .circle(655, 530, 55, 0xff0000)
             .setDepth(1);
@@ -562,6 +568,13 @@ export default class LevelZero extends Phaser.Scene {
                 this.threeStarsPopup.setVisible(false);
             }
         });
+
+        completeReplayButton.on("pointerup", () => {
+            if (this.threeStarsPopup) {
+                this.scene.restart();
+            }
+        });
+
         this.threeStarsPopup.setVisible(false);
 
         // Set the depth of the character/player sprite to a high value
