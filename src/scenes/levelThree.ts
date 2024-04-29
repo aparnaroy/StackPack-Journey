@@ -14,8 +14,14 @@ export default class LevelThree extends Phaser.Scene {
     private platforms?: Phaser.Physics.Arcade.StaticGroup;
     private ground?: Phaser.Physics.Arcade.Image;
     private lava?: Phaser.Physics.Arcade.StaticGroup;
-    private stones?: Phaser.Physics.Arcade.StaticGroup;
+    private stones!: Phaser.Physics.Arcade.Group;
     private liftPlatforms!: Phaser.Physics.Arcade.Group;
+
+    private stone0?: Phaser.Physics.Arcade.Image;
+    private stone1?: Phaser.Physics.Arcade.Image;
+    private stone2?: Phaser.Physics.Arcade.Image;
+    private stone3?: Phaser.Physics.Arcade.Image;
+    private stone4?: Phaser.Physics.Arcade.Image;
 
     private water?: Phaser.GameObjects.Sprite;
     private gasMask?: Phaser.GameObjects.Sprite;
@@ -416,30 +422,66 @@ export default class LevelThree extends Phaser.Scene {
 
         this.physics.add.collider(this.player, this.platforms);
 
-        this.stones = this.physics.add.staticGroup();
-        const stone0 = this.stones
-            .create(552, 470, "stone2")
-            .setScale(0.045, 0.045)
-            .refreshBody();
-        stone0.setFlipX(true);
-        const stone1 = this.stones
-            .create(630, 475, "stone1")
-            .setScale(0.04, 0.04)
-            .refreshBody();
-        const stone2 = this.stones
-            .create(700, 470, "stone2")
-            .setScale(0.04, 0.04)
-            .refreshBody();
-        const stone3 = this.stones
-            .create(795, 473, "stone3")
-            .setScale(0.04, 0.04)
-            .refreshBody();
-        const stone4 = this.stones
-            .create(885, 489, "stone1")
-            .setScale(0.04, 0.035)
-            .refreshBody();
+        this.stones = this.physics.add.group({
+            immovable: true,
+            allowGravity: false,
+        });
+        this.stone0 = this.stones.create(
+            552,
+            470,
+            "stone2"
+        ) as Phaser.Physics.Arcade.Image;
+        this.stone0.setScale(0.045, 0.045).refreshBody();
+        this.stone0.setFlipX(true);
+        this.stone1 = this.stones.create(
+            630,
+            475,
+            "stone1"
+        ) as Phaser.Physics.Arcade.Image;
+        this.stone1.setScale(0.04, 0.04).refreshBody();
+        this.stone2 = this.stones.create(
+            700,
+            470,
+            "stone2"
+        ) as Phaser.Physics.Arcade.Image;
+        this.stone2.setScale(0.04, 0.04).refreshBody();
+        this.stone3 = this.stones.create(
+            795,
+            473,
+            "stone3"
+        ) as Phaser.Physics.Arcade.Image;
+        this.stone3.setScale(0.04, 0.04).refreshBody();
+        this.stone4 = this.stones.create(
+            885,
+            489,
+            "stone1"
+        ) as Phaser.Physics.Arcade.Image;
+        this.stone4.setScale(0.04, 0.035).refreshBody();
 
         this.physics.add.collider(this.player, this.stones);
+
+        // Make stones fall when player jumps on them
+        const stonesArray = [
+            this.stone4,
+            this.stone3,
+            this.stone2,
+            this.stone1,
+            this.stone0,
+        ];
+        stonesArray.forEach((stone) => {
+            // Create a sensor above each stone to detect player overlap
+            const sensor = this.physics.add
+                .sprite(stone.x, stone.y - 10, "sensor")
+                .setAlpha(0);
+            sensor.body.setSize(stone.width * 0.02, 9).setOffset(-15, -40); // Adjust sensor size and offset as needed
+            this.physics.add.collider(sensor, this.stones);
+            if (this.player) {
+                // Make stones fall if player touches the sensors
+                this.physics.add.overlap(sensor, this.player, () => {
+                    this.makeStonesFall.call(this);
+                });
+            }
+        });
 
         // Create lift platform
         this.liftPlatforms = this.physics.add.group({
@@ -635,21 +677,36 @@ export default class LevelThree extends Phaser.Scene {
         platform5
             .setSize(platform5.width * 0.77 - 50, platform5.height * 0.3 - 75)
             .setOffset(25, 6);
-        stone0
-            .setSize(stone0.width * 0.045 - 30, stone0.height * 0.045 - 40)
-            .setOffset(15, 5);
-        stone1
-            .setSize(stone1.width * 0.04 - 30, stone1.height * 0.04 - 60)
-            .setOffset(15, 5);
-        stone2
-            .setSize(stone2.width * 0.04 - 26, stone2.height * 0.04 - 35)
-            .setOffset(13, 2);
-        stone3
-            .setSize(stone3.width * 0.04 - 26, stone3.height * 0.04 - 45)
-            .setOffset(15, 5);
-        stone4
-            .setSize(stone4.width * 0.04 - 30, stone4.height * 0.035 - 54)
-            .setOffset(15, 5);
+        this.stone0
+            .setSize(
+                this.stone0.width * 0.72 - 30,
+                this.stone0.height * 0.045 - 40
+            )
+            .setOffset(330, 120);
+        this.stone1
+            .setSize(
+                this.stone1.width * 0.75 - 30,
+                this.stone1.height * 0.04 - 60
+            )
+            .setOffset(270, 250);
+        this.stone2
+            .setSize(
+                this.stone2.width * 0.72 - 26,
+                this.stone2.height * 0.04 - 35
+            )
+            .setOffset(390, 90);
+        this.stone3
+            .setSize(
+                this.stone3.width * 0.92 - 26,
+                this.stone3.height * 0.04 - 45
+            )
+            .setOffset(150, 220);
+        this.stone4
+            .setSize(
+                this.stone4.width * 0.78 - 30,
+                this.stone4.height * 0.035 - 54
+            )
+            .setOffset(270, 130);
 
         this.door
             .setSize(this.door.width, this.door.height - 60)
@@ -1316,6 +1373,32 @@ export default class LevelThree extends Phaser.Scene {
             if (tween.length > 1) {
                 tween[0].stop();
             }
+        });
+    }
+
+    // Make stones fall
+    private makeStonesFall() {
+        // Delay between each stone falling
+        const delayBetweenStones = 300;
+
+        // Array containing references to the stones in the desired falling order
+        const stonesArray = [
+            this.stone4,
+            this.stone3,
+            this.stone2,
+            this.stone1,
+            this.stone0,
+        ];
+
+        stonesArray.forEach((stone, index) => {
+            // Add a delay based on the index to create a sequence
+            const delay = index * delayBetweenStones;
+            this.time.delayedCall(delay, () => {
+                if (stone && stone.body) {
+                    // Make stones fall down
+                    stone.body.velocity.y = 120;
+                }
+            });
         });
     }
 
