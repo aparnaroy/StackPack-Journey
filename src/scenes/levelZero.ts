@@ -63,8 +63,8 @@ export default class LevelZero extends Phaser.Scene {
 
     private timerText: Phaser.GameObjects.Text;
     private startTime: number;
-    private elapsedTime = 0;
-
+    private pausedTime = 0;
+    private isPaused: boolean = false;
 
     constructor() {
         super({ key: "Level0" });
@@ -432,6 +432,7 @@ export default class LevelZero extends Phaser.Scene {
 
         resumeButton.on("pointerup", () => {
             pauseGroup.setVisible(false);
+            this.pauseTime()
         });
 
         // No music button for Pause popup
@@ -506,6 +507,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
+            this.pauseTime()
             pauseGroup.setVisible(true);
         });
 
@@ -1022,12 +1024,24 @@ export default class LevelZero extends Phaser.Scene {
         });
     }
 
-    private formatTime(milliseconds: number){
+    private formatTime(milliseconds: number) {
         var mins = Math.floor(milliseconds / 60000);
         var secs = Math.floor((milliseconds % 60000) / 1000);
-        //var milliseconds = Math.floor((milliseconds % 1000));
+        return (
+            mins.toString().padStart(2, "0") +
+            ":" +
+            secs.toString().padStart(2, "0")
+        );
+    }
 
-        return mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0')
+    private pauseTime() {
+        this.isPaused = !this.isPaused;
+        if(this.isPaused){
+            this.pausedTime = this.time.now - this.startTime;
+        }
+        else {
+            this.startTime = this.time.now - this.pausedTime;
+        }
     }
 
     update() {
@@ -1393,7 +1407,10 @@ export default class LevelZero extends Phaser.Scene {
         }
 
         // Updating timer
-        this.elapsedTime = this.time.now - this.startTime;
-        this.timerText.setText("Time: "+ this.formatTime(this.elapsedTime))
+        if (!this.isPaused){
+            var currentTime = this.time.now;
+            var elapsedTime = currentTime - this.startTime;
+            this.timerText.setText("Time: " + this.formatTime(elapsedTime));
+        }
     }
 }
