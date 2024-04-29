@@ -156,7 +156,6 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("3stars", "assets/FullStars.png");
         this.load.image("2stars", "assets/2Stars.png");
         this.load.image("1star", "assets/1Star.png");
-        this.load.image("0stars", "assets/0Star.png");
     }
 
     create(data: GameMapData) {
@@ -437,7 +436,7 @@ export default class LevelZero extends Phaser.Scene {
 
         resumeButton.on("pointerup", () => {
             pauseGroup.setVisible(false);
-            this.pauseTime()
+            this.pauseTime();
         });
 
         // No music button for Pause popup
@@ -512,7 +511,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
-            this.pauseTime()
+            this.pauseTime();
             pauseGroup.setVisible(true);
         });
 
@@ -526,9 +525,27 @@ export default class LevelZero extends Phaser.Scene {
         this.isPaused = false;
 
         // Level complete popup - still working
-        const threeStars = this.add.image(650, 350, "3stars");
-        threeStars.setVisible(false);
+        const completeExitButton = this.add
+            .circle(790, 185, 35, 0xff0000)
+            .setDepth(1);
+        const completeReplayButton = this.add
+            .circle(510, 505, 55, 0xff0000)
+            .setDepth(1);
+        const completeMenuButton = this.add
+            .circle(655, 530, 55, 0xff0000)
+            .setDepth(1);
+        const completeNextButton = this.add
+            .circle(800, 505, 55, 0xff0000)
+            .setDepth(1);
 
+        const threeStars = this.add.group();
+        const threeStarsPopup = this.add.image(650, 350, "3stars");
+        threeStars.add(threeStarsPopup);
+        threeStars.add(completeExitButton);
+        threeStars.add(completeReplayButton);
+        threeStars.add(completeMenuButton);
+        threeStars.add(completeNextButton);
+        threeStars.setVisible(true);
 
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
@@ -1048,10 +1065,9 @@ export default class LevelZero extends Phaser.Scene {
 
     private pauseTime() {
         this.isPaused = !this.isPaused;
-        if(this.isPaused){
+        if (this.isPaused) {
             this.pausedTime = this.time.now - this.startTime;
-        }
-        else {
+        } else {
             this.startTime = this.time.now - this.pausedTime;
         }
     }
