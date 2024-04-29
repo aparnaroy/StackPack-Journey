@@ -40,3 +40,4 @@
 -   Toxic Gas Barrel: https://img.freepik.com/premium-vector/barrel-with-nuclear-pollution-biohazard-radioactive-toxic-waste_288189-802.jpg
 -   Toxic Gas Cloud: https://img.freepik.com/premium-vector/green-smoke-cloud-toxic-smell-cartoon-scent_81894-8958.jpg
 -   Gas Mask: https://img.freepik.com/premium-vector/stencil-gas-mask-icon-flat-vector-chemical-air-toxic-army-isolated_98396-65151.jpg
+-   Fireball: https://static.vecteezy.com/system/resources/previews/012/629/333/original/fireball-drop-effect-png.png

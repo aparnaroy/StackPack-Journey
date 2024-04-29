@@ -17,6 +17,9 @@ export default class LevelThree extends Phaser.Scene {
     private stones!: Phaser.Physics.Arcade.Group;
     private liftPlatforms!: Phaser.Physics.Arcade.Group;
 
+    private fireball1?: Phaser.Physics.Arcade.Image;
+    private fireball2?: Phaser.Physics.Arcade.Image;
+
     private stone0?: Phaser.Physics.Arcade.Image;
     private stone1?: Phaser.Physics.Arcade.Image;
     private stone2?: Phaser.Physics.Arcade.Image;
@@ -197,6 +200,7 @@ export default class LevelThree extends Phaser.Scene {
             "assets/level3/lava-platform-small.png"
         );
         this.load.image("lava", "assets/level3/lava.png");
+        this.load.image("fireball", "assets/level3/fireball.png");
         this.load.image("stone1", "assets/level3/stone1.png");
         this.load.image("stone2", "assets/level3/stone2.png");
         this.load.image("stone3", "assets/level3/stone3.png");
@@ -529,6 +533,20 @@ export default class LevelThree extends Phaser.Scene {
         this.lava.create(360 + 4 * 192, 650, "lava").setScale(0.75, 0.75);
         this.lava.create(360 + 5 * 192, 650, "lava").setScale(0.75, 0.75);
 
+        this.fireball1 = this.add.image(
+            465,
+            750,
+            "fireball"
+        ) as Phaser.Physics.Arcade.Image;
+        this.fireball1.setScale(0.07, -0.07);
+
+        this.fireball2 = this.add.image(
+            700,
+            750,
+            "fireball"
+        ) as Phaser.Physics.Arcade.Image;
+        this.fireball2.setScale(0.07, -0.07);
+
         // Creating collectable items: water, gas mask, sword, toolbox, chainsaw, key
         this.water = this.add.sprite(1230, 510, "water").setScale(0.2, 0.2);
         this.water.setName("water");
@@ -649,7 +667,10 @@ export default class LevelThree extends Phaser.Scene {
 
         // Set the depth of other game objects to lower values
         this.gasBarrel.setDepth(2);
-        this.ground.setDepth(1);
+        this.ground.setDepth(2);
+        this.lava.setDepth(1);
+        this.fireball1.setDepth(0);
+        this.fireball2.setDepth(0);
 
         // Resize collision boxes of player and everything that can be collided with
         this.player
@@ -853,12 +874,21 @@ export default class LevelThree extends Phaser.Scene {
         this.treeArea = this.add.rectangle(510, 100, 100, 200);
         this.physics.world.enable(this.treeArea);
         this.physics.add.collider(this.treeArea, this.platforms);
+
+        // Make fireballs jump out every 4 seconds after jumping once at beginning
+        this.animateBothFireballs();
+        this.time.addEvent({
+            delay: 3000,
+            callback: this.animateBothFireballs,
+            callbackScope: this,
+            loop: true, // Repeat indefinitely
+        });
     }
 
     private updateStackView() {
         const offsetX = 1170; // starting X position for stack items
         const offsetY = 270; // starting Y position for stack items
-        const padding = 8;
+        const padding = 10;
 
         let currTotalHeight = 0;
 
@@ -1402,6 +1432,31 @@ export default class LevelThree extends Phaser.Scene {
         });
     }
 
+    animateFireball(fireball: Phaser.Physics.Arcade.Image) {
+        this.tweens.add({
+            targets: fireball,
+            y: 580, // Change this value to adjust the height
+            duration: 1000,
+            ease: "Sine.InOut",
+            yoyo: true,
+            repeat: 0,
+            onYoyo: () => {
+                // Flip vertically when reaching the top or bottom
+                fireball.scaleY *= -1;
+            },
+            onComplete: () => {
+                fireball.scaleY *= -1;
+            },
+        });
+    }
+
+    animateBothFireballs() {
+        if (this.fireball1 && this.fireball2) {
+            this.animateFireball(this.fireball1);
+            this.animateFireball(this.fireball2);
+        }
+    }
+
     update() {
         // Key animation
         if (this.key) {
@@ -1703,6 +1758,23 @@ export default class LevelThree extends Phaser.Scene {
                 undefined,
                 this
             );
+        }
+        // Lose life if player touches fireballs
+        if (this.player && this.fireball1 && this.fireball2) {
+            // Fireball 1
+            const distX1 = Math.abs(this.player.x - this.fireball1.x);
+            const distY1 = Math.abs(this.player.y - this.fireball1.y);
+            if (distX1 < 40 && distY1 < 80) {
+                this.collidingWithDeath = true;
+                this.loseLife();
+            }
+            // Fireball 2
+            const distX2 = Math.abs(this.player.x - this.fireball2.x);
+            const distY2 = Math.abs(this.player.y - this.fireball2.y);
+            if (distX2 < 40 && distY2 < 80) {
+                this.collidingWithDeath = true;
+                this.loseLife();
+            }
         }
         // Lose life if player touches toxic gas
         if (
