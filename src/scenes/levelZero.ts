@@ -413,7 +413,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
-            this.scene.start("Level0");
+            this.scene.restart();
         });
 
         // Resume button for Pause popup
@@ -517,6 +517,9 @@ export default class LevelZero extends Phaser.Scene {
             color: "#000000",
         });
         this.startTime = this.time.now;
+        this.pausedTime = 0;
+        this.isPaused = false;
+
 
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
@@ -1407,7 +1410,7 @@ export default class LevelZero extends Phaser.Scene {
         }
 
         // Updating timer
-        if (!this.isPaused){
+        if (!this.isPaused) {
             var currentTime = this.time.now;
             var elapsedTime = currentTime - this.startTime;
             this.timerText.setText("Time: " + this.formatTime(elapsedTime));
