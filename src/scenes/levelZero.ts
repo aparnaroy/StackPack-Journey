@@ -152,6 +152,11 @@ export default class LevelZero extends Phaser.Scene {
 
         this.load.image("pause-button", "assets/pause2.png");
         this.load.image("pause-popup", "assets/paused-popup.png");
+
+        this.load.image("3stars", "assets/FullStars.png");
+        this.load.image("2stars", "assets/2Stars.png");
+        this.load.image("1star", "assets/1Star.png");
+        this.load.image("0stars", "assets/0Star.png");
     }
 
     create(data: GameMapData) {
@@ -519,6 +524,10 @@ export default class LevelZero extends Phaser.Scene {
         this.startTime = this.time.now;
         this.pausedTime = 0;
         this.isPaused = false;
+
+        // Level complete popup - still working
+        const threeStars = this.add.image(650, 350, "3stars");
+        threeStars.setVisible(false);
 
 
         // Set the depth of the character/player sprite to a high value
@@ -1248,7 +1257,8 @@ export default class LevelZero extends Phaser.Scene {
                 if (this.keyF?.isDown && !this.keyFPressed) {
                     this.keyFPressed = true;
                     this.useItem();
-                    this.levelCompleteText?.setVisible(true);
+                    //this.levelCompleteText?.setVisible(true);
+
                     // Animate level complete text
                     this.tweens.add({
                         targets: this.levelCompleteText,
