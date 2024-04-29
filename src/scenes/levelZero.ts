@@ -549,8 +549,16 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         const completeMenuButton = this.add
-            .circle(655, 530, 55, 0xff0000)
+            .circle(655, 530, 55)
             .setDepth(1);
+        completeMenuButton.setInteractive();
+        completeMenuButton.on("pointerover", () => {
+            completeMenuButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeMenuButton.on("pointerout", () => {
+            completeMenuButton.setFillStyle();
+        });
+
         const completeNextButton = this.add
             .circle(800, 505, 55, 0xff0000)
             .setDepth(1);
@@ -574,6 +582,30 @@ export default class LevelZero extends Phaser.Scene {
                 this.scene.restart();
             }
         });
+
+        completeMenuButton.on("pointerup", () => {
+            if(this.threeStarsPopup){
+                if (this.level1State == 0) {
+                    setTimeout(() => {
+                        this.scene.start("game-map", {
+                            level0State: 3,
+                            level1State: 1,
+                            level2State: this.level2State,
+                            level3State: this.level3State,
+                        });
+                    }, 500);
+                } else {
+                    setTimeout(() => {
+                        this.scene.start("game-map", {
+                            level0State: 3,
+                            level1State: this.level1State,
+                            level2State: this.level2State,
+                            level3State: this.level3State,
+                        });
+                    }, 1000);
+                }
+            }
+        })
 
         this.threeStarsPopup.setVisible(false);
 
