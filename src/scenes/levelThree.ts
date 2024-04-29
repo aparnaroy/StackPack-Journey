@@ -80,6 +80,10 @@ export default class LevelThree extends Phaser.Scene {
     private isColliding: boolean = false;
     private collidingWithDeath: boolean = false;
     private usedSword: boolean = false;
+    private skeletonDead: boolean = false;
+
+    private resetPosX: number;
+    private resetPosY: number;
 
     private level0State: number;
     private level1State: number;
@@ -240,6 +244,8 @@ export default class LevelThree extends Phaser.Scene {
 
         this.lastDirection = "right";
         this.usedSword = false;
+        this.resetPosX = 300;
+        this.resetPosY = 550;
 
         const backgroundImage = this.add
             .image(0, 0, "level3-background")
@@ -487,6 +493,17 @@ export default class LevelThree extends Phaser.Scene {
             }
         });
 
+        // Create sensor to sense if player successfully gets past stones, and if so, update where player spawns after losing a life
+        const sensor2 = this.physics.add
+            .sprite(190, 360, "sensor2")
+            .setAlpha(0);
+        sensor2.body.setSize(320, 60).setOffset(0, 0);
+        this.physics.add.collider(sensor2, this.platforms);
+        this.physics.add.overlap(sensor2, this.player, () => {
+            this.resetPosX = 460;
+            this.resetPosY = 320;
+        });
+
         // Create lift platform
         this.liftPlatforms = this.physics.add.group({
             immovable: true, // Make all platforms immovable by collisions
@@ -655,7 +672,7 @@ export default class LevelThree extends Phaser.Scene {
         this.tree = this.add.sprite(480, 130, "tree").setScale(0.5, 0.5);
         this.tree.setName("tree");
 
-        this.door = this.physics.add.image(930, 100, "door").setScale(0.1, 0.1);
+        this.door = this.physics.add.image(880, 100, "door").setScale(0.1, 0.1);
         this.physics.add.collider(this.door, this.platforms);
 
         // Set the depth of the player and skeleton sprites to a high value
@@ -1092,6 +1109,7 @@ export default class LevelThree extends Phaser.Scene {
                     }
                     if (poppedItem.name === "sword") {
                         this.usedSword = true;
+                        this.skeletonDead = true;
                         poppedItem.setDepth(5);
                         if (this.sword && this.player && this.skeleton) {
                             // Set the sword's initial position to the player's location
@@ -1124,7 +1142,7 @@ export default class LevelThree extends Phaser.Scene {
                                             targets: this.sword,
                                             scaleX: this.sword.scaleX * 0.9,
                                             scaleY: this.sword.scaleY * 0.9,
-                                            x: 800,
+                                            x: 1000,
                                             y: 170,
                                             rotation: Phaser.Math.DegToRad(222),
                                             duration: 100,
@@ -1347,7 +1365,10 @@ export default class LevelThree extends Phaser.Scene {
                 () => {
                     this.isColliding = false;
                     if (this.collidingWithDeath) {
-                        this.player?.setPosition(300, 550); // Reset player's position
+                        this.player?.setPosition(
+                            this.resetPosX,
+                            this.resetPosY
+                        ); // Reset player's position
                         this.collidingWithDeath = false;
                     }
                 },
@@ -1489,7 +1510,7 @@ export default class LevelThree extends Phaser.Scene {
                     }
                 }
                 // If player is close enough to hit, attack
-                else if (distanceX <= attackThreshold && distanceY < 60) {
+                else if (distanceX <= attackThreshold && distanceY < 100) {
                     if (this.skeleton.x < this.player.x) {
                         this.skeleton.anims.play("attack_right", true); // Attack right
                     } else if (this.skeleton.x > this.player.x) {
@@ -1721,8 +1742,12 @@ export default class LevelThree extends Phaser.Scene {
                 ) &&
                 this.stack[this.stack.length - 1].name === "key"
             ) {
-                // If player overlaps with key detection area, open door
-                if (this.keyF?.isDown && !this.keyFPressed) {
+                // If player overlaps with key detection area and killed skeleton, open door
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.skeletonDead
+                ) {
                     this.keyFPressed = true;
                     this.useItem();
                     /*this.levelCompleteText?.setVisible(true);
@@ -1764,14 +1789,14 @@ export default class LevelThree extends Phaser.Scene {
             // Fireball 1
             const distX1 = Math.abs(this.player.x - this.fireball1.x);
             const distY1 = Math.abs(this.player.y - this.fireball1.y);
-            if (distX1 < 40 && distY1 < 80) {
+            if (distX1 < 40 && distY1 < 90) {
                 this.collidingWithDeath = true;
                 this.loseLife();
             }
             // Fireball 2
             const distX2 = Math.abs(this.player.x - this.fireball2.x);
             const distY2 = Math.abs(this.player.y - this.fireball2.y);
-            if (distX2 < 40 && distY2 < 80) {
+            if (distX2 < 40 && distY2 < 90) {
                 this.collidingWithDeath = true;
                 this.loseLife();
             }
