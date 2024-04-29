@@ -560,8 +560,15 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         const completeNextButton = this.add
-            .circle(800, 505, 55, 0xff0000)
+            .circle(800, 505, 55)
             .setDepth(1);
+        completeNextButton.setInteractive();
+        completeNextButton.on("pointerover", () => {
+            completeNextButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeNextButton.on("pointerout", () => {
+            completeNextButton.setFillStyle();
+        });
 
         this.threeStarsPopup = this.add.group();
         const threeStars = this.add.image(650, 350, "3stars");
@@ -607,7 +614,13 @@ export default class LevelZero extends Phaser.Scene {
             }
         })
 
-        this.threeStarsPopup.setVisible(false);
+        completeNextButton.on("pointerup", () => {
+            if (this.threeStarsPopup) {
+                this.scene.start("Level1");
+            }
+        });
+
+        this.threeStarsPopup.setVisible(true);
 
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
