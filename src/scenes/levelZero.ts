@@ -66,6 +66,9 @@ export default class LevelZero extends Phaser.Scene {
     private isPaused: boolean = false;
 
     private threeStarsPopup: Phaser.GameObjects.Group;
+    private twoStarsPopup: Phaser.GameObjects.Group;
+    private oneStarPopup: Phaser.GameObjects.Group;
+    private starsPopup: Phaser.GameObjects.Group;
 
     constructor() {
         super({ key: "Level0" });
@@ -578,49 +581,67 @@ export default class LevelZero extends Phaser.Scene {
         this.threeStarsPopup.add(completeMenuButton);
         this.threeStarsPopup.add(completeNextButton);
 
+        this.twoStarsPopup = this.add.group();
+        const twoStars = this.add.image(650, 350, "2stars");
+        this.twoStarsPopup.add(twoStars);
+        this.twoStarsPopup.add(completeExitButton);
+        this.twoStarsPopup.add(completeReplayButton);
+        this.twoStarsPopup.add(completeMenuButton);
+        this.twoStarsPopup.add(completeNextButton);
+
+        this.oneStarPopup = this.add.group();
+        const oneStar = this.add.image(650, 350, "1star");
+        this.oneStarPopup.add(oneStar);
+        this.oneStarPopup.add(completeExitButton);
+        this.oneStarPopup.add(completeReplayButton);
+        this.oneStarPopup.add(completeMenuButton);
+        this.oneStarPopup.add(completeNextButton);
+
         completeExitButton.on("pointerup", () => {
-            if(this.threeStarsPopup){
+            if(threeStars.visible){
                 this.threeStarsPopup.setVisible(false);
+            }
+            if(twoStars.visible){
+                this.twoStarsPopup.setVisible(false);
+            }
+            if(oneStar.visible){
+                this.oneStarPopup.setVisible(false);
             }
         });
 
         completeReplayButton.on("pointerup", () => {
-            if (this.threeStarsPopup) {
                 this.scene.restart();
-            }
         });
 
         completeMenuButton.on("pointerup", () => {
-            if(this.threeStarsPopup){
-                if (this.level1State == 0) {
-                    setTimeout(() => {
-                        this.scene.start("game-map", {
-                            level0State: 3,
-                            level1State: 1,
-                            level2State: this.level2State,
-                            level3State: this.level3State,
-                        });
-                    }, 500);
-                } else {
-                    setTimeout(() => {
-                        this.scene.start("game-map", {
-                            level0State: 3,
-                            level1State: this.level1State,
-                            level2State: this.level2State,
-                            level3State: this.level3State,
-                        });
-                    }, 1000);
-                }
+            if (this.level1State == 0) {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: 3,
+                        level1State: 1,
+                        level2State: this.level2State,
+                        level3State: this.level3State,
+                    });
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: 3,
+                        level1State: this.level1State,
+                        level2State: this.level2State,
+                        level3State: this.level3State,
+                    });
+                }, 1000);
             }
         })
 
         completeNextButton.on("pointerup", () => {
-            if (this.threeStarsPopup) {
-                this.scene.start("Level1");
-            }
+            this.scene.start("Level1");
         });
 
-        this.threeStarsPopup.setVisible(true);
+        this.threeStarsPopup.setVisible(false);
+        this.twoStarsPopup.setVisible(false);
+        this.oneStarPopup.setVisible(false);
 
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
@@ -892,54 +913,34 @@ export default class LevelZero extends Phaser.Scene {
                                             }
                                         )
                                         .setDepth(1).setVisible(false);
-                                    // TODO: Add level complete popup (w/ restart and continue options)
-                                    if (this.elapsedTime < 30000) {
+                                    // Level popup depends on time it takes to complete
+                                    if (this.elapsedTime <= 30000) {
+                                        this.starsPopup = this.threeStarsPopup;
                                         this.threeStarsPopup.add(completedTime);
                                         this.threeStarsPopup.setVisible(true);
                                     }
+                                    if (this.elapsedTime > 30000 && this.elapsedTime <= 60000){
+                                        this.starsPopup = this.twoStarsPopup;
+                                        this.twoStarsPopup.add(completedTime);
+                                        this.twoStarsPopup.setVisible(true);
+                                    }
+                                    if (this.elapsedTime > 60000){
+                                        this.starsPopup = this.oneStarPopup;
+                                        this.oneStarPopup.add(completedTime);
+                                        this.oneStarPopup.setVisible(true);
+                                    }
                                     // Animate level complete text
                                     this.tweens.add({
-                                        targets: this.threeStarsPopup,
+                                        targets: this.starsPopup,
                                         alpha: 1,
                                         duration: 5000,
                                         ease: "Linear",
                                         delay: 1000, // Delay the animation slightly
                                     });
-                                    /*
-                                    // Transition to game map: unlock level 1 if it's not already unlocked
-                                    if (this.level1State == 0) {
-                                        setTimeout(() => {
-                                            this.scene.start("game-map", {
-                                                level0State: 3,
-                                                level1State: 1,
-                                                level2State: this.level2State,
-                                                level3State: this.level3State,
-                                            });
-                                        }, 2000);
-                                    } else {
-                                        setTimeout(() => {
-                                            this.scene.start("game-map", {
-                                                level0State: 3,
-                                                level1State: this.level1State,
-                                                level2State: this.level2State,
-                                                level3State: this.level3State,
-                                            });
-                                        }, 2000);
-                                    }
-                                    */
-                                    // To re-enable the player later:
-                                    /*this.player?.enableBody(
-                                        true,
-                                        this.player.x,
-                                        this.player.y,
-                                        true,
-                                        true
-                                    );*/
                                 },
                             });
                         }
                     }
-
                     this.tweens.add({
                         targets: poppedItem,
                         scaleX: poppedItem.scaleX * 2,
