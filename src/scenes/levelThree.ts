@@ -70,6 +70,7 @@ export default class LevelThree extends Phaser.Scene {
     private lives: number = 3;
     private isColliding: boolean = false;
     private collidingWithDeath: boolean = false;
+    private usedSword: boolean = false;
 
     private level0State: number;
     private level1State: number;
@@ -81,14 +82,19 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("level3-background", "assets/level3-background.jpg");
+        this.load.image(
+            "level3-background",
+            "assets/level3/level3-background.jpg"
+        );
         this.load.image("stackpack", "assets/stackpack.png");
 
+        // Key
         this.load.spritesheet("key", "assets/key.png", {
             frameWidth: 768 / 24,
             frameHeight: 32,
         });
 
+        // Player
         this.load.spritesheet("gal_right", "assets/Pink_Monster_Walk_6.png", {
             frameWidth: 128,
             frameHeight: 128,
@@ -128,11 +134,12 @@ export default class LevelThree extends Phaser.Scene {
             { frameWidth: 128, frameHeight: 128 }
         );
 
+        // Skeleton
         this.load.spritesheet(
             "walk_right",
             "assets/level3/Skeleton_With_VFX/Skeleton_01_White_Walk.png",
             {
-                frameWidth: 960 / 10,
+                frameWidth: 96,
                 frameHeight: 64,
             }
         );
@@ -140,7 +147,39 @@ export default class LevelThree extends Phaser.Scene {
             "walk_left",
             "assets/level3/Skeleton_With_VFX/Skeleton_01_White_Walk_left.png",
             {
-                frameWidth: 960 / 10,
+                frameWidth: 96,
+                frameHeight: 64,
+            }
+        );
+        this.load.spritesheet(
+            "attack_right",
+            "assets/level3/Skeleton_With_VFX/Skeleton_01_White_Attack1.png",
+            {
+                frameWidth: 96,
+                frameHeight: 64,
+            }
+        );
+        this.load.spritesheet(
+            "attack_left",
+            "assets/level3/Skeleton_With_VFX/Skeleton_01_White_Attack1_left.png",
+            {
+                frameWidth: 96,
+                frameHeight: 64,
+            }
+        );
+        this.load.spritesheet(
+            "die_right",
+            "assets/level3/Skeleton_With_VFX/Skeleton_01_White_Die.png",
+            {
+                frameWidth: 96,
+                frameHeight: 64,
+            }
+        );
+        this.load.spritesheet(
+            "die_left",
+            "assets/level3/Skeleton_With_VFX/Skeleton_01_White_Die_left.png",
+            {
+                frameWidth: 96,
                 frameHeight: 64,
             }
         );
@@ -190,6 +229,7 @@ export default class LevelThree extends Phaser.Scene {
         this.level3State = data.level3State;
 
         this.lastDirection = "right";
+        this.usedSword = false;
 
         const backgroundImage = this.add
             .image(0, 0, "level3-background")
@@ -485,8 +525,8 @@ export default class LevelThree extends Phaser.Scene {
         this.gasBarrel.setName("barrel");
 
         this.skeleton = this.add
-            .sprite(830, 158, "walk_right")
-            .setScale(2.4, 2.4);
+            .sprite(830, 150, "walk_right")
+            .setScale(2.6, 2.6);
         this.skeleton.setName("skeleton");
 
         // Create animation from the sprite sheet
@@ -502,10 +542,46 @@ export default class LevelThree extends Phaser.Scene {
         this.anims.create({
             key: "walk_left", // Animation key
             frames: this.anims.generateFrameNumbers("walk_left", {
+                start: 9,
+                end: 0,
+            }), // Define frames for animation
+            frameRate: 8, // Frame rate of the animation
+            repeat: -1, // Repeat indefinitely
+        });
+        this.anims.create({
+            key: "attack_right", // Animation key
+            frames: this.anims.generateFrameNumbers("attack_right", {
                 start: 0,
                 end: 9,
             }), // Define frames for animation
-            frameRate: 8, // Frame rate of the animation
+            frameRate: 10, // Frame rate of the animation
+            repeat: -1, // Repeat indefinitely
+        });
+        this.anims.create({
+            key: "attack_left", // Animation key
+            frames: this.anims.generateFrameNumbers("attack_left", {
+                start: 9,
+                end: 0,
+            }), // Define frames for animation
+            frameRate: 10, // Frame rate of the animation
+            repeat: -1, // Repeat indefinitely
+        });
+        this.anims.create({
+            key: "die_right", // Animation key
+            frames: this.anims.generateFrameNumbers("die_right", {
+                start: 0,
+                end: 12,
+            }), // Define frames for animation
+            frameRate: 12, // Frame rate of the animation
+            repeat: -1, // Repeat indefinitely
+        });
+        this.anims.create({
+            key: "die_left", // Animation key
+            frames: this.anims.generateFrameNumbers("die_left", {
+                start: 12,
+                end: 0,
+            }), // Define frames for animation
+            frameRate: 12, // Frame rate of the animation
             repeat: -1, // Repeat indefinitely
         });
 
@@ -523,10 +599,10 @@ export default class LevelThree extends Phaser.Scene {
         this.physics.add.collider(this.door, this.platforms);
 
         // Set the depth of the player and skeleton sprites to a high value
-        this.player.setDepth(5);
+        this.player.setDepth(6);
         this.skeleton.setDepth(4);
 
-        this.liftFloor.setDepth(6);
+        this.liftFloor.setDepth(7);
         this.toxicGas.setDepth(3);
 
         // Set the depth of other game objects to lower values
@@ -557,7 +633,7 @@ export default class LevelThree extends Phaser.Scene {
             .setSize(platform4.width * 0.6 - 34, platform4.height * 0.3 - 75)
             .setOffset(17, 6);
         platform5
-            .setSize(platform5.width * 0.7 - 50, platform5.height * 0.3 - 75)
+            .setSize(platform5.width * 0.77 - 50, platform5.height * 0.3 - 75)
             .setOffset(25, 6);
         stone0
             .setSize(stone0.width * 0.045 - 30, stone0.height * 0.045 - 40)
@@ -618,10 +694,10 @@ export default class LevelThree extends Phaser.Scene {
 
         // Creating a highlighted rectangle to indicate where to use gas mask
         this.gasMaskHighlightBox = this.add.rectangle(
-            1125,
+            1119,
             440,
             120,
-            250,
+            280,
             0xffff00
         );
         this.gasMaskHighlightBox.setAlpha(0.25);
@@ -676,23 +752,23 @@ export default class LevelThree extends Phaser.Scene {
         this.chainsawHighlightBox.setVisible(false);
 
         // Creating detection area for using sword
-        this.swordDetectionArea = this.add.rectangle(645, 100, 100, 170);
+        this.swordDetectionArea = this.add.rectangle(815, 100, 430, 170);
         this.physics.world.enable(this.swordDetectionArea);
         this.physics.add.collider(this.swordDetectionArea, this.platforms);
 
         // Creating a highlighted rectangle to indicate where to use sword
         this.swordHighlightBox = this.add.rectangle(
             830,
-            190,
-            250,
-            140,
+            170,
+            110,
+            130,
             0xffff00
         );
         this.swordHighlightBox.setAlpha(0.25);
         this.swordHighlightBox.setVisible(false);
 
         // Creating detection area for using key
-        this.keyDetectionArea = this.add.rectangle(918, 105, 150, 200);
+        this.keyDetectionArea = this.add.rectangle(918, 105, 50, 200);
         this.physics.world.enable(this.keyDetectionArea);
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
 
@@ -833,12 +909,14 @@ export default class LevelThree extends Phaser.Scene {
                     if (poppedItem.name === "gas-mask") {
                         poppedItem.setDepth(10);
                         // Move the gas mask towards the player
-                        poppedItem.setPosition(this.player?.x, this.player?.y);
+                        poppedItem.setPosition(1005, 400);
                         // Scale down the gas mask to make it disappear
                         this.tweens.add({
                             targets: poppedItem,
-                            scaleX: 0,
-                            scaleY: 0,
+                            x: this.player?.x,
+                            y: this.player?.y,
+                            scaleX: 0.2,
+                            scaleY: 0.2,
                             duration: 300,
                             delay: 500,
                             onComplete: () => {
@@ -916,7 +994,7 @@ export default class LevelThree extends Phaser.Scene {
                                 onComplete: () => {
                                     // Execute callback function after animation finishes
                                     poppedItem.setVisible(false);
-                                    this.tree?.setScale(0.245);
+                                    this.tree?.setScale(0.25);
                                     this.tree?.setPosition(537, 205);
                                     this.tree?.setTexture("tree-cut");
                                 },
@@ -926,8 +1004,84 @@ export default class LevelThree extends Phaser.Scene {
                         this.chainsawHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "sword") {
-                        poppedItem.setVisible(false);
-                        // TODO: Finish sword use handling
+                        this.usedSword = true;
+                        poppedItem.setDepth(5);
+                        if (this.sword && this.player && this.skeleton) {
+                            // Set the sword's initial position to the player's location
+                            this.sword.setPosition(
+                                this.player.x,
+                                this.player.y
+                            );
+
+                            if (this.skeleton.x > this.player.x) {
+                                // If the skeleton is to the right of the player, rotate the sword to face right
+                                this.sword.setRotation(
+                                    Phaser.Math.DegToRad(132)
+                                ); // Facing right
+                            } else {
+                                // If the skeleton is to the left of the player, rotate the sword to face left
+                                this.sword.setRotation(
+                                    Phaser.Math.DegToRad(-48)
+                                ); // Facing left
+                            }
+
+                            // Make the sword move towards the skeleton and rotate down after passing it
+                            this.tweens.add({
+                                targets: this.sword,
+                                x: this.skeleton.x + 100,
+                                y: this.skeleton.y,
+                                duration: 300, // Adjust duration as needed
+                                onComplete: () => {
+                                    if (this.sword) {
+                                        this.tweens.add({
+                                            targets: this.sword,
+                                            scaleX: this.sword.scaleX * 0.9,
+                                            scaleY: this.sword.scaleY * 0.9,
+                                            x: 800,
+                                            y: 170,
+                                            rotation: Phaser.Math.DegToRad(222),
+                                            duration: 100,
+                                            onComplete: () => {
+                                                // Play the die animation for the skeleton
+                                                if (
+                                                    this.skeleton &&
+                                                    this.player &&
+                                                    this.skeleton.x <
+                                                        this.player.x
+                                                ) {
+                                                    this.skeleton.anims.play(
+                                                        "die_right",
+                                                        true
+                                                    );
+                                                } else if (
+                                                    this.skeleton &&
+                                                    this.player &&
+                                                    this.skeleton.x >
+                                                        this.player.x
+                                                ) {
+                                                    this.skeleton.anims.play(
+                                                        "die_left",
+                                                        true
+                                                    );
+                                                }
+
+                                                // After the die animation completes, remove the skeleton from the scene
+                                                setTimeout(() => {
+                                                    this.skeleton?.setVisible(
+                                                        false
+                                                    );
+                                                    this.skeleton?.setPosition(
+                                                        -600,
+                                                        -600
+                                                    );
+                                                    this.skeleton?.destroy();
+                                                }, 1000);
+                                            },
+                                        });
+                                    }
+                                },
+                            });
+                        }
                         this.swordHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
@@ -954,15 +1108,6 @@ export default class LevelThree extends Phaser.Scene {
                                             level3State: 3,
                                         });
                                     }, 2000);
-
-                                    // To re-enable the player later:
-                                    /*this.player?.enableBody(
-                                        true,
-                                        this.player.x,
-                                        this.player.y,
-                                        true,
-                                        true
-                                    );*/
                                 },
                             });
                         }
@@ -1013,18 +1158,33 @@ export default class LevelThree extends Phaser.Scene {
                     let originalScaleX = 0;
                     let originalScaleY = 0;
                     // Move popped item to its original location
-                    if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "gas-mask") {
+                        poppedItem.setPosition(160, 610);
+                        originalScaleX = 0.4;
+                        originalScaleY = 0.4;
                     }
-                    if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(350, 530);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "water") {
+                        poppedItem.setPosition(1230, 510);
+                        originalScaleX = 0.2;
+                        originalScaleY = 0.2;
+                    }
+                    if (poppedItem.name === "toolbox") {
+                        poppedItem.setPosition(820, 610);
+                        originalScaleX = 0.2;
+                        originalScaleY = 0.2;
+                    }
+                    if (poppedItem.name === "chainsaw") {
+                        poppedItem.setPosition(245, 385);
+                        originalScaleX = 0.45;
+                        originalScaleY = 0.45;
+                    }
+                    if (poppedItem.name === "sword") {
+                        poppedItem.setPosition(50, 600);
+                        originalScaleX = 0.2;
+                        originalScaleY = 0.2;
                     }
                     if (poppedItem.name === "key") {
-                        poppedItem.setPosition(1200, 650);
+                        poppedItem.setPosition(580, 610);
                         originalScaleX = 2.5;
                         originalScaleY = 2.5;
                     }
@@ -1037,22 +1197,12 @@ export default class LevelThree extends Phaser.Scene {
                         duration: 300,
                         onComplete: () => {
                             this.updateStackView();
-                            if (poppedItem.name === "ladder") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.1,
-                                    1000
-                                );
-                            }
-                            if (poppedItem.name === "plank") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.15,
-                                    1000
-                                );
-                            }
+                            this.createPulsateEffect(
+                                this,
+                                poppedItem,
+                                1.15,
+                                1000
+                            );
                         },
                     });
                 },
@@ -1176,55 +1326,77 @@ export default class LevelThree extends Phaser.Scene {
         }
 
         // Skeleton walking animation
-        let rightBoundary = 1000;
-        let leftBoundary = 670;
-        if (this.skeleton && this.player) {
-            // Calculate the distance between the skeleton and the player
-            const distanceX = Math.abs(this.player.x - this.skeleton.x);
-            const distanceY = Math.abs(this.player.y - this.skeleton.y);
+        const rightBoundary = 1000;
+        const leftBoundary = 670;
+        const chaseThreshold = 300;
+        const attackThreshold = 70;
+        if (!this.usedSword) {
+            if (this.skeleton && this.player) {
+                // Calculate the distance between the skeleton and the player
+                const distanceX = Math.abs(this.player.x - this.skeleton.x);
+                const distanceY = Math.abs(this.player.y - this.skeleton.y);
 
-            // Check if the player is within a certain range of the skeleton
-            if (
-                distanceX < 300 &&
-                distanceY < 30 &&
-                this.skeleton.x <= rightBoundary &&
-                this.skeleton.x >= leftBoundary
-            ) {
-                // Move the skeleton towards the player
-                if (this.skeleton.x < this.player.x) {
-                    this.skeleton.x += 3; // Move right
-                    this.skeleton.anims.play("walk_right", true);
-                } else {
-                    this.skeleton.x -= 3; // Move left
-                    this.skeleton.anims.play("walk_left", true);
-                }
-            } else {
+                // If player is close-ish, move toward player
                 if (
-                    this.skeleton.x <= rightBoundary &&
-                    this.skeletonDirection === 1
+                    distanceX < chaseThreshold &&
+                    distanceX > attackThreshold &&
+                    distanceY < 40
                 ) {
-                    this.skeleton.x += 1.5;
-                    this.skeleton.anims.play("walk_right", true);
-                } else if (
-                    this.skeleton.x >= leftBoundary &&
-                    this.skeletonDirection === -1
-                ) {
-                    this.skeleton.x -= 1.5;
-                    this.skeleton.anims.play("walk_left", true);
+                    if (this.skeleton.x < this.player.x) {
+                        this.skeleton.x += 4.3; // Move right
+                        this.skeleton.anims.play("walk_right", true);
+                    } else if (this.skeleton.x > this.player.x) {
+                        this.skeleton.x -= 4.3; // Move left
+                        this.skeleton.anims.play("walk_left", true);
+                    }
                 }
-                // If the skeleton reaches the right boundary, change direction to left
-                else if (this.skeleton.x >= rightBoundary) {
-                    this.skeletonDirection = -1;
+                // If player is close enough to hit, attack
+                else if (distanceX <= attackThreshold && distanceY < 60) {
+                    if (this.skeleton.x < this.player.x) {
+                        this.skeleton.anims.play("attack_right", true); // Attack right
+                    } else if (this.skeleton.x > this.player.x) {
+                        this.skeleton.anims.play("attack_left", true); // Attack left
+                    }
+                    if (!this.collidingWithDeath) {
+                        this.time.delayedCall(
+                            500,
+                            () => {
+                                this.collidingWithDeath = true;
+                                this.loseLife();
+                            },
+                            [],
+                            this
+                        );
+                    }
                 }
-                // If the skeleton reaches the left boundary, change direction to right
-                else if (this.skeleton.x <= leftBoundary) {
-                    this.skeletonDirection = 1;
+                // If player is not close, just walk back and forth
+                else {
+                    if (
+                        this.skeleton.x <= rightBoundary &&
+                        this.skeletonDirection === 1
+                    ) {
+                        this.skeleton.x += 1.5;
+                        this.skeleton.anims.play("walk_right", true);
+                    } else if (
+                        this.skeleton.x >= leftBoundary &&
+                        this.skeletonDirection === -1
+                    ) {
+                        this.skeleton.x -= 1.5;
+                        this.skeleton.anims.play("walk_left", true);
+                    }
+                    // If the skeleton reaches the right boundary, change direction to left
+                    else if (this.skeleton.x > rightBoundary) {
+                        this.skeletonDirection = -1;
+                    }
+                    // If the skeleton reaches the left boundary, change direction to right
+                    else if (this.skeleton.x < leftBoundary) {
+                        this.skeletonDirection = 1;
+                    }
                 }
             }
         }
 
         // Move the gal with arrow keys
-        // Inside your update function or wherever you handle player movement
         if (this.player && this.cursors) {
             if (!this.isColliding) {
                 if (this.cursors.up.isDown && this.player.body?.touching.down) {
@@ -1262,7 +1434,7 @@ export default class LevelThree extends Phaser.Scene {
                     this.player.y,
                     this.sword.x,
                     this.sword.y
-                ) < 100
+                ) < 60
             ) {
                 this.collectItem(this.sword);
             }
@@ -1273,7 +1445,7 @@ export default class LevelThree extends Phaser.Scene {
                     this.player.y,
                     this.gasMask.x,
                     this.gasMask.y
-                ) < 100
+                ) < 60
             ) {
                 this.collectItem(this.gasMask);
             }
@@ -1356,6 +1528,10 @@ export default class LevelThree extends Phaser.Scene {
                 this.stack[this.stack.length - 1].name === "sword"
             ) {
                 // If player overlaps with sword detection area, show the highlight box
+                this.swordHighlightBox.setPosition(
+                    this.skeleton?.x,
+                    this.swordHighlightBox.y
+                );
                 this.swordHighlightBox.setVisible(true);
                 if (this.keyF?.isDown && !this.keyFPressed) {
                     this.keyFPressed = true;
@@ -1411,7 +1587,7 @@ export default class LevelThree extends Phaser.Scene {
                 if (this.keyF?.isDown && !this.keyFPressed) {
                     this.keyFPressed = true;
                     this.useItem();
-                    this.levelCompleteText?.setVisible(true);
+                    /*this.levelCompleteText?.setVisible(true);
                     // Animate level complete text
                     this.tweens.add({
                         targets: this.levelCompleteText,
@@ -1420,7 +1596,7 @@ export default class LevelThree extends Phaser.Scene {
                         duration: 1000,
                         ease: "Bounce",
                         delay: 500, // Delay the animation slightly
-                    });
+                    });*/
                 }
             } else {
                 // Otherwise, hide the highlight box
@@ -1488,6 +1664,5 @@ export default class LevelThree extends Phaser.Scene {
             this.collidingWithDeath = true;
             this.loseLife();
         }
-        // TODO: Add check to see if player collides with skeleton and lose life if so
     }
 }
