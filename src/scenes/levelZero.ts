@@ -49,8 +49,6 @@ export default class LevelZero extends Phaser.Scene {
     private plankPlatform?: Phaser.Physics.Arcade.Image;
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
 
-    private levelCompleteText?: Phaser.GameObjects.Text;
-
     private hearts?: Phaser.GameObjects.Sprite[] = [];
     private lives: number = 3;
     private isColliding: boolean = false;
@@ -64,7 +62,13 @@ export default class LevelZero extends Phaser.Scene {
     private timerText: Phaser.GameObjects.Text;
     private startTime: number;
     private pausedTime = 0;
+    private elapsedTime: number;
     private isPaused: boolean = false;
+
+    private threeStarsPopup: Phaser.GameObjects.Group;
+    private twoStarsPopup: Phaser.GameObjects.Group;
+    private oneStarPopup: Phaser.GameObjects.Group;
+    private starsPopup: Phaser.GameObjects.Group;
 
     constructor() {
         super({ key: "Level0" });
@@ -155,7 +159,6 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("3stars", "assets/FullStars.png");
         this.load.image("2stars", "assets/2Stars.png");
         this.load.image("1star", "assets/1Star.png");
-        this.load.image("0stars", "assets/0Star.png");
     }
 
     create(data: GameMapData) {
@@ -438,7 +441,7 @@ export default class LevelZero extends Phaser.Scene {
 
         resumeButton.on("pointerup", () => {
             pauseGroup.setVisible(false);
-            this.pauseTime()
+            this.pauseTime();
         });
 
         // No music button for Pause popup
@@ -513,7 +516,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
-            this.pauseTime()
+            this.pauseTime();
             pauseGroup.setVisible(true);
         });
 
@@ -527,9 +530,119 @@ export default class LevelZero extends Phaser.Scene {
         this.isPaused = false;
 
         // Level complete popup - still working
-        const threeStars = this.add.image(650, 350, "3stars");
-        threeStars.setVisible(false);
+        const completeExitButton = this.add
+            .circle(790, 185, 35)
+            .setDepth(1);
+        completeExitButton.setInteractive();
+        completeExitButton.on("pointerover", () => {
+            completeExitButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeExitButton.on("pointerout", () => {
+            completeExitButton.setFillStyle();
+        });
 
+        const completeReplayButton = this.add
+            .circle(510, 505, 55)
+            .setDepth(1);
+        completeReplayButton.setInteractive();
+        completeReplayButton.on("pointerover", () => {
+            completeReplayButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeReplayButton.on("pointerout", () => {
+            completeReplayButton.setFillStyle();
+        });
+
+        const completeMenuButton = this.add
+            .circle(655, 530, 55)
+            .setDepth(1);
+        completeMenuButton.setInteractive();
+        completeMenuButton.on("pointerover", () => {
+            completeMenuButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeMenuButton.on("pointerout", () => {
+            completeMenuButton.setFillStyle();
+        });
+
+        const completeNextButton = this.add
+            .circle(800, 505, 55)
+            .setDepth(1);
+        completeNextButton.setInteractive();
+        completeNextButton.on("pointerover", () => {
+            completeNextButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeNextButton.on("pointerout", () => {
+            completeNextButton.setFillStyle();
+        });
+
+        this.threeStarsPopup = this.add.group();
+        const threeStars = this.add.image(650, 350, "3stars");
+        this.threeStarsPopup.add(threeStars);
+        this.threeStarsPopup.add(completeExitButton);
+        this.threeStarsPopup.add(completeReplayButton);
+        this.threeStarsPopup.add(completeMenuButton);
+        this.threeStarsPopup.add(completeNextButton);
+
+        this.twoStarsPopup = this.add.group();
+        const twoStars = this.add.image(650, 350, "2stars");
+        this.twoStarsPopup.add(twoStars);
+        this.twoStarsPopup.add(completeExitButton);
+        this.twoStarsPopup.add(completeReplayButton);
+        this.twoStarsPopup.add(completeMenuButton);
+        this.twoStarsPopup.add(completeNextButton);
+
+        this.oneStarPopup = this.add.group();
+        const oneStar = this.add.image(650, 350, "1star");
+        this.oneStarPopup.add(oneStar);
+        this.oneStarPopup.add(completeExitButton);
+        this.oneStarPopup.add(completeReplayButton);
+        this.oneStarPopup.add(completeMenuButton);
+        this.oneStarPopup.add(completeNextButton);
+
+        completeExitButton.on("pointerup", () => {
+            if(threeStars.visible){
+                this.threeStarsPopup.setVisible(false);
+            }
+            if(twoStars.visible){
+                this.twoStarsPopup.setVisible(false);
+            }
+            if(oneStar.visible){
+                this.oneStarPopup.setVisible(false);
+            }
+        });
+
+        completeReplayButton.on("pointerup", () => {
+                this.scene.restart();
+        });
+
+        completeMenuButton.on("pointerup", () => {
+            if (this.level1State == 0) {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: 3,
+                        level1State: 1,
+                        level2State: this.level2State,
+                        level3State: this.level3State,
+                    });
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: 3,
+                        level1State: this.level1State,
+                        level2State: this.level2State,
+                        level3State: this.level3State,
+                    });
+                }, 1000);
+            }
+        })
+
+        completeNextButton.on("pointerup", () => {
+            this.scene.start("Level1");
+        });
+
+        this.threeStarsPopup.setVisible(false);
+        this.twoStarsPopup.setVisible(false);
+        this.oneStarPopup.setVisible(false);
 
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
@@ -573,7 +686,7 @@ export default class LevelZero extends Phaser.Scene {
             Phaser.Input.Keyboard.KeyCodes.F
         );
 
-        // Creating dectection areas when using the ladder
+        // Creating detection areas when using the ladder
         this.ladderDetectionArea = this.add.rectangle(680, 400, 100, 150);
         this.physics.world.enable(this.ladderDetectionArea);
         this.physics.add.collider(this.ladderDetectionArea, this.ground);
@@ -590,7 +703,7 @@ export default class LevelZero extends Phaser.Scene {
         this.ladderHighlightBox.setAlpha(0.25);
         this.ladderHighlightBox.setVisible(false);
 
-        // Creating dectection areas when using the plank
+        // Creating detection areas when using the plank
         this.plankDetectionArea1 = this.add.rectangle(670, 0, 100, 150);
         this.physics.world.enable(this.plankDetectionArea1);
         this.physics.add.collider(this.plankDetectionArea1, this.ground);
@@ -647,20 +760,6 @@ export default class LevelZero extends Phaser.Scene {
         this.pushButton2.setVisible(false);
         this.popButton1.setVisible(false);
         this.popButton2.setVisible(false);
-
-        // Create level complete text
-        this.levelCompleteText = this.add.text(
-            this.cameras.main.width / 2,
-            this.cameras.main.height / 2,
-            "Level Complete!",
-            { fontSize: "96px", color: "#03572a", fontFamily: "Verdana" }
-        );
-        this.levelCompleteText.setOrigin(0.5);
-        this.levelCompleteText.setVisible(false);
-
-        // Set initial properties for animation
-        this.levelCompleteText.setScale(0);
-        this.levelCompleteText.setAlpha(0);
 
         // Make plank and ladder items continuously pulsate
         this.createPulsateEffect(
@@ -791,6 +890,7 @@ export default class LevelZero extends Phaser.Scene {
                     if (poppedItem.name === "key") {
                         this.popButton2?.setVisible(false);
                         this.door?.setTexture("opendoor");
+                        this.pauseTime();
                         // Make the player get sucked into the door
                         if (this.player && this.door) {
                             this.tweens.add({
@@ -803,40 +903,45 @@ export default class LevelZero extends Phaser.Scene {
                                 duration: 800,
                                 onComplete: () => {
                                     this.player?.disableBody(true, true);
-                                    // TODO: Add level complete popup (w/ restart and continue options)
-                                    // Transition to game map: unlock level 1 if it's not already unlocked
-                                    if (this.level1State == 0) {
-                                        setTimeout(() => {
-                                            this.scene.start("game-map", {
-                                                level0State: 3,
-                                                level1State: 1,
-                                                level2State: this.level2State,
-                                                level3State: this.level3State,
-                                            });
-                                        }, 2000);
-                                    } else {
-                                        setTimeout(() => {
-                                            this.scene.start("game-map", {
-                                                level0State: 3,
-                                                level1State: this.level1State,
-                                                level2State: this.level2State,
-                                                level3State: this.level3State,
-                                            });
-                                        }, 2000);
+                                    var completedTime = this.add
+                                        .text(
+                                            640,
+                                            345,
+                                            this.formatTime(this.elapsedTime),
+                                            {
+                                                fontSize: "40px",
+                                                color: "#000000",
+                                            }
+                                        )
+                                        .setDepth(1).setVisible(false);
+                                    // Level popup depends on time it takes to complete
+                                    if (this.elapsedTime <= 30000) {
+                                        this.starsPopup = this.threeStarsPopup;
+                                        this.threeStarsPopup.add(completedTime);
+                                        this.threeStarsPopup.setVisible(true);
                                     }
-                                    // To re-enable the player later:
-                                    /*this.player?.enableBody(
-                                        true,
-                                        this.player.x,
-                                        this.player.y,
-                                        true,
-                                        true
-                                    );*/
+                                    if (this.elapsedTime > 30000 && this.elapsedTime <= 60000){
+                                        this.starsPopup = this.twoStarsPopup;
+                                        this.twoStarsPopup.add(completedTime);
+                                        this.twoStarsPopup.setVisible(true);
+                                    }
+                                    if (this.elapsedTime > 60000){
+                                        this.starsPopup = this.oneStarPopup;
+                                        this.oneStarPopup.add(completedTime);
+                                        this.oneStarPopup.setVisible(true);
+                                    }
+                                    // Animate level complete text
+                                    this.tweens.add({
+                                        targets: this.starsPopup,
+                                        alpha: 1,
+                                        duration: 5000,
+                                        ease: "Linear",
+                                        delay: 1000, // Delay the animation slightly
+                                    });
                                 },
                             });
                         }
                     }
-
                     this.tweens.add({
                         targets: poppedItem,
                         scaleX: poppedItem.scaleX * 2,
@@ -1050,15 +1155,21 @@ export default class LevelZero extends Phaser.Scene {
 
     private pauseTime() {
         this.isPaused = !this.isPaused;
-        if(this.isPaused){
+        if (this.isPaused) {
             this.pausedTime = this.time.now - this.startTime;
-        }
-        else {
+        } else {
             this.startTime = this.time.now - this.pausedTime;
         }
     }
 
     update() {
+        // Updating timer
+        if (!this.isPaused) {
+            var currentTime = this.time.now;
+            this.elapsedTime = currentTime - this.startTime;
+            this.timerText.setText("Time: " + this.formatTime(this.elapsedTime));
+        }
+
         // Continuously make glowing spot small and big
         const minScaleX = 0.18; // Minimum scale on x-axis
         const maxScaleX = 0.27; // Maximum scale on x-axis
@@ -1259,17 +1370,6 @@ export default class LevelZero extends Phaser.Scene {
                 if (this.keyF?.isDown && !this.keyFPressed) {
                     this.keyFPressed = true;
                     this.useItem();
-                    //this.levelCompleteText?.setVisible(true);
-
-                    // Animate level complete text
-                    this.tweens.add({
-                        targets: this.levelCompleteText,
-                        scale: 1,
-                        alpha: 1,
-                        duration: 1000,
-                        ease: "Bounce",
-                        delay: 500, // Delay the animation slightly
-                    });
                 }
             } else {
                 // Otherwise, hide the highlight box
@@ -1419,13 +1519,6 @@ export default class LevelZero extends Phaser.Scene {
             } else {
                 this.popButton2?.setVisible(false);
             }
-        }
-
-        // Updating timer
-        if (!this.isPaused) {
-            var currentTime = this.time.now;
-            var elapsedTime = currentTime - this.startTime;
-            this.timerText.setText("Time: " + this.formatTime(elapsedTime));
         }
     }
 }

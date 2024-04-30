@@ -14,11 +14,17 @@ export default class LevelThree extends Phaser.Scene {
     private platforms?: Phaser.Physics.Arcade.StaticGroup;
     private ground?: Phaser.Physics.Arcade.Image;
     private lava?: Phaser.Physics.Arcade.StaticGroup;
-    private stones?: Phaser.Physics.Arcade.StaticGroup;
-    private liftPlatforms?: Phaser.Physics.Arcade.StaticGroup;
-    private liftFloor?: Phaser.Physics.Arcade.Image;
-    private liftWall1?: Phaser.Physics.Arcade.Image;
-    private liftWall2?: Phaser.Physics.Arcade.Image;
+    private stones!: Phaser.Physics.Arcade.Group;
+    private liftPlatforms!: Phaser.Physics.Arcade.Group;
+
+    private fireball1?: Phaser.Physics.Arcade.Image;
+    private fireball2?: Phaser.Physics.Arcade.Image;
+
+    private stone0?: Phaser.Physics.Arcade.Image;
+    private stone1?: Phaser.Physics.Arcade.Image;
+    private stone2?: Phaser.Physics.Arcade.Image;
+    private stone3?: Phaser.Physics.Arcade.Image;
+    private stone4?: Phaser.Physics.Arcade.Image;
 
     private water?: Phaser.GameObjects.Sprite;
     private gasMask?: Phaser.GameObjects.Sprite;
@@ -31,9 +37,32 @@ export default class LevelThree extends Phaser.Scene {
     private gasBarrel?: Phaser.GameObjects.Sprite;
     private skeleton?: Phaser.GameObjects.Sprite;
     private dangerSign?: Phaser.GameObjects.Sprite;
-    private lift?: Phaser.GameObjects.Sprite;
+    private liftFloor?: Phaser.Physics.Arcade.Image;
+    private liftWall1?: Phaser.Physics.Arcade.Image;
+    private liftWall2?: Phaser.Physics.Arcade.Image;
     private tree?: Phaser.GameObjects.Sprite;
     private door?: Phaser.Physics.Arcade.Image;
+
+    private skeletonDirection: number = 1;
+
+    private waterDetectionArea: Phaser.GameObjects.Rectangle;
+    private waterHighlightBox: Phaser.GameObjects.Rectangle;
+    private gasMaskDetectionArea: Phaser.GameObjects.Rectangle;
+    private gasMaskHighlightBox: Phaser.GameObjects.Rectangle;
+    private swordDetectionArea: Phaser.GameObjects.Rectangle;
+    private swordHighlightBox: Phaser.GameObjects.Rectangle;
+    private toolboxDetectionArea: Phaser.GameObjects.Rectangle;
+    private toolboxHighlightBox: Phaser.GameObjects.Rectangle;
+    private chainsawDetectionArea: Phaser.GameObjects.Rectangle;
+    private chainsawHighlightBox: Phaser.GameObjects.Rectangle;
+    private keyDetectionArea: Phaser.GameObjects.Rectangle;
+
+    private lavaArea: Phaser.GameObjects.Rectangle;
+    private toxicGasArea: Phaser.GameObjects.Rectangle;
+    private fireArea: Phaser.GameObjects.Rectangle;
+    private liftArea: Phaser.GameObjects.Rectangle;
+    private treeArea: Phaser.GameObjects.Rectangle;
+    private skeletonArea: Phaser.GameObjects.Rectangle;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -49,7 +78,12 @@ export default class LevelThree extends Phaser.Scene {
     private hearts?: Phaser.GameObjects.Sprite[] = [];
     private lives: number = 3;
     private isColliding: boolean = false;
-    private collidingWithSpikes: boolean = false;
+    private collidingWithDeath: boolean = false;
+    private usedSword: boolean = false;
+    private skeletonDead: boolean = false;
+
+    private resetPosX: number;
+    private resetPosY: number;
 
     private level0State: number;
     private level1State: number;
@@ -61,14 +95,19 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("level3-background", "assets/level3-background.jpg");
+        this.load.image(
+            "level3-background",
+            "assets/level3/level3-background.jpg"
+        );
         this.load.image("stackpack", "assets/stackpack.png");
 
+        // Key
         this.load.spritesheet("key", "assets/key.png", {
             frameWidth: 768 / 24,
             frameHeight: 32,
         });
 
+        // Player
         this.load.spritesheet("gal_right", "assets/Pink_Monster_Walk_6.png", {
             frameWidth: 128,
             frameHeight: 128,
@@ -108,6 +147,56 @@ export default class LevelThree extends Phaser.Scene {
             { frameWidth: 128, frameHeight: 128 }
         );
 
+        // Skeleton
+        this.load.spritesheet(
+            "walk_right",
+            "assets/level3/Skeleton_With_VFX/Skeleton_01_White_Walk.png",
+            {
+                frameWidth: 96,
+                frameHeight: 64,
+            }
+        );
+        this.load.spritesheet(
+            "walk_left",
+            "assets/level3/Skeleton_With_VFX/Skeleton_01_White_Walk_left.png",
+            {
+                frameWidth: 96,
+                frameHeight: 64,
+            }
+        );
+        this.load.spritesheet(
+            "attack_right",
+            "assets/level3/Skeleton_With_VFX/Skeleton_01_White_Attack1.png",
+            {
+                frameWidth: 96,
+                frameHeight: 64,
+            }
+        );
+        this.load.spritesheet(
+            "attack_left",
+            "assets/level3/Skeleton_With_VFX/Skeleton_01_White_Attack1_left.png",
+            {
+                frameWidth: 96,
+                frameHeight: 64,
+            }
+        );
+        this.load.spritesheet(
+            "die_right",
+            "assets/level3/Skeleton_With_VFX/Skeleton_01_White_Die.png",
+            {
+                frameWidth: 96,
+                frameHeight: 64,
+            }
+        );
+        this.load.spritesheet(
+            "die_left",
+            "assets/level3/Skeleton_With_VFX/Skeleton_01_White_Die_left.png",
+            {
+                frameWidth: 96,
+                frameHeight: 64,
+            }
+        );
+
         this.load.image("ground", "assets/level3/first-platform.png");
         this.load.image("level3-platform", "assets/level3/lava-platform.png");
         this.load.image(
@@ -115,6 +204,7 @@ export default class LevelThree extends Phaser.Scene {
             "assets/level3/lava-platform-small.png"
         );
         this.load.image("lava", "assets/level3/lava.png");
+        this.load.image("fireball", "assets/level3/fireball.png");
         this.load.image("stone1", "assets/level3/stone1.png");
         this.load.image("stone2", "assets/level3/stone2.png");
         this.load.image("stone3", "assets/level3/stone3.png");
@@ -140,8 +230,8 @@ export default class LevelThree extends Phaser.Scene {
         this.load.image("tree", "assets/level3/dead-tree.png");
         this.load.image("tree-cut", "assets/level3/dead-tree-cut.png");
 
-        this.load.image("door", "assets/level3/red-door.png");
-        this.load.image("opendoor", "assets/level3/red-door-open.png");
+        this.load.image("red-door", "assets/level3/red-door.png");
+        this.load.image("red-opendoor", "assets/level3/red-door-open.png");
         this.load.image("heart", "assets/heart_16.png");
         this.load.image("pop-button", "assets/freePop2.png");
     }
@@ -153,6 +243,9 @@ export default class LevelThree extends Phaser.Scene {
         this.level3State = data.level3State;
 
         this.lastDirection = "right";
+        this.usedSword = false;
+        this.resetPosX = 300;
+        this.resetPosY = 550;
 
         const backgroundImage = this.add
             .image(0, 0, "level3-background")
@@ -178,7 +271,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         this.player = this.physics.add
-            .sprite(300, 450, "gal_right")
+            .sprite(300, 550, "gal_right")
             .setScale(0.77, 0.77)
             .setOrigin(0.5, 0.5);
         this.player.setCollideWorldBounds(true);
@@ -333,39 +426,89 @@ export default class LevelThree extends Phaser.Scene {
             .setScale(0.6, 0.3)
             .refreshBody();
         const platform5 = this.platforms
-            .create(750, 260, "level3-platform")
-            .setScale(0.7, 0.26)
+            .create(670, 260, "level3-platform")
+            .setScale(0.77, 0.26)
             .refreshBody();
 
         this.physics.add.collider(this.player, this.platforms);
 
-        this.stones = this.physics.add.staticGroup();
-        const stone0 = this.stones
-            .create(552, 470, "stone2")
-            .setScale(0.045, 0.045)
-            .refreshBody();
-        stone0.setFlipX(true);
-        const stone1 = this.stones
-            .create(630, 475, "stone1")
-            .setScale(0.04, 0.04)
-            .refreshBody();
-        const stone2 = this.stones
-            .create(700, 470, "stone2")
-            .setScale(0.04, 0.04)
-            .refreshBody();
-        const stone3 = this.stones
-            .create(795, 473, "stone3")
-            .setScale(0.04, 0.04)
-            .refreshBody();
-        const stone4 = this.stones
-            .create(885, 489, "stone1")
-            .setScale(0.04, 0.035)
-            .refreshBody();
+        this.stones = this.physics.add.group({
+            immovable: true,
+            allowGravity: false,
+        });
+        this.stone0 = this.stones.create(
+            552,
+            470,
+            "stone2"
+        ) as Phaser.Physics.Arcade.Image;
+        this.stone0.setScale(0.045, 0.045).refreshBody();
+        this.stone0.setFlipX(true);
+        this.stone1 = this.stones.create(
+            630,
+            475,
+            "stone1"
+        ) as Phaser.Physics.Arcade.Image;
+        this.stone1.setScale(0.04, 0.04).refreshBody();
+        this.stone2 = this.stones.create(
+            700,
+            470,
+            "stone2"
+        ) as Phaser.Physics.Arcade.Image;
+        this.stone2.setScale(0.04, 0.04).refreshBody();
+        this.stone3 = this.stones.create(
+            795,
+            473,
+            "stone3"
+        ) as Phaser.Physics.Arcade.Image;
+        this.stone3.setScale(0.04, 0.04).refreshBody();
+        this.stone4 = this.stones.create(
+            885,
+            489,
+            "stone1"
+        ) as Phaser.Physics.Arcade.Image;
+        this.stone4.setScale(0.04, 0.035).refreshBody();
 
         this.physics.add.collider(this.player, this.stones);
 
+        // Make stones fall when player jumps on them
+        const stonesArray = [
+            this.stone4,
+            this.stone3,
+            this.stone2,
+            this.stone1,
+            this.stone0,
+        ];
+        stonesArray.forEach((stone) => {
+            // Create a sensor above each stone to detect player overlap
+            const sensor = this.physics.add
+                .sprite(stone.x, stone.y - 10, "sensor")
+                .setAlpha(0);
+            sensor.body.setSize(stone.width * 0.02, 9).setOffset(-15, -40); // Adjust sensor size and offset as needed
+            this.physics.add.collider(sensor, this.stones);
+            if (this.player) {
+                // Make stones fall if player touches the sensors
+                this.physics.add.overlap(sensor, this.player, () => {
+                    this.makeStonesFall.call(this);
+                });
+            }
+        });
+
+        // Create sensor to sense if player successfully gets past stones, and if so, update where player spawns after losing a life
+        const sensor2 = this.physics.add
+            .sprite(190, 360, "sensor2")
+            .setAlpha(0);
+        sensor2.body.setSize(320, 60).setOffset(0, 0);
+        this.physics.add.collider(sensor2, this.platforms);
+        this.physics.add.overlap(sensor2, this.player, () => {
+            this.resetPosX = 460;
+            this.resetPosY = 320;
+        });
+
         // Create lift platform
-        this.liftPlatforms = this.physics.add.staticGroup();
+        this.liftPlatforms = this.physics.add.group({
+            immovable: true, // Make all platforms immovable by collisions
+            allowGravity: false, // Disable gravity for platforms
+        });
 
         this.liftFloor = this.liftPlatforms.create(
             95,
@@ -374,11 +517,8 @@ export default class LevelThree extends Phaser.Scene {
         ) as Phaser.Physics.Arcade.Image;
         this.liftFloor.setScale(0.23, 0.35).refreshBody();
         this.liftFloor
-            .setSize(
-                this.liftFloor.width * 0.23 - 60,
-                this.liftFloor.height * 0.35 - 65
-            )
-            .setOffset(30, 45);
+            .setSize(this.liftFloor.width - 270, this.liftFloor.height - 195)
+            .setOffset(135, 130);
         this.liftFloor.setVisible(true);
 
         this.liftWall1 = this.liftPlatforms.create(
@@ -386,7 +526,7 @@ export default class LevelThree extends Phaser.Scene {
             425,
             "lift-off"
         ) as Phaser.Physics.Arcade.Image;
-        this.liftWall1.setScale(0.02, 0.23).refreshBody();
+        this.liftWall1.setScale(0.02, 0.2).refreshBody();
         this.liftWall1.setVisible(false);
 
         this.liftWall2 = this.liftPlatforms.create(
@@ -394,9 +534,12 @@ export default class LevelThree extends Phaser.Scene {
             425,
             "lift-off"
         ) as Phaser.Physics.Arcade.Image;
-        this.liftWall2.setScale(0.02, 0.23).refreshBody();
+        this.liftWall2.setScale(0.02, 0.2).refreshBody();
         this.liftWall2.setVisible(false);
 
+        this.physics.add.collider(this.player, this.liftPlatforms);
+
+        // Add collision between player and platforms
         this.physics.add.collider(this.player, this.liftPlatforms);
 
         this.lava = this.physics.add.staticGroup();
@@ -406,6 +549,20 @@ export default class LevelThree extends Phaser.Scene {
         this.lava.create(360 + 3 * 192, 650, "lava").setScale(0.75, 0.75);
         this.lava.create(360 + 4 * 192, 650, "lava").setScale(0.75, 0.75);
         this.lava.create(360 + 5 * 192, 650, "lava").setScale(0.75, 0.75);
+
+        this.fireball1 = this.add.image(
+            465,
+            750,
+            "fireball"
+        ) as Phaser.Physics.Arcade.Image;
+        this.fireball1.setScale(0.07, -0.07);
+
+        this.fireball2 = this.add.image(
+            700,
+            750,
+            "fireball"
+        ) as Phaser.Physics.Arcade.Image;
+        this.fireball2.setScale(0.07, -0.07);
 
         // Creating collectable items: water, gas mask, sword, toolbox, chainsaw, key
         this.water = this.add.sprite(1230, 510, "water").setScale(0.2, 0.2);
@@ -445,34 +602,94 @@ export default class LevelThree extends Phaser.Scene {
         this.gasBarrel.setName("barrel");
 
         this.skeleton = this.add
-            .sprite(830, 190, "skeleton")
-            .setScale(0.2, 0.2);
+            .sprite(830, 150, "walk_right")
+            .setScale(2.6, 2.6);
         this.skeleton.setName("skeleton");
+
+        // Create animation from the sprite sheet
+        this.anims.create({
+            key: "walk_right", // Animation key
+            frames: this.anims.generateFrameNumbers("walk_right", {
+                start: 0,
+                end: 9,
+            }), // Define frames for animation
+            frameRate: 8, // Frame rate of the animation
+            repeat: -1, // Repeat indefinitely
+        });
+        this.anims.create({
+            key: "walk_left", // Animation key
+            frames: this.anims.generateFrameNumbers("walk_left", {
+                start: 9,
+                end: 0,
+            }), // Define frames for animation
+            frameRate: 8, // Frame rate of the animation
+            repeat: -1, // Repeat indefinitely
+        });
+        this.anims.create({
+            key: "attack_right", // Animation key
+            frames: this.anims.generateFrameNumbers("attack_right", {
+                start: 0,
+                end: 9,
+            }), // Define frames for animation
+            frameRate: 10, // Frame rate of the animation
+            repeat: -1, // Repeat indefinitely
+        });
+        this.anims.create({
+            key: "attack_left", // Animation key
+            frames: this.anims.generateFrameNumbers("attack_left", {
+                start: 9,
+                end: 0,
+            }), // Define frames for animation
+            frameRate: 10, // Frame rate of the animation
+            repeat: -1, // Repeat indefinitely
+        });
+        this.anims.create({
+            key: "die_right", // Animation key
+            frames: this.anims.generateFrameNumbers("die_right", {
+                start: 0,
+                end: 12,
+            }), // Define frames for animation
+            frameRate: 12, // Frame rate of the animation
+            repeat: -1, // Repeat indefinitely
+        });
+        this.anims.create({
+            key: "die_left", // Animation key
+            frames: this.anims.generateFrameNumbers("die_left", {
+                start: 12,
+                end: 0,
+            }), // Define frames for animation
+            frameRate: 12, // Frame rate of the animation
+            repeat: -1, // Repeat indefinitely
+        });
 
         this.dangerSign = this.add
             .sprite(95, 355, "danger-sign")
             .setScale(0.38, 0.4);
         this.dangerSign.setName("danger-sign");
 
-        //this.lift = this.add.sprite(120, 425, "lift-off").setScale(0.3, 0.35);
         this.liftFloor.setName("lift");
 
-        this.tree = this.add.sprite(600, 130, "tree").setScale(0.5, 0.5);
+        this.tree = this.add.sprite(480, 130, "tree").setScale(0.5, 0.5);
         this.tree.setName("tree");
 
-        this.door = this.physics.add.image(980, 100, "door").setScale(0.1, 0.1);
+        this.door = this.physics.add
+            .image(880, 100, "red-door")
+            .setScale(0.1, 0.1);
         this.physics.add.collider(this.door, this.platforms);
 
         // Set the depth of the player and skeleton sprites to a high value
-        this.player.setDepth(5);
+        this.player.setDepth(6);
         this.skeleton.setDepth(4);
 
-        this.liftFloor.setDepth(6);
+        this.liftFloor.setDepth(7);
         this.toxicGas.setDepth(3);
 
         // Set the depth of other game objects to lower values
         this.gasBarrel.setDepth(2);
-        this.ground.setDepth(1);
+        this.ground.setDepth(2);
+        this.lava.setDepth(1);
+        this.fireball1.setDepth(0);
+        this.fireball2.setDepth(0);
 
         // Resize collision boxes of player and everything that can be collided with
         this.player
@@ -498,23 +715,38 @@ export default class LevelThree extends Phaser.Scene {
             .setSize(platform4.width * 0.6 - 34, platform4.height * 0.3 - 75)
             .setOffset(17, 6);
         platform5
-            .setSize(platform5.width * 0.7 - 50, platform5.height * 0.3 - 75)
+            .setSize(platform5.width * 0.77 - 50, platform5.height * 0.3 - 75)
             .setOffset(25, 6);
-        stone0
-            .setSize(stone0.width * 0.045 - 30, stone0.height * 0.045 - 40)
-            .setOffset(15, 5);
-        stone1
-            .setSize(stone1.width * 0.04 - 30, stone1.height * 0.04 - 60)
-            .setOffset(15, 5);
-        stone2
-            .setSize(stone2.width * 0.04 - 26, stone2.height * 0.04 - 35)
-            .setOffset(13, 2);
-        stone3
-            .setSize(stone3.width * 0.04 - 26, stone3.height * 0.04 - 45)
-            .setOffset(15, 5);
-        stone4
-            .setSize(stone4.width * 0.04 - 30, stone4.height * 0.035 - 54)
-            .setOffset(15, 5);
+        this.stone0
+            .setSize(
+                this.stone0.width * 0.72 - 30,
+                this.stone0.height * 0.045 - 40
+            )
+            .setOffset(330, 120);
+        this.stone1
+            .setSize(
+                this.stone1.width * 0.75 - 30,
+                this.stone1.height * 0.04 - 60
+            )
+            .setOffset(270, 250);
+        this.stone2
+            .setSize(
+                this.stone2.width * 0.72 - 26,
+                this.stone2.height * 0.04 - 35
+            )
+            .setOffset(390, 90);
+        this.stone3
+            .setSize(
+                this.stone3.width * 0.92 - 26,
+                this.stone3.height * 0.04 - 45
+            )
+            .setOffset(150, 220);
+        this.stone4
+            .setSize(
+                this.stone4.width * 0.78 - 30,
+                this.stone4.height * 0.035 - 54
+            )
+            .setOffset(270, 130);
 
         this.door
             .setSize(this.door.width, this.door.height - 60)
@@ -551,18 +783,143 @@ export default class LevelThree extends Phaser.Scene {
             1.15, // Scale factor for pulsating effect
             1000 // Duration of each tween cycle in milliseconds
         );
+
+        // Creating detection area for using gas mask
+        this.gasMaskDetectionArea = this.add.rectangle(1005, 400, 130, 170);
+        this.physics.world.enable(this.gasMaskDetectionArea);
+        this.physics.add.collider(this.gasMaskDetectionArea, this.platforms);
+
+        // Creating a highlighted rectangle to indicate where to use gas mask
+        this.gasMaskHighlightBox = this.add.rectangle(
+            1119,
+            440,
+            120,
+            280,
+            0xffff00
+        );
+        this.gasMaskHighlightBox.setAlpha(0.25);
+        this.gasMaskHighlightBox.setVisible(false);
+
+        // Creating detection area for using water
+        this.waterDetectionArea = this.add.rectangle(450, 360, 110, 170);
+        this.physics.world.enable(this.waterDetectionArea);
+        this.physics.add.collider(this.waterDetectionArea, this.platforms);
+
+        // Creating a highlighted rectangle to indicate where to use water
+        this.waterHighlightBox = this.add.rectangle(
+            340,
+            410,
+            130,
+            120,
+            0xffff00
+        );
+        this.waterHighlightBox.setAlpha(0.25);
+        this.waterHighlightBox.setVisible(false);
+
+        // Creating detection area for using toolbox
+        this.toolboxDetectionArea = this.add.rectangle(205, 360, 90, 170);
+        this.physics.world.enable(this.toolboxDetectionArea);
+        this.physics.add.collider(this.toolboxDetectionArea, this.platforms);
+
+        // Creating a highlighted rectangle to indicate where to use toolbox
+        this.toolboxHighlightBox = this.add.rectangle(
+            95,
+            370,
+            160,
+            180,
+            0xffff00
+        );
+        this.toolboxHighlightBox.setAlpha(0.25);
+        this.toolboxHighlightBox.setVisible(false);
+
+        // Creating detection area for using chainsaw
+        this.chainsawDetectionArea = this.add.rectangle(385, 80, 100, 170);
+        this.physics.world.enable(this.chainsawDetectionArea);
+        this.physics.add.collider(this.chainsawDetectionArea, this.platforms);
+
+        // Creating a highlighted rectangle to indicate where to use chainsaw
+        this.chainsawHighlightBox = this.add.rectangle(
+            510,
+            130,
+            180,
+            240,
+            0xffff00
+        );
+        this.chainsawHighlightBox.setAlpha(0.25);
+        this.chainsawHighlightBox.setVisible(false);
+
+        // Creating detection area for using sword
+        this.swordDetectionArea = this.add.rectangle(815, 100, 430, 170);
+        this.physics.world.enable(this.swordDetectionArea);
+        this.physics.add.collider(this.swordDetectionArea, this.platforms);
+
+        // Creating a highlighted rectangle to indicate where to use sword
+        this.swordHighlightBox = this.add.rectangle(
+            830,
+            170,
+            110,
+            130,
+            0xffff00
+        );
+        this.swordHighlightBox.setAlpha(0.25);
+        this.swordHighlightBox.setVisible(false);
+
+        // Creating detection area for using key
+        this.keyDetectionArea = this.add.rectangle(918, 105, 50, 200);
+        this.physics.world.enable(this.keyDetectionArea);
+        this.physics.add.collider(this.keyDetectionArea, this.platforms);
+
+        // Defining lava area for dying
+        this.lavaArea = this.add.rectangle(840, 670, 940, 20);
+        this.physics.world.enable(this.lavaArea);
+        this.physics.add.collider(this.lavaArea, floor);
+
+        // Defining toxic gas area for dying
+        this.toxicGasArea = this.add.rectangle(1125, 400, 45, 250);
+        this.physics.world.enable(this.toxicGasArea);
+        this.physics.add.collider(this.toxicGasArea, this.platforms);
+
+        // Defining fire area for dying
+        this.fireArea = this.add.rectangle(340, 380, 80, 100);
+        this.physics.world.enable(this.fireArea);
+        this.physics.add.collider(this.fireArea, this.platforms);
+
+        // Defining lift area for dying
+        this.liftArea = this.add.rectangle(95, 340, 100, 150);
+        this.physics.world.enable(this.liftArea);
+        this.physics.add.collider(this.liftArea, this.platforms);
+
+        // Defining tree area for dying
+        this.treeArea = this.add.rectangle(510, 100, 100, 200);
+        this.physics.world.enable(this.treeArea);
+        this.physics.add.collider(this.treeArea, this.platforms);
+
+        // Make fireballs jump out every 4 seconds after jumping once at beginning
+        this.animateBothFireballs();
+        this.time.addEvent({
+            delay: 3000,
+            callback: this.animateBothFireballs,
+            callbackScope: this,
+            loop: true, // Repeat indefinitely
+        });
     }
 
     private updateStackView() {
         const offsetX = 1170; // starting X position for stack items
         const offsetY = 270; // starting Y position for stack items
-        const padding = 20;
+        const padding = 10;
 
         let currTotalHeight = 0;
+
+        let stackItemScale = 1;
+        if (this.stack.length == 5) {
+            stackItemScale = 0.8;
+        }
 
         this.stack.forEach((item) => {
             // Calculate and set (x, y) position of stack items in stackpack view
             item.setOrigin(0.5, 0);
+            item.setScale(item.scale * stackItemScale);
             const stackItemX = offsetX;
             const stackItemY =
                 offsetY - item.displayHeight - currTotalHeight - padding;
@@ -655,17 +1012,187 @@ export default class LevelThree extends Phaser.Scene {
                     poppedItem.setOrigin(0.5, 0.5);
 
                     // Move popped item to location it will be used
-                    if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(680, 385);
-                        //this.ladderHighlightBox.setVisible(false);
+                    if (poppedItem.name === "gas-mask") {
+                        poppedItem.setDepth(10);
+                        // Move the gas mask towards the player
+                        poppedItem.setPosition(1005, 400);
+                        // Scale down the gas mask to make it disappear
+                        this.tweens.add({
+                            targets: poppedItem,
+                            x: this.player?.x,
+                            y: this.player?.y,
+                            scaleX: 0.2,
+                            scaleY: 0.2,
+                            duration: 300,
+                            delay: 500,
+                            onComplete: () => {
+                                poppedItem.setVisible(false);
+                            },
+                        });
+                        this.tweens.add({
+                            targets: this.toxicGas,
+                            alpha: 0, // Fade out
+                            duration: 1200,
+                        });
+                        this.toxicGasArea.setPosition(-100, -100);
+                        this.gasMaskHighlightBox.setVisible(false);
                     }
-                    if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(815, 600);
-                        //this.plankHighlightBox.setVisible(false);
-                        //this.plankPlatform?.enableBody(true, 938, 650);
+                    if (poppedItem.name === "water") {
+                        // Play animation to tilt the water to the side
+                        this.tweens.add({
+                            targets: poppedItem,
+                            angle: -75, // Tilt the water to the side
+                            duration: 500, // Duration of the tilt animation
+                            yoyo: true, // Play the animation in reverse
+                            repeat: 0, // No repeat
+                            onStart: () => {
+                                poppedItem.setPosition(400, 315);
+                            },
+                            onComplete: () => {
+                                poppedItem.setVisible(false);
+                                this.tweens.add({
+                                    targets: this.fire,
+                                    alpha: 0, // Fade out
+                                    duration: 500,
+                                });
+                            },
+                        });
+                        this.fireArea.setPosition(-100, -100);
+                        this.waterHighlightBox.setVisible(false);
+                    }
+                    if (poppedItem.name === "toolbox") {
+                        poppedItem.setVisible(false);
+                        this.tweens.add({
+                            targets: this.dangerSign,
+                            alpha: 0, // Fade out
+                            duration: 500,
+                            onComplete: () => {
+                                this.liftFloor?.setTexture("lift-on");
+                                // Start the lift
+                                this.tweens.add({
+                                    targets: this.liftPlatforms.getChildren(), // Move all platforms in the group
+                                    y: "-=190", // Move the lift platforms up
+                                    delay: 600,
+                                    duration: 2200, // Duration of the movement
+                                    yoyo: true, // Platforms will return to their original position
+                                    repeat: -1, // Repeat indefinitely
+                                    ease: "Linear",
+                                });
+                            },
+                        });
+                        this.liftArea.setPosition(-100, -100);
+                        this.toolboxHighlightBox.setVisible(false);
+                    }
+                    if (poppedItem.name === "chainsaw") {
+                        // Play animation to rotate and move the chainsaw side to side
+                        if (this.chainsaw) {
+                            this.tweens.add({
+                                targets: poppedItem,
+                                angle: 45, // Rotate the chainsaw to the side
+                                x: 537 + 20, // Move the chainsaw a bit to the right
+                                duration: 500, // Duration of the rotation and movement
+                                yoyo: true, // Play the animation in reverse
+                                repeat: 0, // No repeat
+                                onStart: () => {
+                                    poppedItem.setDepth(3);
+                                    poppedItem.setPosition(537, 170);
+                                },
+                                onComplete: () => {
+                                    // Execute callback function after animation finishes
+                                    poppedItem.setVisible(false);
+                                    this.tree?.setScale(0.25);
+                                    this.tree?.setPosition(537, 205);
+                                    this.tree?.setTexture("tree-cut");
+                                },
+                            });
+                        }
+                        this.treeArea.setPosition(-100, -100);
+                        this.chainsawHighlightBox.setVisible(false);
+                    }
+                    if (poppedItem.name === "sword") {
+                        this.usedSword = true;
+                        this.skeletonDead = true;
+                        poppedItem.setDepth(5);
+                        if (this.sword && this.player && this.skeleton) {
+                            // Set the sword's initial position to the player's location
+                            this.sword.setPosition(
+                                this.player.x,
+                                this.player.y
+                            );
+
+                            if (this.skeleton.x > this.player.x) {
+                                // If the skeleton is to the right of the player, rotate the sword to face right
+                                this.sword.setRotation(
+                                    Phaser.Math.DegToRad(132)
+                                ); // Facing right
+                            } else {
+                                // If the skeleton is to the left of the player, rotate the sword to face left
+                                this.sword.setRotation(
+                                    Phaser.Math.DegToRad(-48)
+                                ); // Facing left
+                            }
+
+                            // Make the sword move towards the skeleton and rotate down after passing it
+                            this.tweens.add({
+                                targets: this.sword,
+                                x: this.skeleton.x + 100,
+                                y: this.skeleton.y,
+                                duration: 300, // Adjust duration as needed
+                                onComplete: () => {
+                                    if (this.sword) {
+                                        this.tweens.add({
+                                            targets: this.sword,
+                                            scaleX: this.sword.scaleX * 0.9,
+                                            scaleY: this.sword.scaleY * 0.9,
+                                            x: 1000,
+                                            y: 170,
+                                            rotation: Phaser.Math.DegToRad(222),
+                                            duration: 100,
+                                            onComplete: () => {
+                                                // Play the die animation for the skeleton
+                                                if (
+                                                    this.skeleton &&
+                                                    this.player &&
+                                                    this.skeleton.x <
+                                                        this.player.x
+                                                ) {
+                                                    this.skeleton.anims.play(
+                                                        "die_right",
+                                                        true
+                                                    );
+                                                } else if (
+                                                    this.skeleton &&
+                                                    this.player &&
+                                                    this.skeleton.x >
+                                                        this.player.x
+                                                ) {
+                                                    this.skeleton.anims.play(
+                                                        "die_left",
+                                                        true
+                                                    );
+                                                }
+
+                                                // After the die animation completes, remove the skeleton from the scene
+                                                setTimeout(() => {
+                                                    this.skeleton?.setVisible(
+                                                        false
+                                                    );
+                                                    this.skeleton?.setPosition(
+                                                        -600,
+                                                        -600
+                                                    );
+                                                    this.skeleton?.destroy();
+                                                }, 1000);
+                                            },
+                                        });
+                                    }
+                                },
+                            });
+                        }
+                        this.swordHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
-                        this.door?.setTexture("opendoor");
+                        this.door?.setTexture("red-opendoor");
                         // Make the player get sucked into the door
                         if (this.player && this.door) {
                             this.tweens.add({
@@ -688,15 +1215,6 @@ export default class LevelThree extends Phaser.Scene {
                                             level3State: 3,
                                         });
                                     }, 2000);
-
-                                    // To re-enable the player later:
-                                    /*this.player?.enableBody(
-                                        true,
-                                        this.player.x,
-                                        this.player.y,
-                                        true,
-                                        true
-                                    );*/
                                 },
                             });
                         }
@@ -747,18 +1265,33 @@ export default class LevelThree extends Phaser.Scene {
                     let originalScaleX = 0;
                     let originalScaleY = 0;
                     // Move popped item to its original location
-                    if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "gas-mask") {
+                        poppedItem.setPosition(160, 610);
+                        originalScaleX = 0.4;
+                        originalScaleY = 0.4;
                     }
-                    if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(350, 530);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "water") {
+                        poppedItem.setPosition(1230, 510);
+                        originalScaleX = 0.2;
+                        originalScaleY = 0.2;
+                    }
+                    if (poppedItem.name === "toolbox") {
+                        poppedItem.setPosition(820, 610);
+                        originalScaleX = 0.2;
+                        originalScaleY = 0.2;
+                    }
+                    if (poppedItem.name === "chainsaw") {
+                        poppedItem.setPosition(245, 385);
+                        originalScaleX = 0.45;
+                        originalScaleY = 0.45;
+                    }
+                    if (poppedItem.name === "sword") {
+                        poppedItem.setPosition(50, 600);
+                        originalScaleX = 0.2;
+                        originalScaleY = 0.2;
                     }
                     if (poppedItem.name === "key") {
-                        poppedItem.setPosition(1200, 650);
+                        poppedItem.setPosition(580, 610);
                         originalScaleX = 2.5;
                         originalScaleY = 2.5;
                     }
@@ -771,22 +1304,12 @@ export default class LevelThree extends Phaser.Scene {
                         duration: 300,
                         onComplete: () => {
                             this.updateStackView();
-                            if (poppedItem.name === "ladder") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.1,
-                                    1000
-                                );
-                            }
-                            if (poppedItem.name === "plank") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.15,
-                                    1000
-                                );
-                            }
+                            this.createPulsateEffect(
+                                this,
+                                poppedItem,
+                                1.15,
+                                1000
+                            );
                         },
                     });
                 },
@@ -843,9 +1366,12 @@ export default class LevelThree extends Phaser.Scene {
                 500,
                 () => {
                     this.isColliding = false;
-                    if (this.collidingWithSpikes) {
-                        this.player?.setPosition(100, 450); // Reset player's position
-                        this.collidingWithSpikes = false;
+                    if (this.collidingWithDeath) {
+                        this.player?.setPosition(
+                            this.resetPosX,
+                            this.resetPosY
+                        ); // Reset player's position
+                        this.collidingWithDeath = false;
                     }
                 },
                 [],
@@ -903,14 +1429,135 @@ export default class LevelThree extends Phaser.Scene {
         });
     }
 
+    // Make stones fall
+    private makeStonesFall() {
+        // Delay between each stone falling
+        const delayBetweenStones = 300;
+
+        // Array containing references to the stones in the desired falling order
+        const stonesArray = [
+            this.stone4,
+            this.stone3,
+            this.stone2,
+            this.stone1,
+            this.stone0,
+        ];
+
+        stonesArray.forEach((stone, index) => {
+            // Add a delay based on the index to create a sequence
+            const delay = index * delayBetweenStones;
+            this.time.delayedCall(delay, () => {
+                if (stone && stone.body) {
+                    // Make stones fall down
+                    stone.body.velocity.y = 120;
+                }
+            });
+        });
+    }
+
+    animateFireball(fireball: Phaser.Physics.Arcade.Image) {
+        this.tweens.add({
+            targets: fireball,
+            y: 580, // Change this value to adjust the height
+            duration: 1000,
+            ease: "Sine.InOut",
+            yoyo: true,
+            repeat: 0,
+            onYoyo: () => {
+                // Flip vertically when reaching the top or bottom
+                fireball.scaleY *= -1;
+            },
+            onComplete: () => {
+                fireball.scaleY *= -1;
+            },
+        });
+    }
+
+    animateBothFireballs() {
+        if (this.fireball1 && this.fireball2) {
+            this.animateFireball(this.fireball1);
+            this.animateFireball(this.fireball2);
+        }
+    }
+
     update() {
         // Key animation
         if (this.key) {
             this.key.anims.play("turn", true);
         }
 
+        // Skeleton walking animation
+        const rightBoundary = 1000;
+        const leftBoundary = 670;
+        const chaseThreshold = 300;
+        const attackThreshold = 70;
+        if (!this.usedSword) {
+            if (this.skeleton && this.player) {
+                // Calculate the distance between the skeleton and the player
+                const distanceX = Math.abs(this.player.x - this.skeleton.x);
+                const distanceY = Math.abs(this.player.y - this.skeleton.y);
+
+                // If player is close-ish, move toward player
+                if (
+                    distanceX < chaseThreshold &&
+                    distanceX > attackThreshold &&
+                    distanceY < 40
+                ) {
+                    if (this.skeleton.x < this.player.x) {
+                        this.skeleton.x += 4.3; // Move right
+                        this.skeleton.anims.play("walk_right", true);
+                    } else if (this.skeleton.x > this.player.x) {
+                        this.skeleton.x -= 4.3; // Move left
+                        this.skeleton.anims.play("walk_left", true);
+                    }
+                }
+                // If player is close enough to hit, attack
+                else if (distanceX <= attackThreshold && distanceY < 100) {
+                    if (this.skeleton.x < this.player.x) {
+                        this.skeleton.anims.play("attack_right", true); // Attack right
+                    } else if (this.skeleton.x > this.player.x) {
+                        this.skeleton.anims.play("attack_left", true); // Attack left
+                    }
+                    if (!this.collidingWithDeath) {
+                        this.time.delayedCall(
+                            500,
+                            () => {
+                                this.collidingWithDeath = true;
+                                this.loseLife();
+                            },
+                            [],
+                            this
+                        );
+                    }
+                }
+                // If player is not close, just walk back and forth
+                else {
+                    if (
+                        this.skeleton.x <= rightBoundary &&
+                        this.skeletonDirection === 1
+                    ) {
+                        this.skeleton.x += 1.5;
+                        this.skeleton.anims.play("walk_right", true);
+                    } else if (
+                        this.skeleton.x >= leftBoundary &&
+                        this.skeletonDirection === -1
+                    ) {
+                        this.skeleton.x -= 1.5;
+                        this.skeleton.anims.play("walk_left", true);
+                    }
+                    // If the skeleton reaches the right boundary, change direction to left
+                    else if (this.skeleton.x > rightBoundary) {
+                        this.skeletonDirection = -1;
+                    }
+                    // If the skeleton reaches the left boundary, change direction to right
+                    else if (this.skeleton.x < leftBoundary) {
+                        this.skeletonDirection = 1;
+                    }
+                }
+            }
+        }
+
         // Move the gal with arrow keys
-        // Inside your update function or wherever you handle player movement
         if (this.player && this.cursors) {
             if (!this.isColliding) {
                 if (this.cursors.up.isDown && this.player.body?.touching.down) {
@@ -936,6 +1583,79 @@ export default class LevelThree extends Phaser.Scene {
             }
         }
 
+        // Collect item if 'E' key is pressed
+        if (this.player && this.keyE?.isDown && !this.keyEPressed) {
+            this.keyEPressed = true; // Set the flag for the E key being pressed to true
+
+            // Check if the player is close enough to the water, gas mask, sword, toolbox, chainsaw, or key, and if so, collect it
+            if (
+                this.sword &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.sword.x,
+                    this.sword.y
+                ) < 60
+            ) {
+                this.collectItem(this.sword);
+            }
+            if (
+                this.gasMask &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.gasMask.x,
+                    this.gasMask.y
+                ) < 60
+            ) {
+                this.collectItem(this.gasMask);
+            }
+            if (
+                this.toolbox &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.toolbox.x,
+                    this.toolbox.y
+                ) < 100
+            ) {
+                this.collectItem(this.toolbox);
+            }
+            if (
+                this.water &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.water.x,
+                    this.water.y
+                ) < 100
+            ) {
+                this.collectItem(this.water);
+            }
+            if (
+                this.chainsaw &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.chainsaw.x,
+                    this.chainsaw.y
+                ) < 100
+            ) {
+                this.collectItem(this.chainsaw);
+            }
+            if (
+                this.key &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.key.x,
+                    this.key.y
+                ) < 100
+            ) {
+                this.collectItem(this.key);
+            }
+        }
+
         // Check if 'E' key is released
         if (this.keyE?.isUp) {
             this.keyEPressed = false; // Reset the keyEPressed flag when the E key is released
@@ -944,6 +1664,187 @@ export default class LevelThree extends Phaser.Scene {
         // Check if 'F' key is released
         if (this.keyF?.isUp) {
             this.keyFPressed = false; // Reset the keyFPressed flag when the F key is released
+        }
+
+        // Check if player is near detection area
+        if (this.player && this.stack.length > 0) {
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.gasMaskDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "gas-mask"
+            ) {
+                // If player overlaps with gas mask detection area, show the highlight box
+                this.gasMaskHighlightBox.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.swordDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "sword"
+            ) {
+                // If player overlaps with sword detection area, show the highlight box
+                this.swordHighlightBox.setPosition(
+                    this.skeleton?.x,
+                    this.swordHighlightBox.y
+                );
+                this.swordHighlightBox.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.toolboxDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "toolbox"
+            ) {
+                // If player overlaps with toolbox detection area, show the highlight box
+                this.toolboxHighlightBox.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.waterDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "water"
+            ) {
+                // If player overlaps with water detection area, show the highlight box
+                this.waterHighlightBox.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.chainsawDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "chainsaw"
+            ) {
+                // If player overlaps with chainsaw detection area, show the highlight box
+                this.chainsawHighlightBox.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.keyDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "key"
+            ) {
+                // If player overlaps with key detection area and killed skeleton, open door
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.skeletonDead
+                ) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                    /*this.levelCompleteText?.setVisible(true);
+                    // Animate level complete text
+                    this.tweens.add({
+                        targets: this.levelCompleteText,
+                        scale: 1,
+                        alpha: 1,
+                        duration: 1000,
+                        ease: "Bounce",
+                        delay: 500, // Delay the animation slightly
+                    });*/
+                }
+            } else {
+                // Otherwise, hide the highlight box
+                this.gasMaskHighlightBox.setVisible(false);
+                this.swordHighlightBox.setVisible(false);
+                this.toolboxHighlightBox.setVisible(false);
+                this.waterHighlightBox.setVisible(false);
+                this.chainsawHighlightBox.setVisible(false);
+            }
+        }
+
+        // Lose life if player touches lava
+        if (this.player) {
+            this.physics.add.collider(
+                this.player,
+                this.lavaArea,
+                () => {
+                    this.collidingWithDeath = true;
+                    this.loseLife();
+                },
+                undefined,
+                this
+            );
+        }
+        // Lose life if player touches fireballs
+        if (this.player && this.fireball1 && this.fireball2) {
+            // Fireball 1
+            const distX1 = Math.abs(this.player.x - this.fireball1.x);
+            const distY1 = Math.abs(this.player.y - this.fireball1.y);
+            if (distX1 < 40 && distY1 < 90) {
+                this.collidingWithDeath = true;
+                this.loseLife();
+            }
+            // Fireball 2
+            const distX2 = Math.abs(this.player.x - this.fireball2.x);
+            const distY2 = Math.abs(this.player.y - this.fireball2.y);
+            if (distX2 < 40 && distY2 < 90) {
+                this.collidingWithDeath = true;
+                this.loseLife();
+            }
+        }
+        // Lose life if player touches toxic gas
+        if (
+            this.player &&
+            Phaser.Geom.Intersects.RectangleToRectangle(
+                this.player.getBounds(),
+                this.toxicGasArea.getBounds()
+            )
+        ) {
+            this.collidingWithDeath = true;
+            this.loseLife();
+        }
+        // Lose life if player touches fire
+        if (
+            this.player &&
+            Phaser.Geom.Intersects.RectangleToRectangle(
+                this.player.getBounds(),
+                this.fireArea.getBounds()
+            )
+        ) {
+            this.collidingWithDeath = true;
+            this.loseLife();
+        }
+        // Lose life if player touches lift (while it's not repaired)
+        if (
+            this.player &&
+            Phaser.Geom.Intersects.RectangleToRectangle(
+                this.player.getBounds(),
+                this.liftArea.getBounds()
+            )
+        ) {
+            this.collidingWithDeath = true;
+            this.loseLife();
+        }
+        if (
+            this.player &&
+            Phaser.Geom.Intersects.RectangleToRectangle(
+                this.player.getBounds(),
+                this.treeArea.getBounds()
+            )
+        ) {
+            this.collidingWithDeath = true;
+            this.loseLife();
         }
     }
 }
