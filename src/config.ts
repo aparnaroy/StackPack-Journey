@@ -5,6 +5,7 @@ import TitleScreen from "./scenes/titleScreen";
 import GameMap from "./scenes/gameMap";
 import LevelZero from "./scenes/levelZero";
 import youDiedScene from "./scenes/youDiedScene";
+import LevelOne from "./scenes/levelOne";
 import LevelThree from "./scenes/levelThree";
 
 const DEFAULT_WIDTH = 1280;
@@ -29,12 +30,13 @@ export const CONFIG = {
         GameMap,
         LevelZero,
         youDiedScene,
+        LevelOne,
         LevelThree,
     ],
     physics: {
         default: "arcade",
         arcade: {
-            debug: false,
+            debug: true,
             gravity: { y: 900 },
         },
     },
