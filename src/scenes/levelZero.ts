@@ -1,5 +1,12 @@
 import Phaser from "phaser";
 
+interface GameMapData {
+    level0State: number;
+    level1State: number;
+    level2State: number;
+    level3State: number;
+}
+
 export default class LevelZero extends Phaser.Scene {
     private player?: Phaser.Physics.Arcade.Sprite;
     private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -48,6 +55,16 @@ export default class LevelZero extends Phaser.Scene {
     private lives: number = 3;
     private isColliding: boolean = false;
     private collidingWithSpikes: boolean = false;
+
+    private level0State: number;
+    private level1State: number;
+    private level2State: number;
+    private level3State: number;
+
+    private timerText: Phaser.GameObjects.Text;
+    private startTime: number;
+    private pausedTime = 0;
+    private isPaused: boolean = false;
 
     constructor() {
         super({ key: "Level0" });
@@ -103,7 +120,6 @@ export default class LevelZero extends Phaser.Scene {
             { frameWidth: 128, frameHeight: 128 }
         );
 
-        this.load.image("play", "assets/play-button.png");
         this.load.image("level0-platform", "assets/platform.png");
         this.load.image(
             "spike",
@@ -119,7 +135,6 @@ export default class LevelZero extends Phaser.Scene {
         this.load.image("FButton", "assets/FButton.png");
         this.load.image("EtoPush", "assets/EtoPush.png");
         this.load.image("FtoPop", "assets/FtoPop.png");
-        this.load.image("ZtoFreePop", "assets/ZtoFreePop.png");
 
         this.load.image(
             "MovementInstructions",
@@ -127,9 +142,30 @@ export default class LevelZero extends Phaser.Scene {
         );
 
         this.load.image("OrderInstructions", "assets/Order-Instructions.png");
+
+        this.load.image(
+            "FreePopInstructions",
+            "assets/FreePop-Instructions.png"
+        );
         this.load.image("pop-button", "assets/freePop2.png");
+
+        this.load.image("pause-button", "assets/pause2.png");
+        this.load.image("pause-popup", "assets/paused-popup.png");
+
+        this.load.image("3stars", "assets/FullStars.png");
+        this.load.image("2stars", "assets/2Stars.png");
+        this.load.image("1star", "assets/1Star.png");
+        this.load.image("0stars", "assets/0Star.png");
     }
-    create() {
+
+    create(data: GameMapData) {
+        this.level0State = data.level0State;
+        this.level1State = data.level1State;
+        this.level2State = data.level2State;
+        this.level3State = data.level3State;
+
+        this.lastDirection = "right";
+
         const backgroundImage = this.add
             .image(0, 0, "level0-background")
             .setOrigin(0, 0);
@@ -309,7 +345,7 @@ export default class LevelZero extends Phaser.Scene {
         this.createHearts();
 
         // Creating Free Pop Button
-        const popButton = this.add.image(225, 35,"pop-button").setScale(0.5)
+        const popButton = this.add.image(225, 80, "pop-button").setScale(0.31);
         popButton.setInteractive();
 
         const originalScale = popButton.scaleX;
@@ -340,6 +376,160 @@ export default class LevelZero extends Phaser.Scene {
         popButton.on("pointerup", () => {
             this.freePop();
         });
+
+        // Creating Pause Group for Buttons and Pause Popup
+        const pauseGroup = this.add.group();
+
+        // Creating Pause Popup
+        const pausePopup = this.add.image(650, 350, "pause-popup");
+        pausePopup.setOrigin(0.5);
+        pausePopup.setDepth(1);
+        pauseGroup.add(pausePopup);
+
+        // Exit button for Pause popup
+        const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(1);
+        exitButton.setOrigin(0.5);
+        exitButton.setInteractive();
+        pauseGroup.add(exitButton);
+
+        exitButton.on("pointerover", () => {
+            exitButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        exitButton.on("pointerout", () => {
+            exitButton.setFillStyle();
+        });
+
+        exitButton.on("pointerup", () => {
+            this.scene.start("game-map");
+        });
+
+        // Return button for Pause popup
+        const restartButton = this.add.rectangle(640, 425, 200, 75).setDepth(1);
+        restartButton.setOrigin(0.5);
+        restartButton.setInteractive();
+        pauseGroup.add(restartButton);
+
+        restartButton.on("pointerover", () => {
+            restartButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        restartButton.on("pointerout", () => {
+            restartButton.setFillStyle();
+        });
+
+        restartButton.on("pointerup", () => {
+            this.scene.restart();
+        });
+
+        // Resume button for Pause popup
+        const resumeButton = this.add.rectangle(640, 320, 200, 75).setDepth(1);
+        resumeButton.setOrigin(0.5);
+        resumeButton.setInteractive();
+        pauseGroup.add(resumeButton);
+
+        resumeButton.on("pointerover", () => {
+            resumeButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        resumeButton.on("pointerout", () => {
+            resumeButton.setFillStyle();
+        });
+
+        resumeButton.on("pointerup", () => {
+            pauseGroup.setVisible(false);
+            this.pauseTime()
+        });
+
+        // No music button for Pause popup
+        const muteMusic = this.add.rectangle(585, 217, 90, 90).setDepth(1);
+        muteMusic.setOrigin(0.5);
+        muteMusic.setInteractive();
+        pauseGroup.add(muteMusic);
+
+        muteMusic.on("pointerover", () => {
+            muteMusic.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        muteMusic.on("pointerout", () => {
+            muteMusic.setFillStyle();
+        });
+
+        // Has to get fixed once we have sound
+        muteMusic.on("pointerup", () => {
+            pauseGroup.setVisible(false);
+        });
+
+        // No sound button for Pause popup
+        const muteSound = this.add.rectangle(700, 217, 90, 90).setDepth(1);
+        muteSound.setOrigin(0.5);
+        muteSound.setInteractive();
+        pauseGroup.add(muteSound);
+
+        muteSound.on("pointerover", () => {
+            muteSound.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        muteSound.on("pointerout", () => {
+            muteSound.setFillStyle();
+        });
+
+        // Has to get fixed once we have sound
+        muteSound.on("pointerup", () => {
+            pauseGroup.setVisible(false);
+        });
+
+        pauseGroup.setVisible(false);
+
+        // Creating Pause Button
+        const pauseButton = this.add
+            .image(30, 30, "pause-button")
+            .setScale(0.25);
+        pauseButton.setInteractive();
+
+        const pauseOriginalScale = pauseButton.scaleX;
+        const pauseHoverScale = pauseOriginalScale * 1.05;
+
+        // Change scale on hover
+        pauseButton.on("pointerover", () => {
+            this.tweens.add({
+                targets: pauseButton,
+                scaleX: pauseHoverScale,
+                scaleY: pauseHoverScale,
+                duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+        });
+
+        // Restore original scale when pointer leaves
+        pauseButton.on("pointerout", () => {
+            this.tweens.add({
+                targets: pauseButton,
+                scaleX: pauseOriginalScale,
+                scaleY: pauseOriginalScale,
+                duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+        });
+
+        pauseButton.on("pointerup", () => {
+            this.pauseTime()
+            pauseGroup.setVisible(true);
+        });
+
+        // Creating timer
+        this.timerText = this.add.text(60, 15, "Time: 0", {
+            fontSize: "32px",
+            color: "#000000",
+        });
+        this.startTime = this.time.now;
+        this.pausedTime = 0;
+        this.isPaused = false;
+
+        // Level complete popup - still working
+        const threeStars = this.add.image(650, 350, "3stars");
+        threeStars.setVisible(false);
+
 
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
@@ -375,7 +565,7 @@ export default class LevelZero extends Phaser.Scene {
         spike3.setSize(spike3.width - 30, spike3.height - 30).setOffset(15, 14);
         spike4.setSize(spike4.width - 30, spike4.height - 30).setOffset(15, 14);
 
-        // Define keys 'E' and 'F' and 'Z' for collecting and using items respectively
+        // Define keys 'E' and 'F' for collecting and using items respectively
         this.keyE = this.input.keyboard?.addKey(
             Phaser.Input.Keyboard.KeyCodes.E
         );
@@ -447,8 +637,8 @@ export default class LevelZero extends Phaser.Scene {
             .setScale(0.45);
         this.orderInstruction.setVisible(false);
         this.freepopDialogue = this.add
-            .image(210, 230, "ZtoFreePop")
-            .setScale(1, 1);
+            .image(190, 130, "FreePopInstructions")
+            .setScale(0.45);
         this.freepopDialogue.setVisible(false);
 
         this.pushDialogue.setVisible(false);
@@ -613,13 +803,27 @@ export default class LevelZero extends Phaser.Scene {
                                 duration: 800,
                                 onComplete: () => {
                                     this.player?.disableBody(true, true);
-                                    // TODO: Add leve complete popup (w/ restart and continue options)
-                                    // Transition to game map
-                                    setTimeout(() => {
-                                        this.scene.start("game-map", {
-                                            level1JustUnlocked: true,
-                                        });
-                                    }, 2000);
+                                    // TODO: Add level complete popup (w/ restart and continue options)
+                                    // Transition to game map: unlock level 1 if it's not already unlocked
+                                    if (this.level1State == 0) {
+                                        setTimeout(() => {
+                                            this.scene.start("game-map", {
+                                                level0State: 3,
+                                                level1State: 1,
+                                                level2State: this.level2State,
+                                                level3State: this.level3State,
+                                            });
+                                        }, 2000);
+                                    } else {
+                                        setTimeout(() => {
+                                            this.scene.start("game-map", {
+                                                level0State: 3,
+                                                level1State: this.level1State,
+                                                level2State: this.level2State,
+                                                level3State: this.level3State,
+                                            });
+                                        }, 2000);
+                                    }
                                     // To re-enable the player later:
                                     /*this.player?.enableBody(
                                         true,
@@ -656,11 +860,16 @@ export default class LevelZero extends Phaser.Scene {
 
         this.loseLife();
 
-        // Remove the top item from the stackpack and from grand list of collected items
+        // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
-        this.collectedItems.pop();
 
         if (poppedItem && this.lives !== 0) {
+            // Remove popped item from grand list of collected items
+            const index = this.collectedItems.indexOf(poppedItem);
+            if (index !== -1) {
+                this.collectedItems.splice(index, 1);
+            }
+
             // Animation to fade item out from stackpack and then fade in in its new location
             this.tweens.add({
                 targets: poppedItem,
@@ -721,11 +930,12 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private createHearts() {
+        this.lives = 3;
         this.hearts = [];
 
-        for (let i = 0; i < this.lives; i++) {
+        for (let i = 0; i < 3; i++) {
             this.hearts.push(
-                this.add.sprite(35 + i * 50, 35, "heart").setScale(0.5)
+                this.add.sprite(32 + i * 50, 80, "heart").setScale(0.5)
             );
         }
     }
@@ -826,6 +1036,26 @@ export default class LevelZero extends Phaser.Scene {
                 tween[0].stop();
             }
         });
+    }
+
+    private formatTime(milliseconds: number) {
+        var mins = Math.floor(milliseconds / 60000);
+        var secs = Math.floor((milliseconds % 60000) / 1000);
+        return (
+            mins.toString().padStart(2, "0") +
+            ":" +
+            secs.toString().padStart(2, "0")
+        );
+    }
+
+    private pauseTime() {
+        this.isPaused = !this.isPaused;
+        if(this.isPaused){
+            this.pausedTime = this.time.now - this.startTime;
+        }
+        else {
+            this.startTime = this.time.now - this.pausedTime;
+        }
     }
 
     update() {
@@ -1029,7 +1259,8 @@ export default class LevelZero extends Phaser.Scene {
                 if (this.keyF?.isDown && !this.keyFPressed) {
                     this.keyFPressed = true;
                     this.useItem();
-                    this.levelCompleteText?.setVisible(true);
+                    //this.levelCompleteText?.setVisible(true);
+
                     // Animate level complete text
                     this.tweens.add({
                         targets: this.levelCompleteText,
@@ -1188,6 +1419,13 @@ export default class LevelZero extends Phaser.Scene {
             } else {
                 this.popButton2?.setVisible(false);
             }
+        }
+
+        // Updating timer
+        if (!this.isPaused) {
+            var currentTime = this.time.now;
+            var elapsedTime = currentTime - this.startTime;
+            this.timerText.setText("Time: " + this.formatTime(elapsedTime));
         }
     }
 }

@@ -17,6 +17,7 @@ export default class LevelOne extends Phaser.Scene {
     private groundRectangle?: Phaser.GameObjects.Rectangle;
     private stackRectangle?: Phaser.GameObjects.Rectangle;
     private vineSwing?: Phaser.GameObjects.Sprite;
+    private door?: Phaser.GameObjects.Image;
 
     // Highlight Boxes
     private stoneDetectionBox?: Phaser.GameObjects.Rectangle;
@@ -31,8 +32,9 @@ export default class LevelOne extends Phaser.Scene {
     private bananaDetectionBox?: Phaser.GameObjects.Rectangle;
     private bananaHighlightBox?: Phaser.GameObjects.Rectangle;
 
-    private vineDetectionBox?: Phaser.GameObjects.Rectangle;
     private vineHighlightBox?: Phaser.GameObjects.Rectangle;
+
+    private keyDetectionArea?: Phaser.GameObjects.Rectangle;
 
     // Functionality
     private stack: Phaser.GameObjects.Sprite[] = [];
@@ -50,6 +52,7 @@ export default class LevelOne extends Phaser.Scene {
     private bananaStackImg: Phaser.GameObjects.Image;
     private vineStackImg: Phaser.GameObjects.Image;
     private keyStackImg: Phaser.GameObjects.Image;
+    private levelCompleteText?: Phaser.GameObjects.Text;
 
     // For Player animations
     private lastDirection: string = "right";
@@ -141,6 +144,8 @@ export default class LevelOne extends Phaser.Scene {
         this.load.image("vineHook", "assets/level1/vineHook.png");
         this.load.image("vine", "assets/level1/vine.png");
         this.load.image("stackKey", "assets/level1/stackKey.png");
+        this.load.image("door", "assets/level1/brown-door.png");
+        this.load.image("openDoor", "assets/level1/brown-door-open.png");
     }
 
     create() {
@@ -366,8 +371,12 @@ export default class LevelOne extends Phaser.Scene {
             .image(280, 130, "bananaBubble")
             .setScale(0.7, 0.7);
 
-        this.vineSwing = this.add.sprite(655, 235, "vine").setScale(0.35, 0.35);
-        this.vineSwing.angle.toFixed(0);
+        this.vineSwing = this.add.sprite(655, 140, "vine").setScale(0.35, 0.35);
+        this.vineSwing.setOrigin(0.5, 0);
+        this.vineSwing.setAngle(this.vineSwing.angle + 60);
+        this.vineSwing.setVisible(false);
+
+        this.door = this.add.image(910, 140, "door").setScale(0.35, 0.35);
 
         // Handling Pushing.Popping
         this.keyE = this.input.keyboard?.addKey(
@@ -477,22 +486,51 @@ export default class LevelOne extends Phaser.Scene {
         this.bananaHighlightBox.setAlpha(0.3);
         this.bananaHighlightBox.setVisible(false);
 
+        this.vineHighlightBox = this.add.rectangle(647, 130, 50, 50, 0xffff00);
+        this.vineHighlightBox.setAlpha(0.5);
+        this.vineHighlightBox.setVisible(false);
+
+        this.keyDetectionArea = this.add.rectangle(890, 100, 200, 150);
+        this.physics.world.enable(this.keyDetectionArea);
+        this.physics.add.collider(this.keyDetectionArea, this.platforms);
+
         // setting depths
         this.stone.depth = 1;
         this.river.depth = 0;
 
-        // VINE SWING
-        parseInt(this.vineSwing.angle.toFixed(0)) == 60;
+        // Level complete stuff
+        this.levelCompleteText = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2,
+            "Level Complete!",
+            { fontSize: "96px", color: "#03572a", fontFamily: "Verdana" }
+        );
+        this.levelCompleteText.setOrigin(0.5);
+        this.levelCompleteText.setVisible(false);
+
+        // Set initial properties for animation
+        this.levelCompleteText.setScale(0);
+        this.levelCompleteText.setAlpha(0);
     }
 
     // HELPER FUNCTIONS
 
     private vineSwingStart() {
-        if (this.vineSwing) {
-            this.vineSwing.angle = this.vineSwing.angle + 45;
+        if (this.vineSwing && this.player) {
+            this.vineSwing.setOrigin(0.5, 0);
             this.tweens.add({
                 targets: this.vineSwing,
-                rotation: this.vineSwing.angle + 10,
+                angle: this.vineSwing.angle - 120,
+            });
+            this.tweens.add({
+                targets: this.player,
+                x: 800,
+                y: 200,
+            });
+            this.tweens.add({
+                targets: this.player,
+                x: 890,
+                y: 100,
             });
         }
     }
@@ -576,7 +614,6 @@ export default class LevelOne extends Phaser.Scene {
         });
     }
     private collectItem(item: Phaser.GameObjects.Sprite) {
-        this.vineSwingStart();
         if (this.collectedItems.includes(item)) {
             return;
         }
@@ -680,9 +717,47 @@ export default class LevelOne extends Phaser.Scene {
                         }
                         poppedItem.setVisible(false);
                         this.bananaHighlightBox?.setVisible(false);
-                        //this.monkey?.setVisible(false);
                         this.bananaBubble?.setVisible(false);
                         this.monkey?.disableBody(true, true);
+                    }
+                    if (poppedItem.name === "vineItem") {
+                        poppedItem.setVisible(false);
+                        this.vineHighlightBox?.setVisible(false);
+                        this.vineSwing?.setVisible(true);
+                        this.vineSwingStart();
+                    }
+                    if (poppedItem.name === "key") {
+                        poppedItem.setVisible(false);
+                        this.door?.setTexture("openDoor");
+                        if (this.player && this.door) {
+                            this.tweens.add({
+                                targets: this.player,
+                                scaleX: 0.27,
+                                scaleY: 0.27,
+                                rotation: Math.PI * 3,
+                                x: this.door.x - 10,
+                                y: this.door.y + 15,
+                                duration: 800,
+                                onComplete: () => {
+                                    this.player?.disableBody(true, true);
+                                    // TODO: Add leve complete popup (w/ restart and continue options)
+                                    // Transition to game map
+                                    setTimeout(() => {
+                                        this.scene.start("game-map", {
+                                            level1JustUnlocked: true,
+                                        });
+                                    }, 2000);
+                                    // To re-enable the player later:
+                                    /*this.player?.enableBody(
+                                        true,
+                                        this.player.x,
+                                        this.player.y,
+                                        true,
+                                        true
+                                    );*/
+                                },
+                            });
+                        }
                     }
                     this.imageViewOutStack(poppedItem);
                     /*if (poppedItem.name === "plank") {
@@ -912,8 +987,6 @@ export default class LevelOne extends Phaser.Scene {
         });
     }
 
-    private swing() {}
-
     update() {
         // KEY TURN
         if (this.key) {
@@ -1023,7 +1096,8 @@ export default class LevelOne extends Phaser.Scene {
             this.stack.length > 0 &&
             this.stoneDetectionBox &&
             this.mushroomDetectionBox &&
-            this.bananaDetectionBox
+            this.bananaDetectionBox &&
+            this.keyDetectionArea
         ) {
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
@@ -1061,10 +1135,44 @@ export default class LevelOne extends Phaser.Scene {
                     this.keyFPressed = true;
                     this.useItem();
                 }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.bananaDetectionBox.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "vineItem"
+            ) {
+                this.vineHighlightBox?.setVisible(true); // replace with vine highlight box
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.keyDetectionArea?.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "key"
+            ) {
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                    this.levelCompleteText?.setVisible(true);
+                    // Animate level complete text
+                    this.tweens.add({
+                        targets: this.levelCompleteText,
+                        scale: 1,
+                        alpha: 1,
+                        duration: 1000,
+                        ease: "Bounce",
+                        delay: 500, // Delay the animation slightly
+                    });
+                }
             } else {
                 this.stoneHighlightBox?.setVisible(false);
                 this.mushroomHighlightBox?.setVisible(false);
                 this.bananaHighlightBox?.setVisible(false);
+                this.vineHighlightBox?.setVisible(false);
             }
         }
 
