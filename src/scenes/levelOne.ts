@@ -416,16 +416,6 @@ export default class LevelOne extends Phaser.Scene {
         this.createHearts();
 
         // Invisible check boxes
-        /*const stackPlatform = this.platforms
-            .create(1170, 300, "SmPlatform")
-            .setScale(0.5, 0.5);
-        this.physics.add.collider(stackPlatform, this.stone);
-        stackPlatform.setSize(
-            stackPlatform.width - 300,
-            stackPlatform.height - 500
-        );
-        stackPlatform.setOffset(150, 250);
-        stackPlatform.setVisible(false);*/
 
         this.stoneDetectionBox = this.add.rectangle(540, 600, 100, 150);
         this.physics.world.enable(this.stoneDetectionBox);
@@ -525,12 +515,17 @@ export default class LevelOne extends Phaser.Scene {
             this.tweens.add({
                 targets: this.player,
                 x: 800,
-                y: 200,
-            });
-            this.tweens.add({
-                targets: this.player,
-                x: 890,
-                y: 100,
+                y: 180,
+                onComplete: () => {
+                    this.tweens.add({
+                        targets: this.player,
+                        x: 890,
+                        y: 100,
+                        onComplete: () => {
+                            this.vineSwing?.setVisible(false);
+                        },
+                    });
+                },
             });
         }
     }
