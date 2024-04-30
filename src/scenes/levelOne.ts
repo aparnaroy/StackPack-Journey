@@ -1145,7 +1145,7 @@ export default class LevelOne extends Phaser.Scene {
             } else if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
-                    this.keyDetectionArea?.getBounds()
+                    this.keyDetectionArea.getBounds()
                 ) &&
                 this.stack[this.stack.length - 1].name === "key"
             ) {
