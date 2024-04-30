@@ -144,8 +144,8 @@ export default class LevelOne extends Phaser.Scene {
         this.load.image("vineHook", "assets/level1/vineHook.png");
         this.load.image("vine", "assets/level1/vine.png");
         this.load.image("stackKey", "assets/level1/stackKey.png");
-        this.load.image("door", "assets/level1/brown-door.png");
-        this.load.image("openDoor", "assets/level1/brown-door-open.png");
+        this.load.image("brown-door", "assets/level1/brown-door.png");
+        this.load.image("brown-openDoor", "assets/level1/brown-door-open.png");
     }
 
     create() {
@@ -376,7 +376,7 @@ export default class LevelOne extends Phaser.Scene {
         this.vineSwing.setAngle(this.vineSwing.angle + 60);
         this.vineSwing.setVisible(false);
 
-        this.door = this.add.image(910, 140, "door").setScale(0.35, 0.35);
+        this.door = this.add.image(910, 140, "brown-door").setScale(0.35, 0.35);
 
         // Handling Pushing.Popping
         this.keyE = this.input.keyboard?.addKey(
@@ -723,7 +723,7 @@ export default class LevelOne extends Phaser.Scene {
                     }
                     if (poppedItem.name === "key") {
                         poppedItem.setVisible(false);
-                        this.door?.setTexture("openDoor");
+                        this.door?.setTexture("brown-openDoor");
                         if (this.player && this.door) {
                             this.tweens.add({
                                 targets: this.player,
