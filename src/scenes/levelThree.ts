@@ -230,8 +230,8 @@ export default class LevelThree extends Phaser.Scene {
         this.load.image("tree", "assets/level3/dead-tree.png");
         this.load.image("tree-cut", "assets/level3/dead-tree-cut.png");
 
-        this.load.image("door", "assets/level3/red-door.png");
-        this.load.image("opendoor", "assets/level3/red-door-open.png");
+        this.load.image("red-door", "assets/level3/red-door.png");
+        this.load.image("red-opendoor", "assets/level3/red-door-open.png");
         this.load.image("heart", "assets/heart_16.png");
         this.load.image("pop-button", "assets/freePop2.png");
     }
@@ -672,7 +672,9 @@ export default class LevelThree extends Phaser.Scene {
         this.tree = this.add.sprite(480, 130, "tree").setScale(0.5, 0.5);
         this.tree.setName("tree");
 
-        this.door = this.physics.add.image(880, 100, "door").setScale(0.1, 0.1);
+        this.door = this.physics.add
+            .image(880, 100, "red-door")
+            .setScale(0.1, 0.1);
         this.physics.add.collider(this.door, this.platforms);
 
         // Set the depth of the player and skeleton sprites to a high value
@@ -1190,7 +1192,7 @@ export default class LevelThree extends Phaser.Scene {
                         this.swordHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
-                        this.door?.setTexture("opendoor");
+                        this.door?.setTexture("red-opendoor");
                         // Make the player get sucked into the door
                         if (this.player && this.door) {
                             this.tweens.add({
