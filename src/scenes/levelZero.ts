@@ -530,9 +530,7 @@ export default class LevelZero extends Phaser.Scene {
         this.isPaused = false;
 
         // Level complete popup - still working
-        const completeExitButton = this.add
-            .circle(790, 185, 35)
-            .setDepth(1);
+        const completeExitButton = this.add.circle(790, 185, 35).setDepth(1);
         completeExitButton.setInteractive();
         completeExitButton.on("pointerover", () => {
             completeExitButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -541,9 +539,7 @@ export default class LevelZero extends Phaser.Scene {
             completeExitButton.setFillStyle();
         });
 
-        const completeReplayButton = this.add
-            .circle(510, 505, 55)
-            .setDepth(1);
+        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(1);
         completeReplayButton.setInteractive();
         completeReplayButton.on("pointerover", () => {
             completeReplayButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -552,9 +548,7 @@ export default class LevelZero extends Phaser.Scene {
             completeReplayButton.setFillStyle();
         });
 
-        const completeMenuButton = this.add
-            .circle(655, 530, 55)
-            .setDepth(1);
+        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(1);
         completeMenuButton.setInteractive();
         completeMenuButton.on("pointerover", () => {
             completeMenuButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -563,9 +557,7 @@ export default class LevelZero extends Phaser.Scene {
             completeMenuButton.setFillStyle();
         });
 
-        const completeNextButton = this.add
-            .circle(800, 505, 55)
-            .setDepth(1);
+        const completeNextButton = this.add.circle(800, 505, 55).setDepth(1);
         completeNextButton.setInteractive();
         completeNextButton.on("pointerover", () => {
             completeNextButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -599,19 +591,19 @@ export default class LevelZero extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
-            if(threeStars.visible){
+            if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
             }
-            if(twoStars.visible){
+            if (twoStars.visible) {
                 this.twoStarsPopup.setVisible(false);
             }
-            if(oneStar.visible){
+            if (oneStar.visible) {
                 this.oneStarPopup.setVisible(false);
             }
         });
 
         completeReplayButton.on("pointerup", () => {
-                this.scene.restart();
+            this.scene.restart();
         });
 
         completeMenuButton.on("pointerup", () => {
@@ -634,7 +626,7 @@ export default class LevelZero extends Phaser.Scene {
                     });
                 }, 1000);
             }
-        })
+        });
 
         completeNextButton.on("pointerup", () => {
             this.scene.start("Level1");
@@ -913,19 +905,23 @@ export default class LevelZero extends Phaser.Scene {
                                                 color: "#000000",
                                             }
                                         )
-                                        .setDepth(1).setVisible(false);
+                                        .setDepth(1)
+                                        .setVisible(false);
                                     // Level popup depends on time it takes to complete
                                     if (this.elapsedTime <= 30000) {
                                         this.starsPopup = this.threeStarsPopup;
                                         this.threeStarsPopup.add(completedTime);
                                         this.threeStarsPopup.setVisible(true);
                                     }
-                                    if (this.elapsedTime > 30000 && this.elapsedTime <= 60000){
+                                    if (
+                                        this.elapsedTime > 30000 &&
+                                        this.elapsedTime <= 60000
+                                    ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
                                         this.twoStarsPopup.setVisible(true);
                                     }
-                                    if (this.elapsedTime > 60000){
+                                    if (this.elapsedTime > 60000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
                                         this.oneStarPopup.setVisible(true);
@@ -1167,7 +1163,9 @@ export default class LevelZero extends Phaser.Scene {
         if (!this.isPaused) {
             var currentTime = this.time.now;
             this.elapsedTime = currentTime - this.startTime;
-            this.timerText.setText("Time: " + this.formatTime(this.elapsedTime));
+            this.timerText.setText(
+                "Time: " + this.formatTime(this.elapsedTime)
+            );
         }
 
         // Continuously make glowing spot small and big
