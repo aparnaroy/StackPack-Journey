@@ -26,6 +26,11 @@
 -   Level Pause: https://pzuh.itch.io/free-game-gui
 -   <a href='https://pngtree.com/freepng/casual-game-button-set-stock-illustration_5981555.html'>png image from pngtree.com/</a>
 
+### Level 2 Scene: 
+- Background: https://craftpix.net/freebies/free-sky-with-clouds-background-pixel-art-set/
+- Cloud Platforms: https://phaser.io/tutorials/coding-tips-004
+
+
 ### Level 3 Scene:
 
 -   Background: <a href="https://www.freepik.com/free-vector/cave-with-molten-lava-spark-game-background_38720914.htm">Image by upklyak</a> on Freepik
