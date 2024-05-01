@@ -14,14 +14,15 @@ export default class LevelTwo extends Phaser.Scene {
     private clouds?: Phaser.Physics.Arcade.StaticGroup;
     private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
-    private umbrella?: Phaser.GameObjects.Sprite;
-    private club?: Phaser.GameObjects.Sprite;
-    private pot?: Phaser.GameObjects.Sprite;
-    private seeds?: Phaser.GameObjects.Sprite;
-    private wateringCan?: Phaser.GameObjects.Sprite;
+    private umbrella?: Phaser.GameObjects.Image;
+    private club?: Phaser.GameObjects.Image;
+    private pot?: Phaser.GameObjects.Image;
+    private seeds?: Phaser.GameObjects.Image;
+    private wateringCan?: Phaser.GameObjects.Image;
     private bird?: Phaser.Physics.Arcade.Sprite;
     private birdDirection: number = 1; // 1 for right, -1 for left
     private birdSpeed: number = 2;
+    private smogGroup?: Phaser.Physics.Arcade.StaticGroup;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -78,6 +79,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.load.image("pot", "assets/level2/pot.png");
         this.load.image("seeds", "assets/level2/seeds.png");
         this.load.image("watering-can", "assets/level2/watering-can.png");
+        this.load.image("smog", "assets/level2/smog.png");
 
         this.load.spritesheet("key", "assets/key.png", {
             frameWidth: 768 / 24,
@@ -179,8 +181,11 @@ export default class LevelTwo extends Phaser.Scene {
             .setOrigin(0.5, 0.5);
         this.player.setCollideWorldBounds(true);
 
-        this.bird = this.physics.add.sprite(200, 350, "bird_right").setScale(4).setDepth(0);
-        this.bird.setCollideWorldBounds(true)
+        this.bird = this.physics.add
+            .sprite(200, 200, "bird_right")
+            .setScale(4)
+            .setDepth(0);
+        this.bird.setCollideWorldBounds(true);
         this.physics.add.collider(this.bird, this.player);
 
         this.anims.create({
@@ -254,18 +259,18 @@ export default class LevelTwo extends Phaser.Scene {
             frameRate: 10,
             repeat: 0,
         });
-        
+
         this.anims.create({
-            key: "fly_right", 
+            key: "fly_right",
             frames: this.anims.generateFrameNames("bird_right", {
-                start: 70, 
+                start: 70,
                 end: 74,
-            }), 
-            frameRate: 10, 
-            repeat: -1, 
-        })
+            }),
+            frameRate: 10,
+            repeat: -1,
+        });
         this.bird.play("fly_right");
-        
+
         this.cursors = this.input.keyboard?.createCursorKeys();
 
         // Create cloud platforms
@@ -291,7 +296,7 @@ export default class LevelTwo extends Phaser.Scene {
 
         this.physics.add.collider(this.player, this.clouds);
 
-        // Create objects: key, door, umbrella, club, pot, seeds
+        // Create objects: key, door, umbrella, club, pot, seeds, watering can
         this.key = this.add.sprite(70, 650, "key").setScale(2.5, 2.5);
         this.key.setName("key");
         this.physics.add.collider(this.key, this.clouds);
@@ -299,24 +304,34 @@ export default class LevelTwo extends Phaser.Scene {
         this.door = this.physics.add.image(910, 50, "pinkdoor").setScale(0.4);
         this.physics.add.collider(this.door, this.clouds);
 
-        this.umbrella = this.add.sprite(380, 125, "umbrella").setScale(0.08);
+        this.umbrella = this.add.image(380, 125, "umbrella").setScale(0.08);
         this.physics.add.collider(this.umbrella, this.clouds);
         this.umbrella.setName("umbrella");
 
-        this.club = this.add.sprite(550, 115, "club").setScale(0.6);
+        this.club = this.add.image(550, 115, "club").setScale(0.6);
         this.physics.add.collider(this.club, this.clouds);
         this.club.setName("club");
 
-        this.pot = this.add.sprite(900, 660, "pot").setScale(0.07);
+        this.pot = this.add.image(900, 660, "pot").setScale(0.07);
         this.physics.add.collider(this.pot, this.ground);
         this.pot.setName("pot");
 
-        this.seeds = this.add.sprite(1200, 680, "seeds").setScale(0.6);
+        this.seeds = this.add.image(1200, 680, "seeds").setScale(0.6);
         this.seeds.setName("seeds");
 
         this.wateringCan = this.add
-            .sprite(650, 640, "watering-can")
+            .image(650, 640, "watering-can")
             .setScale(0.75);
+        this.wateringCan.setName("wateringCan");
+
+        // Creating smog
+        this.smogGroup = this.physics.add.staticGroup();
+        const smog1 = this.smogGroup.create(250, 450, "smog").setScale(0.5);
+        const smog2 = this.smogGroup.create(400, 450, "smog").setScale(0.5);
+        const smog3 = this.smogGroup.create(550, 450, "smog").setScale(0.5);
+        const smog4 = this.smogGroup.create(700, 450, "smog").setScale(0.5);
+        const smog5 = this.smogGroup.create(850, 450, "smog").setScale(0.5);
+        this.physics.add.collider(this.bird, this.smogGroup);
 
         // Creating lives
         this.createHearts();
@@ -631,6 +646,20 @@ export default class LevelTwo extends Phaser.Scene {
         this.door
             .setSize(this.door.width, this.door.height - 60)
             .setOffset(0, 0);
+
+        smog1.setSize(smog1.width - 300, smog1.height - 600).setOffset(160, 290);
+        smog2
+            .setSize(smog1.width - 300, smog1.height - 600)
+            .setOffset(160, 290);
+        smog3
+            .setSize(smog1.width - 300, smog1.height - 600)
+            .setOffset(160, 290);
+        smog4
+            .setSize(smog1.width - 300, smog1.height - 600)
+            .setOffset(160, 290);
+        smog5
+            .setSize(smog1.width - 300, smog1.height - 600)
+            .setOffset(160, 290);
 
         // Define keys 'E' and 'F' for collecting and using items respectively
         this.keyE = this.input.keyboard?.addKey(
@@ -1198,7 +1227,7 @@ export default class LevelTwo extends Phaser.Scene {
             }
         }
 
-        if(this.bird){
+        if (this.bird) {
             this.bird.x += this.birdDirection * this.birdSpeed;
             // Check if the bird reaches the screen edges
             if (this.bird.x <= 150 || this.bird.x >= 700) {
