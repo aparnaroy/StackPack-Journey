@@ -23,6 +23,7 @@ export default class LevelTwo extends Phaser.Scene {
     private birdDirection: number = 1; // 1 for right, -1 for left
     private birdSpeed: number = 2;
     private smogGroup?: Phaser.Physics.Arcade.StaticGroup;
+    private troll?: Phaser.Physics.Arcade.Sprite;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -130,6 +131,11 @@ export default class LevelTwo extends Phaser.Scene {
             frameHeight: 189 / 9,
         });
 
+        this.load.spritesheet("troll", "assets/level2/troll.png", {
+            frameWidth: 6618 / 6,
+            frameHeight: 4095/5, 
+        });
+
         this.load.image("cloud-platform", "assets/level2/cloud-platform.png");
         this.load.image("pinkdoor", "assets/level2/pink-door.png");
         this.load.image("pinkopendoor", "assets/level2/pink-door-open.png");
@@ -187,6 +193,11 @@ export default class LevelTwo extends Phaser.Scene {
             .setDepth(0);
         this.bird.setCollideWorldBounds(true);
         this.physics.add.collider(this.bird, this.player);
+
+        this.troll = this.physics.add.sprite(250, 800, "troll").setScale(0.3);
+        this.troll.body?.setSize(this.troll.width - 200, this.troll.height - 300);
+        this.troll.setCollideWorldBounds(true);
+        //this.physics.add.collider(this.player, this.ground);
 
         this.anims.create({
             key: "right",
@@ -271,6 +282,17 @@ export default class LevelTwo extends Phaser.Scene {
         });
         this.bird.play("fly_right");
 
+        this.anims.create({
+            key: "troll_right",
+            frames: this.anims.generateFrameNames("troll", {
+                start: 21,
+                end: 27,
+            }),
+            frameRate: 10,
+            repeat: -1,
+        });
+        this.troll.play("troll_right");
+
         this.cursors = this.input.keyboard?.createCursorKeys();
 
         // Create cloud platforms
@@ -332,9 +354,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.smogGroup.create(700, 425, "smog").setScale(0.5);
         this.smogGroup.create(850, 425, "smog").setScale(0.5);
 
-        this.physics.add.collider(this.bird, this.smogGroup, () => {
-            console.log("Collision occured");
-        });
+        this.physics.add.collider(this.bird, this.smogGroup);
 
         // Creating lives
         this.createHearts();
@@ -653,7 +673,9 @@ export default class LevelTwo extends Phaser.Scene {
             .setSize(this.door.width, this.door.height - 60)
             .setOffset(0, 0);
 
-        smog1.setSize(smog1.width + 250, smog1.height - 450).setOffset(160, 200);
+        smog1
+            .setSize(smog1.width + 250, smog1.height - 450)
+            .setOffset(160, 200);
 
         // Define keys 'E' and 'F' for collecting and using items respectively
         this.keyE = this.input.keyboard?.addKey(
