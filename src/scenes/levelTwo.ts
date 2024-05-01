@@ -19,7 +19,7 @@ export default class LevelTwo extends Phaser.Scene {
     private pot?: Phaser.GameObjects.Sprite;
     private seeds?: Phaser.GameObjects.Sprite;
     private wateringCan?: Phaser.GameObjects.Sprite;
-    private bird?: Phaser.GameObjects.Sprite;
+    private bird?: Phaser.Physics.Arcade.Sprite;
     private birdDirection: number = 1; // 1 for right, -1 for left
     private birdSpeed: number = 2;
 
@@ -128,11 +128,6 @@ export default class LevelTwo extends Phaser.Scene {
             frameHeight: 189 / 9,
         });
 
-        this.load.spritesheet("bird_left", "assets/level2/bird-left.png", {
-            frameWidth: 320 / 10,
-            frameHeight: 189 / 9,
-        });
-
         this.load.image("cloud-platform", "assets/level2/cloud-platform.png");
         this.load.image("pinkdoor", "assets/level2/pink-door.png");
         this.load.image("pinkopendoor", "assets/level2/pink-door-open.png");
@@ -184,7 +179,8 @@ export default class LevelTwo extends Phaser.Scene {
             .setOrigin(0.5, 0.5);
         this.player.setCollideWorldBounds(true);
 
-        this.bird = this.add.sprite(200, 350, "bird_right").setScale(4).setDepth(0);
+        this.bird = this.physics.add.sprite(200, 350, "bird_right").setScale(4).setDepth(0);
+        this.bird.setCollideWorldBounds(true)
         this.physics.add.collider(this.bird, this.player);
 
         this.anims.create({
@@ -270,18 +266,6 @@ export default class LevelTwo extends Phaser.Scene {
         })
         this.bird.play("fly_right");
         
-        /*
-        this.tweens.add({
-            targets: this.bird,
-            x: 700,
-            duration: 5000,
-            ease: "Linear",
-            yoyo: true,
-            repeat: -1,
-        });
-        */
-
-
         this.cursors = this.input.keyboard?.createCursorKeys();
 
         // Create cloud platforms
