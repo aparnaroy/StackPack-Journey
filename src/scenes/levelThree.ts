@@ -81,9 +81,7 @@ export default class LevelThree extends Phaser.Scene {
     private collidingWithDeath: boolean = false;
     private usedSword: boolean = false;
     private skeletonDead: boolean = false;
-
-    private resetPosX: number;
-    private resetPosY: number;
+    private playerLostLife: boolean = false;
 
     private level0State: number;
     private level1State: number;
@@ -244,8 +242,6 @@ export default class LevelThree extends Phaser.Scene {
 
         this.lastDirection = "right";
         this.usedSword = false;
-        this.resetPosX = 300;
-        this.resetPosY = 550;
 
         const backgroundImage = this.add
             .image(0, 0, "level3-background")
@@ -481,27 +477,17 @@ export default class LevelThree extends Phaser.Scene {
         stonesArray.forEach((stone) => {
             // Create a sensor above each stone to detect player overlap
             const sensor = this.physics.add
-                .sprite(stone.x, stone.y - 10, "sensor")
+                .sprite(stone.x, stone.y + 20, "sensor")
                 .setAlpha(0);
-            sensor.body.setSize(stone.width * 0.02, 9).setOffset(-15, -40); // Adjust sensor size and offset as needed
-            this.physics.add.collider(sensor, this.stones);
+            sensor.body.setSize(stone.width * 0.02, 10).setOffset(-15, -40); // Adjust sensor size and offset as needed
+            sensor.body.setAllowGravity(false);
+            //this.physics.add.collider(sensor, this.stones);
             if (this.player) {
                 // Make stones fall if player touches the sensors
                 this.physics.add.overlap(sensor, this.player, () => {
                     this.makeStonesFall.call(this);
                 });
             }
-        });
-
-        // Create sensor to sense if player successfully gets past stones, and if so, update where player spawns after losing a life
-        const sensor2 = this.physics.add
-            .sprite(190, 360, "sensor2")
-            .setAlpha(0);
-        sensor2.body.setSize(320, 60).setOffset(0, 0);
-        this.physics.add.collider(sensor2, this.platforms);
-        this.physics.add.overlap(sensor2, this.player, () => {
-            this.resetPosX = 460;
-            this.resetPosY = 320;
         });
 
         // Create lift platform
@@ -720,31 +706,31 @@ export default class LevelThree extends Phaser.Scene {
         this.stone0
             .setSize(
                 this.stone0.width * 0.72 - 30,
-                this.stone0.height * 0.045 - 40
+                this.stone0.height * 0.045 - 20
             )
             .setOffset(330, 120);
         this.stone1
             .setSize(
                 this.stone1.width * 0.75 - 30,
-                this.stone1.height * 0.04 - 60
+                this.stone1.height * 0.04 - 20
             )
             .setOffset(270, 250);
         this.stone2
             .setSize(
                 this.stone2.width * 0.72 - 26,
-                this.stone2.height * 0.04 - 35
+                this.stone2.height * 0.04 - 15
             )
             .setOffset(390, 90);
         this.stone3
             .setSize(
                 this.stone3.width * 0.92 - 26,
-                this.stone3.height * 0.04 - 45
+                this.stone3.height * 0.04 - 25
             )
             .setOffset(150, 220);
         this.stone4
             .setSize(
                 this.stone4.width * 0.78 - 30,
-                this.stone4.height * 0.035 - 54
+                this.stone4.height * 0.035 - 34
             )
             .setOffset(270, 130);
 
@@ -1367,11 +1353,26 @@ export default class LevelThree extends Phaser.Scene {
                 () => {
                     this.isColliding = false;
                     if (this.collidingWithDeath) {
-                        this.player?.setPosition(
-                            this.resetPosX,
-                            this.resetPosY
-                        ); // Reset player's position
+                        this.player?.setPosition(300, 550); // Reset player's position
                         this.collidingWithDeath = false;
+                    }
+                    // Reset stone bridge if it has fallen
+                    if (
+                        this.stone0 &&
+                        this.stone1 &&
+                        this.stone2 &&
+                        this.stone3 &&
+                        this.stone4
+                    ) {
+                        if (
+                            this.stone0.y > 470 ||
+                            this.stone1.y > 475 ||
+                            this.stone2.y > 470 ||
+                            this.stone3.y > 473 ||
+                            this.stone4.y > 489
+                        ) {
+                            this.resetStones();
+                        }
                     }
                 },
                 [],
@@ -1432,7 +1433,7 @@ export default class LevelThree extends Phaser.Scene {
     // Make stones fall
     private makeStonesFall() {
         // Delay between each stone falling
-        const delayBetweenStones = 300;
+        const delayBetweenStones = 410;
 
         // Array containing references to the stones in the desired falling order
         const stonesArray = [
@@ -1447,11 +1448,65 @@ export default class LevelThree extends Phaser.Scene {
             // Add a delay based on the index to create a sequence
             const delay = index * delayBetweenStones;
             this.time.delayedCall(delay, () => {
-                if (stone && stone.body) {
-                    // Make stones fall down
+                if (stone && stone.body && !this.playerLostLife) {
+                    // Make stones fall down but stop if player lost life
                     stone.body.velocity.y = 120;
                 }
             });
+        });
+    }
+
+    // Reset stones
+    private resetStones() {
+        this.playerLostLife = true;
+        // Define initial positions of the stones
+        const initialPositions = [
+            { x: 885, y: 489 },
+            { x: 795, y: 473 },
+            { x: 700, y: 470 },
+            { x: 630, y: 475 },
+            { x: 552, y: 470 },
+        ];
+
+        // Array containing references to the stones
+        const stonesArray = [
+            this.stone4,
+            this.stone3,
+            this.stone2,
+            this.stone1,
+            this.stone0,
+        ];
+
+        // Loop through stones and reset their positions
+        stonesArray.forEach((stone, index) => {
+            if (stone && stone.body) {
+                // Stop making stones fall down
+                stone.body.velocity.y = 0;
+
+                // Set stone position to initial position
+                stone.setPosition(
+                    initialPositions[index].x,
+                    initialPositions[index].y
+                );
+
+                // Recreate a sensor above each stone to detect player overlap
+                const sensor = this.physics.add
+                    .sprite(stone.x, stone.y + 20, "sensor")
+                    .setAlpha(0);
+                sensor.body.setSize(stone.width * 0.02, 10).setOffset(-15, -40); // Adjust sensor size and offset as needed
+                sensor.body.setAllowGravity(false);
+                //this.physics.add.collider(sensor, this.stones);
+                if (this.player) {
+                    // Make stones fall if player touches the sensors
+                    this.physics.add.overlap(sensor, this.player, () => {
+                        this.makeStonesFall.call(this);
+                    });
+                }
+            }
+        });
+
+        this.time.delayedCall(1000, () => {
+            this.playerLostLife = false;
         });
     }
 

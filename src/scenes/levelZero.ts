@@ -470,6 +470,8 @@ export default class LevelZero extends Phaser.Scene {
             if (this.input.keyboard) {
                 this.input.keyboard.enabled = true;
             }
+            // Make it so player can click Free Pop button
+            popButton.setInteractive();
         });
 
         // No music button for Pause popup
@@ -553,6 +555,8 @@ export default class LevelZero extends Phaser.Scene {
             if (this.input.keyboard) {
                 this.input.keyboard.enabled = false;
             }
+            // Make it so player can't click Free Pop button
+            popButton.disableInteractive();
         });
 
         // Creating timer
@@ -825,8 +829,8 @@ export default class LevelZero extends Phaser.Scene {
 
         // Continuously make glowing spot small and big
         // Define minimum and maximum scale values
-        const minScaleX = 0.2;
-        const maxScaleX = 0.3;
+        const minScaleX = 0.18;
+        const maxScaleX = 0.27;
 
         // Create a tween to smoothly scale the glowing spot
         this.tweens.add({
