@@ -110,6 +110,8 @@ export default class LevelThree extends Phaser.Scene {
         );
         this.load.image("stackpack", "assets/stackpack.png");
 
+        this.load.image("EF-keys-white", "assets/EF-keys-white.png");
+
         // Key
         this.load.spritesheet("key", "assets/key.png", {
             frameWidth: 768 / 24,
@@ -282,6 +284,9 @@ export default class LevelThree extends Phaser.Scene {
             .image(0, 0, "stackpack")
             .setPosition(1170, 165);
         stackpack.setScale(0.26, 0.26);
+
+        const EFkeys = this.add.image(10, 115, "EF-keys-white").setOrigin(0, 0);
+        EFkeys.setScale(0.35);
 
         this.anims.create({
             key: "turn",
@@ -1518,6 +1523,7 @@ export default class LevelThree extends Phaser.Scene {
                                     if (this.input.keyboard) {
                                         this.input.keyboard.enabled = false;
                                     }
+                                    this.player?.setVisible(false);
                                     // TODO: Transition to game map OR to ending cut scene: set level 3 to completed status
                                     var completedTime = this.add
                                         .text(

@@ -75,10 +75,15 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("level0-background", "assets/level0-background.jpg");
+        this.load.image(
+            "level0-background",
+            "assets/level0/level0-background.jpg"
+        );
         this.load.image("stackpack", "assets/stackpack.png");
 
-        this.load.image("glowingSpot", "assets/glowingSpot.png");
+        this.load.image("EF-keys-black", "assets/EF-keys-black.png");
+
+        this.load.image("glowingSpot", "assets/level0/glowingSpot.png");
 
         this.load.spritesheet("key", "assets/key.png", {
             frameWidth: 768 / 24,
@@ -124,32 +129,35 @@ export default class LevelZero extends Phaser.Scene {
             { frameWidth: 128, frameHeight: 128 }
         );
 
-        this.load.image("level0-platform", "assets/platform.png");
+        this.load.image("level0-platform", "assets/level0/platform.png");
         this.load.image(
             "spike",
-            "assets/spikes2/keyframes/long_metal_spike.png"
+            "assets/level0/spikes2/keyframes/long_metal_spike.png"
         );
-        this.load.image("ladder", "assets/ladder.png");
-        this.load.image("plank", "assets/plank.png");
-        this.load.image("door", "assets/door.png");
-        this.load.image("opendoor", "assets/open-door.png");
+        this.load.image("ladder", "assets/level0/ladder.png");
+        this.load.image("plank", "assets/level0/plank.png");
+        this.load.image("door", "assets/level0/door.png");
+        this.load.image("opendoor", "assets/level0/open-door.png");
         this.load.image("heart", "assets/heart_16.png");
 
-        this.load.image("EButton", "assets/EButton.png");
-        this.load.image("FButton", "assets/FButton.png");
-        this.load.image("EtoPush", "assets/EtoPush.png");
-        this.load.image("FtoPop", "assets/FtoPop.png");
+        this.load.image("EButton", "assets/level0/EButton.png");
+        this.load.image("FButton", "assets/level0/FButton.png");
+        this.load.image("EtoPush", "assets/level0/EtoPush.png");
+        this.load.image("FtoPop", "assets/level0/FtoPop.png");
 
         this.load.image(
             "MovementInstructions",
-            "assets/Movement-Instructions.png"
+            "assets/level0/Movement-Instructions.png"
         );
 
-        this.load.image("OrderInstructions", "assets/Order-Instructions.png");
+        this.load.image(
+            "OrderInstructions",
+            "assets/level0/Order-Instructions.png"
+        );
 
         this.load.image(
             "FreePopInstructions",
-            "assets/FreePop-Instructions.png"
+            "assets/level0/FreePop-Instructions.png"
         );
         this.load.image("pop-button", "assets/freePop2.png");
 
@@ -191,9 +199,11 @@ export default class LevelZero extends Phaser.Scene {
             .setPosition(1170, 165);
         stackpack.setScale(0.26, 0.26);
 
+        const EFkeys = this.add.image(10, 115, "EF-keys-black").setOrigin(0, 0);
+        EFkeys.setScale(0.35);
+
         this.glowingSpot = this.add.image(350, 430, "glowingSpot");
         this.glowingSpot.setScale(0.4);
-        console.log("resetting glowing spot");
 
         this.anims.create({
             key: "turn",
@@ -973,6 +983,7 @@ export default class LevelZero extends Phaser.Scene {
                                     if (this.input.keyboard) {
                                         this.input.keyboard.enabled = false;
                                     }
+                                    this.player?.setVisible(false);
                                     var completedTime = this.add
                                         .text(
                                             640,
