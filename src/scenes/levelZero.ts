@@ -970,7 +970,9 @@ export default class LevelZero extends Phaser.Scene {
                                 y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
-                                    this.player?.disableBody(true, true);
+                                    if (this.input.keyboard) {
+                                        this.input.keyboard.enabled = false;
+                                    }
                                     var completedTime = this.add
                                         .text(
                                             640,
@@ -1167,7 +1169,7 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private playerDie() {
-        this.player?.setVelocity(0, 0);
+        //this.player?.setVelocity(0, 0);
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {

@@ -83,6 +83,17 @@ export default class LevelThree extends Phaser.Scene {
     private skeletonDead: boolean = false;
     private playerLostLife: boolean = false;
 
+    private timerText: Phaser.GameObjects.Text;
+    private startTime: number;
+    private pausedTime = 0;
+    private elapsedTime: number;
+    private isPaused: boolean = false;
+
+    private threeStarsPopup: Phaser.GameObjects.Group;
+    private twoStarsPopup: Phaser.GameObjects.Group;
+    private oneStarPopup: Phaser.GameObjects.Group;
+    private starsPopup: Phaser.GameObjects.Group;
+
     private level0State: number;
     private level1State: number;
     private level2State: number;
@@ -232,6 +243,13 @@ export default class LevelThree extends Phaser.Scene {
         this.load.image("red-opendoor", "assets/level3/red-door-open.png");
         this.load.image("heart", "assets/heart_16.png");
         this.load.image("pop-button", "assets/freePop2.png");
+
+        this.load.image("pause-button", "assets/pause2.png");
+        this.load.image("pause-popup", "assets/paused-popup.png");
+
+        this.load.image("3stars", "assets/FullStars.png");
+        this.load.image("2stars", "assets/2Stars.png");
+        this.load.image("1star", "assets/1Star.png");
     }
 
     create(data: GameMapData) {
@@ -239,6 +257,15 @@ export default class LevelThree extends Phaser.Scene {
         this.level1State = data.level1State;
         this.level2State = data.level2State;
         this.level3State = data.level3State;
+
+        this.resetScene();
+        // Resume all animations and tweens
+        this.anims.resumeAll();
+        this.tweens.resumeAll();
+        // Make it so player can enter keyboard input
+        if (this.input.keyboard) {
+            this.input.keyboard.enabled = true;
+        }
 
         this.lastDirection = "right";
         this.usedSword = false;
@@ -350,7 +377,7 @@ export default class LevelThree extends Phaser.Scene {
         this.createHearts();
 
         // Creating Free Pop Button
-        const popButton = this.add.image(225, 35, "pop-button").setScale(0.31);
+        const popButton = this.add.image(225, 80, "pop-button").setScale(0.31);
         popButton.setInteractive();
 
         const originalScale = popButton.scaleX;
@@ -538,14 +565,14 @@ export default class LevelThree extends Phaser.Scene {
 
         this.fireball1 = this.add.image(
             465,
-            750,
+            800,
             "fireball"
         ) as Phaser.Physics.Arcade.Image;
         this.fireball1.setScale(0.07, -0.07);
 
         this.fireball2 = this.add.image(
             700,
-            750,
+            800,
             "fireball"
         ) as Phaser.Physics.Arcade.Image;
         this.fireball2.setScale(0.07, -0.07);
@@ -851,7 +878,7 @@ export default class LevelThree extends Phaser.Scene {
         this.swordHighlightBox.setVisible(false);
 
         // Creating detection area for using key
-        this.keyDetectionArea = this.add.rectangle(918, 105, 50, 200);
+        this.keyDetectionArea = this.add.rectangle(870, 105, 130, 200);
         this.physics.world.enable(this.keyDetectionArea);
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
 
@@ -881,13 +908,310 @@ export default class LevelThree extends Phaser.Scene {
         this.physics.add.collider(this.treeArea, this.platforms);
 
         // Make fireballs jump out every 4 seconds after jumping once at beginning
-        this.animateBothFireballs();
-        this.time.addEvent({
-            delay: 3000,
-            callback: this.animateBothFireballs,
-            callbackScope: this,
-            loop: true, // Repeat indefinitely
+        if (!this.isPaused) {
+            this.animateBothFireballs();
+            this.time.addEvent({
+                delay: 3000,
+                callback: this.animateBothFireballs,
+                callbackScope: this,
+                loop: true, // Repeat indefinitely
+            });
+        }
+
+        // Pause Menu & Level Complete Menu
+        // Creating Pause Group for Buttons and Pause Popup
+        const pauseGroup = this.add.group();
+
+        // Creating Pause Popup
+        const pausePopup = this.add.image(650, 350, "pause-popup");
+        pausePopup.setOrigin(0.5);
+        pausePopup.setDepth(20);
+        pauseGroup.add(pausePopup);
+
+        // Exit button for Pause popup
+        const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(20);
+        exitButton.setOrigin(0.5);
+        exitButton.setInteractive();
+        pauseGroup.add(exitButton);
+
+        exitButton.on("pointerover", () => {
+            exitButton.setFillStyle(0xffff00).setAlpha(0.5);
         });
+
+        exitButton.on("pointerout", () => {
+            exitButton.setFillStyle();
+        });
+
+        exitButton.on("pointerup", () => {
+            this.scene.start("game-map", {
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
+            });
+        });
+
+        // Return button for Pause popup
+        const restartButton = this.add
+            .rectangle(640, 425, 200, 75)
+            .setDepth(20);
+        restartButton.setOrigin(0.5);
+        restartButton.setInteractive();
+        pauseGroup.add(restartButton);
+
+        restartButton.on("pointerover", () => {
+            restartButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        restartButton.on("pointerout", () => {
+            restartButton.setFillStyle();
+        });
+
+        restartButton.on("pointerup", () => {
+            this.resetScene();
+            this.scene.start("Level3", {
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
+            });
+        });
+
+        // Resume button for Pause popup
+        const resumeButton = this.add.rectangle(640, 320, 200, 75).setDepth(20);
+        resumeButton.setOrigin(0.5);
+        resumeButton.setInteractive();
+        pauseGroup.add(resumeButton);
+
+        resumeButton.on("pointerover", () => {
+            resumeButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        resumeButton.on("pointerout", () => {
+            resumeButton.setFillStyle();
+        });
+
+        resumeButton.on("pointerup", () => {
+            pauseGroup.setVisible(false);
+            this.pauseTime();
+            // Resume all animations and tweens
+            this.anims.resumeAll();
+            this.tweens.resumeAll();
+            // Make it so player can enter keyboard input
+            if (this.input.keyboard) {
+                this.input.keyboard.enabled = true;
+            }
+            // Make it so player can click Free Pop button
+            popButton.setInteractive();
+            // Reset fireballs
+            //this.fireball1?.setPosition(465, 800);
+            //this.fireball2?.setPosition(700, 800);
+        });
+
+        // No music button for Pause popup
+        const muteMusic = this.add.rectangle(585, 217, 90, 90).setDepth(20);
+        muteMusic.setOrigin(0.5);
+        muteMusic.setInteractive();
+        pauseGroup.add(muteMusic);
+
+        muteMusic.on("pointerover", () => {
+            muteMusic.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        muteMusic.on("pointerout", () => {
+            muteMusic.setFillStyle();
+        });
+
+        // Has to get fixed once we have sound
+        muteMusic.on("pointerup", () => {
+            pauseGroup.setVisible(false);
+        });
+
+        // No sound button for Pause popup
+        const muteSound = this.add.rectangle(700, 217, 90, 90).setDepth(20);
+        muteSound.setOrigin(0.5);
+        muteSound.setInteractive();
+        pauseGroup.add(muteSound);
+
+        muteSound.on("pointerover", () => {
+            muteSound.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        muteSound.on("pointerout", () => {
+            muteSound.setFillStyle();
+        });
+
+        // Has to get fixed once we have sound
+        muteSound.on("pointerup", () => {
+            pauseGroup.setVisible(false);
+        });
+
+        pauseGroup.setVisible(false);
+
+        // Creating Pause Button
+        const pauseButton = this.add
+            .image(30, 30, "pause-button")
+            .setScale(0.25);
+        pauseButton.setInteractive();
+
+        const pauseOriginalScale = pauseButton.scaleX;
+        const pauseHoverScale = pauseOriginalScale * 1.05;
+
+        // Change scale on hover
+        pauseButton.on("pointerover", () => {
+            this.tweens.add({
+                targets: pauseButton,
+                scaleX: pauseHoverScale,
+                scaleY: pauseHoverScale,
+                duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+        });
+
+        // Restore original scale when pointer leaves
+        pauseButton.on("pointerout", () => {
+            this.tweens.add({
+                targets: pauseButton,
+                scaleX: pauseOriginalScale,
+                scaleY: pauseOriginalScale,
+                duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+        });
+
+        pauseButton.on("pointerup", () => {
+            this.pauseTime();
+            pauseGroup.setVisible(true);
+            // Pause all animations and tweens
+            this.anims.pauseAll();
+            this.tweens.pauseAll();
+            // Make it so player can't enter keyboard input
+            if (this.input.keyboard) {
+                this.input.keyboard.enabled = false;
+            }
+            // Make it so player can't click Free Pop button
+            popButton.disableInteractive();
+        });
+
+        // Creating timer
+        this.timerText = this.add.text(60, 15, "Time: 0", {
+            fontSize: "32px",
+            color: "#ffffff",
+        });
+        this.startTime = this.time.now;
+        this.pausedTime = 0;
+        this.isPaused = false;
+
+        // Level complete popup - still working
+        const completeExitButton = this.add.circle(790, 185, 35).setDepth(1);
+        completeExitButton.setInteractive();
+        completeExitButton.on("pointerover", () => {
+            completeExitButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeExitButton.on("pointerout", () => {
+            completeExitButton.setFillStyle();
+        });
+
+        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(1);
+        completeReplayButton.setInteractive();
+        completeReplayButton.on("pointerover", () => {
+            completeReplayButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeReplayButton.on("pointerout", () => {
+            completeReplayButton.setFillStyle();
+        });
+
+        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(1);
+        completeMenuButton.setInteractive();
+        completeMenuButton.on("pointerover", () => {
+            completeMenuButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeMenuButton.on("pointerout", () => {
+            completeMenuButton.setFillStyle();
+        });
+
+        const completeNextButton = this.add.circle(800, 505, 55).setDepth(1);
+        completeNextButton.setInteractive();
+        completeNextButton.on("pointerover", () => {
+            completeNextButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeNextButton.on("pointerout", () => {
+            completeNextButton.setFillStyle();
+        });
+
+        this.threeStarsPopup = this.add.group();
+        const threeStars = this.add.image(650, 350, "3stars");
+        this.threeStarsPopup.add(threeStars);
+        this.threeStarsPopup.add(completeExitButton);
+        this.threeStarsPopup.add(completeReplayButton);
+        this.threeStarsPopup.add(completeMenuButton);
+        this.threeStarsPopup.add(completeNextButton);
+
+        this.twoStarsPopup = this.add.group();
+        const twoStars = this.add.image(650, 350, "2stars");
+        this.twoStarsPopup.add(twoStars);
+        this.twoStarsPopup.add(completeExitButton);
+        this.twoStarsPopup.add(completeReplayButton);
+        this.twoStarsPopup.add(completeMenuButton);
+        this.twoStarsPopup.add(completeNextButton);
+
+        this.oneStarPopup = this.add.group();
+        const oneStar = this.add.image(650, 350, "1star");
+        this.oneStarPopup.add(oneStar);
+        this.oneStarPopup.add(completeExitButton);
+        this.oneStarPopup.add(completeReplayButton);
+        this.oneStarPopup.add(completeMenuButton);
+        this.oneStarPopup.add(completeNextButton);
+
+        completeExitButton.on("pointerup", () => {
+            if (threeStars.visible) {
+                this.threeStarsPopup.setVisible(false);
+            }
+            if (twoStars.visible) {
+                this.twoStarsPopup.setVisible(false);
+            }
+            if (oneStar.visible) {
+                this.oneStarPopup.setVisible(false);
+            }
+        });
+
+        completeReplayButton.on("pointerup", () => {
+            this.resetScene();
+            this.scene.start("Level3", {
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
+            });
+        });
+
+        completeMenuButton.on("pointerup", () => {
+            // TODO: Transition to ending cut scene
+            setTimeout(() => {
+                this.scene.start("game-map", {
+                    level0State: this.level0State,
+                    level1State: this.level1State,
+                    level2State: this.level2State,
+                    level3State: 3,
+                });
+            }, 500);
+        });
+
+        completeNextButton.on("pointerup", () => {
+            // TODO: Transition to ending cut scene
+            setTimeout(() => {
+                this.scene.start("game-map", {
+                    level0State: this.level0State,
+                    level1State: this.level1State,
+                    level2State: this.level2State,
+                    level3State: 3,
+                });
+            }, 500);
+        });
+
+        this.threeStarsPopup.setVisible(false);
+        this.twoStarsPopup.setVisible(false);
+        this.oneStarPopup.setVisible(false);
     }
 
     private updateStackView() {
@@ -1179,6 +1503,7 @@ export default class LevelThree extends Phaser.Scene {
                     }
                     if (poppedItem.name === "key") {
                         this.door?.setTexture("red-opendoor");
+                        this.pauseTime();
                         // Make the player get sucked into the door
                         if (this.player && this.door) {
                             this.tweens.add({
@@ -1190,17 +1515,49 @@ export default class LevelThree extends Phaser.Scene {
                                 y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
-                                    this.player?.disableBody(true, true);
-                                    // TODO: Add level complete popup (w/ restart and continue options)
-                                    // Transition to game map OR to ending cut scene: set level 3 to completed status
-                                    setTimeout(() => {
-                                        this.scene.start("game-map", {
-                                            level0State: this.level0State,
-                                            level1State: this.level1State,
-                                            level2State: this.level2State,
-                                            level3State: 3,
-                                        });
-                                    }, 2000);
+                                    if (this.input.keyboard) {
+                                        this.input.keyboard.enabled = false;
+                                    }
+                                    // TODO: Transition to game map OR to ending cut scene: set level 3 to completed status
+                                    var completedTime = this.add
+                                        .text(
+                                            640,
+                                            345,
+                                            this.formatTime(this.elapsedTime),
+                                            {
+                                                fontSize: "40px",
+                                                color: "#000000",
+                                            }
+                                        )
+                                        .setDepth(1)
+                                        .setVisible(false);
+                                    // Level popup depends on time it takes to complete
+                                    if (this.elapsedTime <= 30000) {
+                                        this.starsPopup = this.threeStarsPopup;
+                                        this.threeStarsPopup.add(completedTime);
+                                        this.threeStarsPopup.setVisible(true);
+                                    }
+                                    if (
+                                        this.elapsedTime > 30000 &&
+                                        this.elapsedTime <= 60000
+                                    ) {
+                                        this.starsPopup = this.twoStarsPopup;
+                                        this.twoStarsPopup.add(completedTime);
+                                        this.twoStarsPopup.setVisible(true);
+                                    }
+                                    if (this.elapsedTime > 60000) {
+                                        this.starsPopup = this.oneStarPopup;
+                                        this.oneStarPopup.add(completedTime);
+                                        this.oneStarPopup.setVisible(true);
+                                    }
+                                    // Animate level complete text
+                                    this.tweens.add({
+                                        targets: this.starsPopup,
+                                        alpha: 1,
+                                        duration: 5000,
+                                        ease: "Linear",
+                                        delay: 1000, // Delay the animation slightly
+                                    });
                                 },
                             });
                         }
@@ -1309,7 +1666,7 @@ export default class LevelThree extends Phaser.Scene {
 
         for (let i = 0; i < 3; i++) {
             this.hearts.push(
-                this.add.sprite(35 + i * 50, 35, "heart").setScale(0.5)
+                this.add.sprite(32 + i * 50, 80, "heart").setScale(0.5)
             );
         }
     }
@@ -1343,8 +1700,10 @@ export default class LevelThree extends Phaser.Scene {
                 });
             }
 
+            console.log(this.lives);
             if (this.lives === 0) {
                 this.playerDie();
+                console.log("dying");
             }
 
             // Reset isColliding flag
@@ -1387,7 +1746,11 @@ export default class LevelThree extends Phaser.Scene {
 
         this.time.delayedCall(300, () => {
             this.scene.launch("YouDiedScene", {
-                previousLevelKey: this.scene.key,
+                currentLevelKey: this.scene.key,
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
             });
             this.player?.clearTint();
 
@@ -1398,6 +1761,34 @@ export default class LevelThree extends Phaser.Scene {
             this.lives = 3;
             this.createHearts();
         });
+    }
+
+    private resetScene() {
+        // Reset the stack and collected items
+        this.stack = [];
+        this.updateStackView();
+        this.collectedItems = [];
+        this.lives = 3;
+        this.createHearts();
+    }
+
+    private formatTime(milliseconds: number) {
+        var mins = Math.floor(milliseconds / 60000);
+        var secs = Math.floor((milliseconds % 60000) / 1000);
+        return (
+            mins.toString().padStart(2, "0") +
+            ":" +
+            secs.toString().padStart(2, "0")
+        );
+    }
+
+    private pauseTime() {
+        this.isPaused = !this.isPaused;
+        if (this.isPaused) {
+            this.pausedTime = this.time.now - this.startTime;
+        } else {
+            this.startTime = this.time.now - this.pausedTime;
+        }
     }
 
     private createPulsateEffect(
@@ -1536,6 +1927,15 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     update() {
+        // Updating timer
+        if (!this.isPaused) {
+            var currentTime = this.time.now;
+            this.elapsedTime = currentTime - this.startTime;
+            this.timerText.setText(
+                "Time: " + this.formatTime(this.elapsedTime)
+            );
+        }
+
         // Key animation
         if (this.key) {
             this.key.anims.play("turn", true);
@@ -1546,7 +1946,7 @@ export default class LevelThree extends Phaser.Scene {
         const leftBoundary = 670;
         const chaseThreshold = 300;
         const attackThreshold = 70;
-        if (!this.usedSword) {
+        if (!this.usedSword && !this.isPaused) {
             if (this.skeleton && this.player) {
                 // Calculate the distance between the skeleton and the player
                 const distanceX = Math.abs(this.player.x - this.skeleton.x);
