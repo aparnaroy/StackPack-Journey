@@ -14,11 +14,11 @@ export default class LevelTwo extends Phaser.Scene {
     private clouds?: Phaser.Physics.Arcade.StaticGroup;
     private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
-    private wand?: Phaser.GameObjects.Image;
-    private club?: Phaser.GameObjects.Image;
-    private pot?: Phaser.GameObjects.Image;
-    private seeds?: Phaser.GameObjects.Image;
-    private wateringCan?: Phaser.GameObjects.Image;
+    private wand?: Phaser.GameObjects.Sprite;
+    private club?: Phaser.GameObjects.Sprite;
+    private pot?: Phaser.GameObjects.Sprite;
+    private seeds?: Phaser.GameObjects.Sprite;
+    private wateringCan?: Phaser.GameObjects.Sprite;
     private bird?: Phaser.Physics.Arcade.Sprite;
     private birdDirection: number = 1; // 1 for right, -1 for left
     private birdSpeed: number = 2;
@@ -327,23 +327,23 @@ export default class LevelTwo extends Phaser.Scene {
         this.door = this.physics.add.image(910, 50, "pinkdoor").setScale(0.4);
         this.physics.add.collider(this.door, this.clouds);
 
-        this.wand = this.add.image(380, 115, "wand").setScale(0.06);
+        this.wand = this.add.sprite(380, 115, "wand").setScale(0.06);
         this.physics.add.collider(this.wand, this.clouds);
         this.wand.setName("wand");
 
-        this.club = this.add.image(550, 115, "club").setScale(0.6);
+        this.club = this.add.sprite(550, 115, "club").setScale(0.6);
         this.physics.add.collider(this.club, this.clouds);
         this.club.setName("club");
 
-        this.pot = this.add.image(900, 660, "pot").setScale(0.07);
+        this.pot = this.add.sprite(900, 660, "pot").setScale(0.07);
         this.physics.add.collider(this.pot, this.ground);
         this.pot.setName("pot");
 
-        this.seeds = this.add.image(1200, 680, "seeds").setScale(0.6);
+        this.seeds = this.add.sprite(1200, 680, "seeds").setScale(0.6);
         this.seeds.setName("seeds");
 
         this.wateringCan = this.add
-            .image(650, 640, "watering-can")
+            .sprite(650, 640, "watering-can")
             .setScale(0.75);
         this.wateringCan.setName("wateringCan");
 
@@ -1174,7 +1174,7 @@ export default class LevelTwo extends Phaser.Scene {
         if (this.player && this.keyE?.isDown && !this.keyEPressed) {
             this.keyEPressed = true; // Set the flag for the E key being pressed to true
 
-            // Check if the player is close enough to the key, ladder, or plank, and if so, collect it
+            // Check if the player is close enough to the key, wand, club, gardening stuff, and if so, collect it
             if (
                 this.key &&
                 Phaser.Math.Distance.Between(
@@ -1185,6 +1185,61 @@ export default class LevelTwo extends Phaser.Scene {
                 ) < 100
             ) {
                 this.collectItem(this.key);
+            }
+            if (
+                this.wand &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.wand.x,
+                    this.wand.y
+                ) < 100
+            ) {
+                this.collectItem(this.wand);
+            }
+            if (
+                this.club &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.club.x,
+                    this.club.y
+                ) < 100
+            ) {
+                this.collectItem(this.club);
+            }
+            if (
+                this.seeds &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.seeds.x,
+                    this.seeds.y
+                ) < 100
+            ) {
+                this.collectItem(this.seeds);
+            }
+            if (
+                this.pot &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.pot.x,
+                    this.pot.y
+                ) < 100
+            ) {
+                this.collectItem(this.pot);
+            }
+            if (
+                this.wateringCan &&
+                Phaser.Math.Distance.Between(
+                    this.player.x,
+                    this.player.y,
+                    this.wateringCan.x,
+                    this.wateringCan.y
+                ) < 100
+            ) {
+                this.collectItem(this.wateringCan);
             }
         }
         // Check if 'E' key is released
