@@ -162,6 +162,15 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     create(data: GameMapData) {
+        this.resetScene();
+        // Resume all animations and tweens
+        this.anims.resumeAll();
+        this.tweens.resumeAll();
+        // Make it so player can enter keyboard input
+        if (this.input.keyboard) {
+            this.input.keyboard.enabled = true;
+        }
+
         this.level0State = data.level0State;
         this.level1State = data.level1State;
         this.level2State = data.level2State;
@@ -184,6 +193,7 @@ export default class LevelZero extends Phaser.Scene {
 
         this.glowingSpot = this.add.image(350, 430, "glowingSpot");
         this.glowingSpot.setScale(0.4);
+        console.log("resetting glowing spot");
 
         this.anims.create({
             key: "turn",
@@ -404,7 +414,12 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
-            this.scene.start("game-map");
+            this.scene.start("game-map", {
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
+            });
         });
 
         // Return button for Pause popup
@@ -422,7 +437,13 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
-            this.scene.restart();
+            this.resetScene();
+            this.scene.start("Level0", {
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
+            });
         });
 
         // Resume button for Pause popup
@@ -442,6 +463,15 @@ export default class LevelZero extends Phaser.Scene {
         resumeButton.on("pointerup", () => {
             pauseGroup.setVisible(false);
             this.pauseTime();
+            // Resume all animations and tweens
+            this.anims.resumeAll();
+            this.tweens.resumeAll();
+            // Make it so player can enter keyboard input
+            if (this.input.keyboard) {
+                this.input.keyboard.enabled = true;
+            }
+            // Make it so player can click Free Pop button
+            popButton.setInteractive();
         });
 
         // No music button for Pause popup
@@ -518,6 +548,15 @@ export default class LevelZero extends Phaser.Scene {
         pauseButton.on("pointerup", () => {
             this.pauseTime();
             pauseGroup.setVisible(true);
+            // Pause all animations and tweens
+            this.anims.pauseAll();
+            this.tweens.pauseAll();
+            // Make it so player can't enter keyboard input
+            if (this.input.keyboard) {
+                this.input.keyboard.enabled = false;
+            }
+            // Make it so player can't click Free Pop button
+            popButton.disableInteractive();
         });
 
         // Creating timer
@@ -530,9 +569,7 @@ export default class LevelZero extends Phaser.Scene {
         this.isPaused = false;
 
         // Level complete popup - still working
-        const completeExitButton = this.add
-            .circle(790, 185, 35)
-            .setDepth(1);
+        const completeExitButton = this.add.circle(790, 185, 35).setDepth(1);
         completeExitButton.setInteractive();
         completeExitButton.on("pointerover", () => {
             completeExitButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -541,9 +578,7 @@ export default class LevelZero extends Phaser.Scene {
             completeExitButton.setFillStyle();
         });
 
-        const completeReplayButton = this.add
-            .circle(510, 505, 55)
-            .setDepth(1);
+        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(1);
         completeReplayButton.setInteractive();
         completeReplayButton.on("pointerover", () => {
             completeReplayButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -552,9 +587,7 @@ export default class LevelZero extends Phaser.Scene {
             completeReplayButton.setFillStyle();
         });
 
-        const completeMenuButton = this.add
-            .circle(655, 530, 55)
-            .setDepth(1);
+        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(1);
         completeMenuButton.setInteractive();
         completeMenuButton.on("pointerover", () => {
             completeMenuButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -563,9 +596,7 @@ export default class LevelZero extends Phaser.Scene {
             completeMenuButton.setFillStyle();
         });
 
-        const completeNextButton = this.add
-            .circle(800, 505, 55)
-            .setDepth(1);
+        const completeNextButton = this.add.circle(800, 505, 55).setDepth(1);
         completeNextButton.setInteractive();
         completeNextButton.on("pointerover", () => {
             completeNextButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -599,19 +630,25 @@ export default class LevelZero extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
-            if(threeStars.visible){
+            if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
             }
-            if(twoStars.visible){
+            if (twoStars.visible) {
                 this.twoStarsPopup.setVisible(false);
             }
-            if(oneStar.visible){
+            if (oneStar.visible) {
                 this.oneStarPopup.setVisible(false);
             }
         });
 
         completeReplayButton.on("pointerup", () => {
-                this.scene.restart();
+            this.resetScene();
+            this.scene.start("Level0", {
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
+            });
         });
 
         completeMenuButton.on("pointerup", () => {
@@ -634,10 +671,25 @@ export default class LevelZero extends Phaser.Scene {
                     });
                 }, 1000);
             }
-        })
+        });
 
         completeNextButton.on("pointerup", () => {
-            this.scene.start("Level1");
+            if (this.level1State == 0) {
+                // If level 1 was locked before, set it to current level status
+                this.scene.start("Level1", {
+                    level0State: 3,
+                    level1State: 2,
+                    level2State: this.level2State,
+                    level3State: this.level3State,
+                });
+            } else {
+                this.scene.start("Level1", {
+                    level0State: 3,
+                    level1State: this.level1State,
+                    level2State: this.level2State,
+                    level3State: this.level3State,
+                });
+            }
         });
 
         this.threeStarsPopup.setVisible(false);
@@ -750,7 +802,7 @@ export default class LevelZero extends Phaser.Scene {
             .setScale(0.45);
         this.orderInstruction.setVisible(false);
         this.freepopDialogue = this.add
-            .image(190, 130, "FreePopInstructions")
+            .image(190, 170, "FreePopInstructions")
             .setScale(0.45);
         this.freepopDialogue.setVisible(false);
 
@@ -774,6 +826,22 @@ export default class LevelZero extends Phaser.Scene {
             1.1, // Scale factor for pulsating effect
             1000 // Duration of each tween cycle in milliseconds
         );
+
+        // Continuously make glowing spot small and big
+        // Define minimum and maximum scale values
+        const minScaleX = 0.18;
+        const maxScaleX = 0.27;
+
+        // Create a tween to smoothly scale the glowing spot
+        this.tweens.add({
+            targets: this.glowingSpot,
+            scaleX: [minScaleX, maxScaleX], // Scale on x-axis
+            scaleY: this.glowingSpot.scaleY, // Maintain original scale on y-axis
+            duration: 1000,
+            yoyo: true, // Make the tween go back and forth
+            repeat: -1, // Repeat indefinitely
+            ease: "Sine.easeInOut", // Use sine easing for smooth transitions
+        });
     }
 
     private updateStackView() {
@@ -902,7 +970,9 @@ export default class LevelZero extends Phaser.Scene {
                                 y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
-                                    this.player?.disableBody(true, true);
+                                    if (this.input.keyboard) {
+                                        this.input.keyboard.enabled = false;
+                                    }
                                     var completedTime = this.add
                                         .text(
                                             640,
@@ -913,19 +983,23 @@ export default class LevelZero extends Phaser.Scene {
                                                 color: "#000000",
                                             }
                                         )
-                                        .setDepth(1).setVisible(false);
+                                        .setDepth(1)
+                                        .setVisible(false);
                                     // Level popup depends on time it takes to complete
                                     if (this.elapsedTime <= 30000) {
                                         this.starsPopup = this.threeStarsPopup;
                                         this.threeStarsPopup.add(completedTime);
                                         this.threeStarsPopup.setVisible(true);
                                     }
-                                    if (this.elapsedTime > 30000 && this.elapsedTime <= 60000){
+                                    if (
+                                        this.elapsedTime > 30000 &&
+                                        this.elapsedTime <= 60000
+                                    ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
                                         this.twoStarsPopup.setVisible(true);
                                     }
-                                    if (this.elapsedTime > 60000){
+                                    if (this.elapsedTime > 60000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
                                         this.oneStarPopup.setVisible(true);
@@ -1095,12 +1169,16 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private playerDie() {
-        this.player?.setVelocity(0, 0);
+        //this.player?.setVelocity(0, 0);
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
             this.scene.launch("YouDiedScene", {
-                previousLevelKey: this.scene.key,
+                currentLevelKey: this.scene.key,
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
             });
             this.player?.clearTint();
 
@@ -1111,6 +1189,16 @@ export default class LevelZero extends Phaser.Scene {
             this.lives = 3;
             this.createHearts();
         });
+    }
+
+    private resetScene() {
+        // Reset the stack and collected items and glowing spot
+        this.stack = [];
+        this.updateStackView();
+        this.collectedItems = [];
+        this.lives = 3;
+        this.createHearts();
+        this.glowingSpot?.setPosition(350, 430);
     }
 
     private createPulsateEffect(
@@ -1167,21 +1255,10 @@ export default class LevelZero extends Phaser.Scene {
         if (!this.isPaused) {
             var currentTime = this.time.now;
             this.elapsedTime = currentTime - this.startTime;
-            this.timerText.setText("Time: " + this.formatTime(this.elapsedTime));
+            this.timerText.setText(
+                "Time: " + this.formatTime(this.elapsedTime)
+            );
         }
-
-        // Continuously make glowing spot small and big
-        const minScaleX = 0.18; // Minimum scale on x-axis
-        const maxScaleX = 0.27; // Maximum scale on x-axis
-
-        // Calculate the scale factor based on the sine function
-        const scaleFactor = Math.sin(this.time.now / 400) * 0.5 + 0.5;
-
-        // Map the scaleFactor to the range between minScaleX and maxScaleX
-        const newScaleX = Phaser.Math.Linear(minScaleX, maxScaleX, scaleFactor);
-
-        // Set the new scale on the x-axis while maintaining the original scale on the y-axis
-        this.glowingSpot?.setScale(newScaleX, this.glowingSpot.scaleY);
 
         // Check if the player is on top of the glowing spot and if so, move to next location
         // After pushing plank
@@ -1196,6 +1273,9 @@ export default class LevelZero extends Phaser.Scene {
                 this.plankDetectionArea1.x - 40,
                 this.plankDetectionArea1.y - 65
             );
+            console.log("HERE");
+            console.log(this.stack);
+            console.log(this.collectedItems);
         }
         // After popping plank
         if (
@@ -1408,7 +1488,7 @@ export default class LevelZero extends Phaser.Scene {
             }
         }
 
-        // Check if player touches the spikes and restart level if so
+        // Check if player touches the spikes and lose life if so
         if (this.player && this.spikes) {
             this.physics.add.collider(
                 this.player,
