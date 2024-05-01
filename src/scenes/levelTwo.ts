@@ -327,11 +327,14 @@ export default class LevelTwo extends Phaser.Scene {
         // Creating smog
         this.smogGroup = this.physics.add.staticGroup();
         const smog1 = this.smogGroup.create(250, 450, "smog").setScale(0.5);
-        const smog2 = this.smogGroup.create(400, 450, "smog").setScale(0.5);
-        const smog3 = this.smogGroup.create(550, 450, "smog").setScale(0.5);
-        const smog4 = this.smogGroup.create(700, 450, "smog").setScale(0.5);
-        const smog5 = this.smogGroup.create(850, 450, "smog").setScale(0.5);
-        this.physics.add.collider(this.bird, this.smogGroup);
+        this.smogGroup.create(400, 450, "smog").setScale(0.5);
+        this.smogGroup.create(550, 450, "smog").setScale(0.5);
+        this.smogGroup.create(700, 450, "smog").setScale(0.5);
+        this.smogGroup.create(850, 450, "smog").setScale(0.5);
+
+        this.physics.add.collider(this.bird, this.smogGroup, () => {
+            console.log("Collision occured");
+        });
 
         // Creating lives
         this.createHearts();
@@ -627,10 +630,13 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Set the depth of the character/player sprite to a high value
         this.player.setDepth(1);
+        this.bird.setDepth(1);
 
         // Set the depth of other game objects to lower values
         this.key.setDepth(0);
         this.door.setDepth(0);
+        this.clouds.setDepth(0);
+        this.smogGroup.setDepth(0);
 
         // Resize collision boxes of player and everything else that can be collided with
         this.player
@@ -647,19 +653,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setSize(this.door.width, this.door.height - 60)
             .setOffset(0, 0);
 
-        smog1.setSize(smog1.width - 300, smog1.height - 600).setOffset(160, 290);
-        smog2
-            .setSize(smog1.width - 300, smog1.height - 600)
-            .setOffset(160, 290);
-        smog3
-            .setSize(smog1.width - 300, smog1.height - 600)
-            .setOffset(160, 290);
-        smog4
-            .setSize(smog1.width - 300, smog1.height - 600)
-            .setOffset(160, 290);
-        smog5
-            .setSize(smog1.width - 300, smog1.height - 600)
-            .setOffset(160, 290);
+        smog1.setSize(smog1.width + 250, smog1.height - 450).setOffset(160, 200);
 
         // Define keys 'E' and 'F' for collecting and using items respectively
         this.keyE = this.input.keyboard?.addKey(
