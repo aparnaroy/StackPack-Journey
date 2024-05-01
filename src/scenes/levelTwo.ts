@@ -24,6 +24,8 @@ export default class LevelTwo extends Phaser.Scene {
     private birdSpeed: number = 2;
     private smogGroup?: Phaser.Physics.Arcade.StaticGroup;
     private troll?: Phaser.Physics.Arcade.Sprite;
+    private trollDirection: number = 1; // 1 for right, -1 for left
+    private trollSpeed: number = 2;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -197,7 +199,6 @@ export default class LevelTwo extends Phaser.Scene {
         this.troll = this.physics.add.sprite(250, 800, "troll").setScale(0.3);
         this.troll.body?.setSize(this.troll.width - 200, this.troll.height - 300);
         this.troll.setCollideWorldBounds(true);
-        //this.physics.add.collider(this.player, this.ground);
 
         this.anims.create({
             key: "right",
@@ -1243,6 +1244,7 @@ export default class LevelTwo extends Phaser.Scene {
             }
         }
 
+        // Making bird move back and forth 
         if (this.bird) {
             this.bird.x += this.birdDirection * this.birdSpeed;
             // Check if the bird reaches the screen edges
@@ -1251,6 +1253,18 @@ export default class LevelTwo extends Phaser.Scene {
                 this.birdDirection *= -1;
                 // Flip bird horizontally
                 this.bird.flipX = !this.bird.flipX;
+            }
+        }
+
+        // Making troll move back and forth 
+        if (this.troll) {
+            this.troll.x += this.trollDirection * this.trollSpeed;
+            // Check if the bird reaches the screen edges
+            if (this.troll.x <= 150 || this.troll.x >= 525) {
+                // Change direction
+                this.trollDirection *= -1;
+                // Flip bird horizontally
+                this.troll.flipX = !this.troll.flipX;
             }
         }
 

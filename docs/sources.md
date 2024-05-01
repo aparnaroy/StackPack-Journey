@@ -33,6 +33,7 @@
 - Pot: <a href="https://www.vecteezy.com/free-vector/flowerpot">Flowerpot Vectors by Vecteezy</a>
 - Bird: https://rmazanek.itch.io/bird-small
 - Wand: https://pngimg.com/image/104781
+- Troll: https://free-game-assets.itch.io/2d-trolls-free-sprite
 
 
 ### Level 3 Scene:
