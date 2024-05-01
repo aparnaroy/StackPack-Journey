@@ -14,7 +14,7 @@ export default class LevelTwo extends Phaser.Scene {
     private clouds?: Phaser.Physics.Arcade.StaticGroup;
     private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
-    private umbrella?: Phaser.GameObjects.Image;
+    private wand?: Phaser.GameObjects.Image;
     private club?: Phaser.GameObjects.Image;
     private pot?: Phaser.GameObjects.Image;
     private seeds?: Phaser.GameObjects.Image;
@@ -74,7 +74,7 @@ export default class LevelTwo extends Phaser.Scene {
             "assets/level2/level2-background.png"
         );
         this.load.image("stackpack", "assets/stackpack.png");
-        this.load.image("umbrella", "assets/level2/umbrella.png");
+        this.load.image("wand", "assets/level2/wand.png");
         this.load.image("club", "assets/level2/club.webp");
         this.load.image("pot", "assets/level2/pot.png");
         this.load.image("seeds", "assets/level2/seeds.png");
@@ -296,7 +296,7 @@ export default class LevelTwo extends Phaser.Scene {
 
         this.physics.add.collider(this.player, this.clouds);
 
-        // Create objects: key, door, umbrella, club, pot, seeds, watering can
+        // Create objects: key, door, wand, club, pot, seeds, watering can
         this.key = this.add.sprite(70, 650, "key").setScale(2.5, 2.5);
         this.key.setName("key");
         this.physics.add.collider(this.key, this.clouds);
@@ -304,9 +304,9 @@ export default class LevelTwo extends Phaser.Scene {
         this.door = this.physics.add.image(910, 50, "pinkdoor").setScale(0.4);
         this.physics.add.collider(this.door, this.clouds);
 
-        this.umbrella = this.add.image(380, 125, "umbrella").setScale(0.08);
-        this.physics.add.collider(this.umbrella, this.clouds);
-        this.umbrella.setName("umbrella");
+        this.wand = this.add.image(380, 115, "wand").setScale(0.06);
+        this.physics.add.collider(this.wand, this.clouds);
+        this.wand.setName("wand");
 
         this.club = this.add.image(550, 115, "club").setScale(0.6);
         this.physics.add.collider(this.club, this.clouds);
@@ -326,11 +326,11 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Creating smog
         this.smogGroup = this.physics.add.staticGroup();
-        const smog1 = this.smogGroup.create(250, 450, "smog").setScale(0.5);
-        this.smogGroup.create(400, 450, "smog").setScale(0.5);
-        this.smogGroup.create(550, 450, "smog").setScale(0.5);
-        this.smogGroup.create(700, 450, "smog").setScale(0.5);
-        this.smogGroup.create(850, 450, "smog").setScale(0.5);
+        const smog1 = this.smogGroup.create(250, 425, "smog").setScale(0.5);
+        this.smogGroup.create(400, 425, "smog").setScale(0.5);
+        this.smogGroup.create(550, 425, "smog").setScale(0.5);
+        this.smogGroup.create(700, 425, "smog").setScale(0.5);
+        this.smogGroup.create(850, 425, "smog").setScale(0.5);
 
         this.physics.add.collider(this.bird, this.smogGroup, () => {
             console.log("Collision occured");
