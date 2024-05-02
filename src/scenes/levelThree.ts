@@ -912,15 +912,9 @@ export default class LevelThree extends Phaser.Scene {
         this.physics.world.enable(this.treeArea);
         this.physics.add.collider(this.treeArea, this.platforms);
 
-        // Make fireballs jump out every 4 seconds after jumping once at beginning
+        // Make fireballs jump out every few seconds after jumping once at beginning
         if (!this.isPaused) {
             this.animateBothFireballs();
-            this.time.addEvent({
-                delay: 3000,
-                callback: this.animateBothFireballs,
-                callbackScope: this,
-                loop: true, // Repeat indefinitely
-            });
         }
 
         // Pause Menu & Level Complete Menu
@@ -1910,16 +1904,17 @@ export default class LevelThree extends Phaser.Scene {
     animateFireball(fireball: Phaser.Physics.Arcade.Image) {
         this.tweens.add({
             targets: fireball,
-            y: 580, // Change this value to adjust the height
-            duration: 1000,
-            ease: "Sine.InOut",
+            y: "-=210",
+            delay: 200,
+            duration: 1200,
             yoyo: true,
-            repeat: 0,
+            repeat: -1,
+            ease: "Sine.InOut",
             onYoyo: () => {
                 // Flip vertically when reaching the top or bottom
                 fireball.scaleY *= -1;
             },
-            onComplete: () => {
+            onRepeat: () => {
                 fireball.scaleY *= -1;
             },
         });
