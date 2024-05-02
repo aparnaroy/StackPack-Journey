@@ -358,7 +358,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.wateringCan = this.add
             .sprite(650, 640, "watering-can")
             .setScale(0.75);
-        this.wateringCan.setName("wateringCan");
+        this.wateringCan.setName("can");
 
         // Creating smog
         this.smogGroup = this.physics.add.staticGroup();
@@ -742,39 +742,6 @@ export default class LevelTwo extends Phaser.Scene {
         // Detection area for key 
         this.keyDetectionArea = this.add
             .rectangle(900, 125, 175, 200);
-
-        /*
-        // Creating detection areas when using the plank
-        this.plankDetectionArea1 = this.add.rectangle(670, 0, 100, 150);
-        this.physics.world.enable(this.plankDetectionArea1);
-        this.physics.add.collider(this.plankDetectionArea1, this.ground);
-
-        this.plankDetectionArea2 = this.add.rectangle(920, 0, 100, 150);
-        this.physics.world.enable(this.plankDetectionArea2);
-        this.physics.add.collider(this.plankDetectionArea2, this.ground);
-
-        this.plankDetectionAreasGroup = this.add.container();
-        this.plankDetectionAreasGroup.add(this.plankDetectionArea1);
-        this.plankDetectionAreasGroup.add(this.plankDetectionArea2);
-
-        // Creating a highlighted rectangle to indicate where plank can be used
-        this.plankHighlightBox = this.add.rectangle(
-            815,
-            210,
-            215,
-            50,
-            0xffff00
-        );
-        this.physics.world.enable(this.plankHighlightBox);
-        this.physics.add.collider(this.plankHighlightBox, this.ground);
-        this.plankHighlightBox.setAlpha(0.25);
-        this.plankHighlightBox.setVisible(false);
-
-        // Creating detection area when using key
-        this.keyDetectionArea = this.add.rectangle(875, 150, 200, 200);
-        this.physics.world.enable(this.keyDetectionArea);
-        this.physics.add.collider(this.keyDetectionArea, this.clouds);
-        */
     }
 
     private updateStackView() {
@@ -1304,18 +1271,17 @@ export default class LevelTwo extends Phaser.Scene {
             this.keyFPressed = false; // Reset the keyFPressed flag when the F key is released
         }
 
-        /*
         // Check if player is near detection area
         if (this.player && this.stack.length > 0) {
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
-                    this.ladderDetectionArea.getBounds()
+                    this.wandDetectionArea.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "ladder"
+                this.stack[this.stack.length - 1].name === "wand"
             ) {
                 // If player overlaps with ladder detection area, show the highlight box
-                this.ladderHighlightBox.setVisible(true);
+                this.wandHighlightArea.setVisible(true);
                 if (this.keyF?.isDown && !this.keyFPressed) {
                     this.keyFPressed = true;
                     this.useItem();
@@ -1323,12 +1289,51 @@ export default class LevelTwo extends Phaser.Scene {
             } else if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
-                    this.plankDetectionAreasGroup.getBounds()
+                    this.clubDetectionArea.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "plank"
+                this.stack[this.stack.length - 1].name === "club"
             ) {
                 // If player overlaps with plank detection area, show the highlight box
-                this.plankHighlightBox.setVisible(true);
+                this.clubHighlightArea.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.seedsDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "seeds"
+            ) {
+                // If player overlaps with plank detection area, show the highlight box
+                this.seedsHighlightArea.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.canDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "can"
+            ) {
+                // If player overlaps with plank detection area, show the highlight box
+                this.canHighlightArea.setVisible(true);
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    this.keyFPressed = true;
+                    this.useItem();
+                }
+            } else if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.potDetectionArea.getBounds()
+                ) &&
+                this.stack[this.stack.length - 1].name === "pot"
+            ) {
+                // If player overlaps with plank detection area, show the highlight box
+                this.potHighlightArea.setVisible(true);
                 if (this.keyF?.isDown && !this.keyFPressed) {
                     this.keyFPressed = true;
                     this.useItem();
@@ -1347,11 +1352,13 @@ export default class LevelTwo extends Phaser.Scene {
                 }
             } else {
                 // Otherwise, hide the highlight box
-                this.ladderHighlightBox.setVisible(false);
-                this.plankHighlightBox.setVisible(false);
+                this.wandHighlightArea.setVisible(false);
+                this.clubHighlightArea.setVisible(false);
+                this.seedsHighlightArea.setVisible(false);
+                this.potHighlightArea.setVisible(false);
+                this.canDetectionArea.setVisible(false);
             }
         }
-        */
 
         // Making bird move back and forth
         if (this.bird) {
