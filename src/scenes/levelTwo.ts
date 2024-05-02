@@ -687,6 +687,7 @@ export default class LevelTwo extends Phaser.Scene {
         );
 
         // Creating detection areas when using the ladder
+        /*
         this.ladderDetectionArea = this.add.rectangle(680, 400, 100, 150);
         this.physics.world.enable(this.ladderDetectionArea);
         this.physics.add.collider(this.ladderDetectionArea, this.ground);
@@ -733,6 +734,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.keyDetectionArea = this.add.rectangle(875, 150, 200, 200);
         this.physics.world.enable(this.keyDetectionArea);
         this.physics.add.collider(this.keyDetectionArea, this.clouds);
+        */
     }
 
     private updateStackView() {
@@ -813,7 +815,7 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Add the item to the grand list of collected items
         this.collectedItems.push(item);
-        this.stopPulsateEffect();
+        //this.stopPulsateEffect();
 
         this.updateStackView();
     }
@@ -1252,6 +1254,7 @@ export default class LevelTwo extends Phaser.Scene {
             this.keyFPressed = false; // Reset the keyFPressed flag when the F key is released
         }
 
+        /*
         // Check if player is near detection area
         if (this.player && this.stack.length > 0) {
             if (
@@ -1298,6 +1301,7 @@ export default class LevelTwo extends Phaser.Scene {
                 this.plankHighlightBox.setVisible(false);
             }
         }
+        */
 
         // Making bird move back and forth 
         if (this.bird) {
