@@ -23,7 +23,7 @@ export default class youDiedScene extends Phaser.Scene {
             { fontSize: "96px", color: "#8c0615", fontFamily: "Verdana" }
         );
         playerDiedText.setOrigin(0.5);
-        playerDiedText.setDepth(5);
+        playerDiedText.setDepth(22);
 
         playerDiedText.setScale(0);
         playerDiedText.setAlpha(0);
@@ -35,7 +35,7 @@ export default class youDiedScene extends Phaser.Scene {
             this.cameras.main.height,
             0x000000
         );
-        blackBackground.setDepth(4);
+        blackBackground.setDepth(21);
         blackBackground.setAlpha(0);
 
         // Animate you died text and black background
