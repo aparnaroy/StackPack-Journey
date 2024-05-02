@@ -364,9 +364,9 @@ export default class LevelTwo extends Phaser.Scene {
         // Creating smog
         this.smogGroup = this.physics.add.staticGroup();
         const smog1 = this.smogGroup.create(250, 425, "smog").setScale(0.5);
-        const smog2 = this.smogGroup.create(400, 425, "smog").setScale(0.5);
-        const smog3 = this.smogGroup.create(550, 425, "smog").setScale(0.5);
-        const smog4 = this.smogGroup.create(700, 425, "smog").setScale(0.5);
+        this.smogGroup.create(400, 425, "smog").setScale(0.5);
+        this.smogGroup.create(550, 425, "smog").setScale(0.5);
+        this.smogGroup.create(700, 425, "smog").setScale(0.5);
         this.smog5 = this.smogGroup.create(850, 425, "smog").setScale(0.5);
 
         this.physics.add.collider(this.bird, this.smogGroup);
