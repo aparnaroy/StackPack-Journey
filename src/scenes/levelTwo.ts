@@ -321,7 +321,7 @@ export default class LevelTwo extends Phaser.Scene {
                 end: 6,
             }),
             frameRate: 1,
-            repeat: -1,
+            repeat: 0, 
         });
 
         this.cursors = this.input.keyboard?.createCursorKeys();
@@ -882,7 +882,7 @@ export default class LevelTwo extends Phaser.Scene {
                         this.potHighlightArea.setVisible(false);
                         this.plant = this.physics.add
                             .sprite(1050, 100, "plant")
-                            .setScale(10)
+                            .setScale(10, 12)
                             .setVisible(false);
                         this.plant.setCollideWorldBounds(true);
                         this.physics.world.enable(this.plant);
@@ -896,6 +896,18 @@ export default class LevelTwo extends Phaser.Scene {
                     }
                     if (poppedItem.name === "can") {
                         poppedItem.setVisible(false);
+                        this.plant?.play("growing");
+                        if(this.player && this.plant && this.pot){
+                            this.physics.add.collider(this.player, this.pot);
+                            console.log(this.physics.add.collider(this.player, this.pot));
+                            this.physics.add.collider(
+                                this.player,
+                                this.plant,
+                                this.handleOnClimb,
+                                undefined,
+                                this
+                            );
+                        }
                         this.canHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "seeds") {
@@ -1191,6 +1203,31 @@ export default class LevelTwo extends Phaser.Scene {
                 this.bird.y -
                 this.bird.displayHeight / 2 -
                 this.player.displayHeight / 2;
+        }
+    }
+
+    // Climbing the plant
+    private handleOnClimb() {
+        if (this.player && this.plant && this.cursors) {
+            // Max distance player can be from ladder to climb it
+            const xTolerance = 30; // Tolerance for X position
+            const yTolerance = 145; // Tolerance for Y position
+            // Calculate horizontal and vertical distances between player and ladder
+            const deltaX = Math.abs(this.player.x - this.plant.x);
+            const deltaY = Math.abs(this.player.y - this.plant.y);
+
+            if (
+                this.plant.x === 680 &&
+                deltaX < xTolerance &&
+                deltaY < yTolerance &&
+                this.cursors.up.isDown
+            ) {
+                this.climbing = true;
+                this.player.anims.play("climb", true);
+                this.player.setVelocityY(-150);
+            } else {
+                this.climbing = false;
+            }
         }
     }
 
