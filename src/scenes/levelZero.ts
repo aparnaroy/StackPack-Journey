@@ -447,6 +447,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
+            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level0", {
                 level0State: this.level0State,
@@ -556,17 +557,19 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
-            this.pauseTime();
-            pauseGroup.setVisible(true);
-            // Pause all animations and tweens
-            this.anims.pauseAll();
-            this.tweens.pauseAll();
-            // Make it so player can't enter keyboard input
-            if (this.input.keyboard) {
-                this.input.keyboard.enabled = false;
+            if (!this.isPaused) {
+                this.pauseTime();
+                pauseGroup.setVisible(true);
+                // Pause all animations and tweens
+                this.anims.pauseAll();
+                this.tweens.pauseAll();
+                // Make it so player can't enter keyboard input
+                if (this.input.keyboard) {
+                    this.input.keyboard.enabled = false;
+                }
+                // Make it so player can't click Free Pop button
+                popButton.disableInteractive();
             }
-            // Make it so player can't click Free Pop button
-            popButton.disableInteractive();
         });
 
         // Creating timer
@@ -640,6 +643,7 @@ export default class LevelZero extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.isPaused = false;
             if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
             }
@@ -652,6 +656,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
+            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level0", {
                 level0State: this.level0State,
@@ -662,6 +667,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
+            this.isPaused = false;
             if (this.level1State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
@@ -684,6 +690,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
+            this.isPaused = false;
             if (this.level1State == 0) {
                 // If level 1 was locked before, set it to current level status
                 this.scene.start("Level1", {
