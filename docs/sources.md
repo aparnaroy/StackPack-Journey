@@ -26,6 +26,18 @@
 -   Level Pause: https://pzuh.itch.io/free-game-gui
 -   <a href='https://pngtree.com/freepng/casual-game-button-set-stock-illustration_5981555.html'>png image from pngtree.com/</a>
 
+### Level 1 Scene:
+
+-   Background: https://www.freepik.com/free-vector/flat-tropical-jungle-background_13643324.htm#fromView=search&page=4&position=11&uuid=ee0e5a5e-ee27-4310-b2b4-27eafb48eec2
+-   Platforms + stone + river: https://dinosdouisen.itch.io/jungle-platformer-game-tileset#google_vignette
+-   Banana, Mushroom, Vine, Monkey, Speech Bubble: Free elements on Canva
+-   Key: https://frakassets.itch.io/free-rotating-key
+-   Door: https://www.artstation.com/artwork/BmOoPz
+-   Hearts: https://opengameart.org/content/heart-full-and-empty-for-health
+-   Level Complete & Pause: https://www.freepik.com/free-vector/set-game-menu-selection-rpg-adventure-game-including-menu-level-selection-options_14245132.htm#fromView=search&page=1&position=7&uuid=041f1bcf-fd58-4f6b-a720-a753efcecd7a
+-   Level Pause: https://pzuh.itch.io/free-game-gui
+-   <a href='https://pngtree.com/freepng/casual-game-button-set-stock-illustration_5981555.html'>png image from pngtree.com/</a>
+
 ### Level 3 Scene:
 
 -   Background: <a href="https://www.freepik.com/free-vector/cave-with-molten-lava-spark-game-background_38720914.htm">Image by upklyak</a> on Freepik
