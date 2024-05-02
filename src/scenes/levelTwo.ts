@@ -370,10 +370,12 @@ export default class LevelTwo extends Phaser.Scene {
         this.pot.setName("pot");
         const graphics = this.add.graphics();
 
+        /*
         // Draw the collision bounds of the pot sprite
         const bounds = this.pot.getBounds();
         graphics.lineStyle(2, 0xff0000);
         graphics.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
+        */
 
         this.seeds = this.add.sprite(70, 680, "seeds").setScale(0.6);
         this.seeds.setName("seeds");
@@ -898,8 +900,8 @@ export default class LevelTwo extends Phaser.Scene {
                         poppedItem.setVisible(false);
                         this.plant?.play("growing");
                         if(this.player && this.plant && this.pot){
-                            this.physics.add.collider(this.player, this.pot);
-                            console.log(this.physics.add.collider(this.player, this.pot));
+                            //this.physics.add.collider(this.player, this.pot);
+                            //console.log(this.physics.add.collider(this.player, this.pot));
                             this.physics.add.collider(
                                 this.player,
                                 this.plant,
