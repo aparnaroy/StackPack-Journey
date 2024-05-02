@@ -1,5 +1,13 @@
 import Phaser from "phaser";
 
+interface YouDiedData {
+    currentLevelKey: string;
+    level0State: number;
+    level1State: number;
+    level2State: number;
+    level3State: number;
+}
+
 export default class youDiedScene extends Phaser.Scene {
     constructor() {
         super({ key: "YouDiedScene" });
@@ -7,7 +15,7 @@ export default class youDiedScene extends Phaser.Scene {
 
     preload() {}
 
-    create() {
+    create(data: YouDiedData) {
         const playerDiedText = this.add.text(
             this.cameras.main.width / 2,
             this.cameras.main.height / 2,
@@ -40,8 +48,12 @@ export default class youDiedScene extends Phaser.Scene {
             onComplete: () => {
                 this.time.delayedCall(1000, () => {
                     this.scene.stop("YouDiedScene");
-                    // Hard coded for now -- fix later
-                    this.scene.start("Level0");
+                    this.scene.start(data.currentLevelKey, {
+                        level0State: data.level0State,
+                        level1State: data.level1State,
+                        level2State: data.level2State,
+                        level3State: data.level3State,
+                    });
                 });
             },
         });
