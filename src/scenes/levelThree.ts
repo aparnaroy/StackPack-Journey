@@ -942,6 +942,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
+            this.isPaused = false;
             this.scene.start("game-map", {
                 level0State: this.level0State,
                 level1State: this.level1State,
@@ -967,6 +968,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
+            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level3", {
                 level0State: this.level0State,
@@ -1079,17 +1081,19 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
-            this.pauseTime();
-            pauseGroup.setVisible(true);
-            // Pause all animations and tweens
-            this.anims.pauseAll();
-            this.tweens.pauseAll();
-            // Make it so player can't enter keyboard input
-            if (this.input.keyboard) {
-                this.input.keyboard.enabled = false;
+            if (!this.isPaused) {
+                this.pauseTime();
+                pauseGroup.setVisible(true);
+                // Pause all animations and tweens
+                this.anims.pauseAll();
+                this.tweens.pauseAll();
+                // Make it so player can't enter keyboard input
+                if (this.input.keyboard) {
+                    this.input.keyboard.enabled = false;
+                }
+                // Make it so player can't click Free Pop button
+                popButton.disableInteractive();
             }
-            // Make it so player can't click Free Pop button
-            popButton.disableInteractive();
         });
 
         // Creating timer
@@ -1163,6 +1167,7 @@ export default class LevelThree extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.isPaused = false;
             if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
             }
@@ -1175,6 +1180,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
+            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level3", {
                 level0State: this.level0State,
@@ -1185,6 +1191,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
+            this.isPaused = false;
             // TODO: Transition to ending cut scene
             setTimeout(() => {
                 this.scene.start("game-map", {
@@ -1197,6 +1204,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
+            this.isPaused = false;
             // TODO: Transition to ending cut scene
             setTimeout(() => {
                 this.scene.start("game-map", {
