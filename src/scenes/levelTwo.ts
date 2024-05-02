@@ -368,9 +368,8 @@ export default class LevelTwo extends Phaser.Scene {
         this.pot = this.add.sprite(900, 660, "pot").setScale(0.065);
         this.physics.add.collider(this.pot, this.ground);
         this.pot.setName("pot");
-        const graphics = this.add.graphics();
-
         /*
+        const graphics = this.add.graphics();
         // Draw the collision bounds of the pot sprite
         const bounds = this.pot.getBounds();
         graphics.lineStyle(2, 0xff0000);
