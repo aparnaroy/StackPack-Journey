@@ -23,7 +23,8 @@ export default class LevelTwo extends Phaser.Scene {
     private birdDirection: number = 1; // 1 for right, -1 for left
     private birdSpeed: number = 2;
     private onBird: boolean = false;
-    private smogGroup?: Phaser.Physics.Arcade.StaticGroup;
+    private smogGroup?: Phaser.GameObjects.Group;
+    private smog5?: Phaser.GameObjects.GameObject;
     private troll?: Phaser.Physics.Arcade.Sprite;
     private trollDirection: number = 1; // 1 for right, -1 for left
     private trollSpeed: number = 2;
@@ -363,10 +364,10 @@ export default class LevelTwo extends Phaser.Scene {
         // Creating smog
         this.smogGroup = this.physics.add.staticGroup();
         const smog1 = this.smogGroup.create(250, 425, "smog").setScale(0.5);
-        this.smogGroup.create(400, 425, "smog").setScale(0.5);
-        this.smogGroup.create(550, 425, "smog").setScale(0.5);
-        this.smogGroup.create(700, 425, "smog").setScale(0.5);
-        this.smogGroup.create(850, 425, "smog").setScale(0.5);
+        const smog2 = this.smogGroup.create(400, 425, "smog").setScale(0.5);
+        const smog3 = this.smogGroup.create(550, 425, "smog").setScale(0.5);
+        const smog4 = this.smogGroup.create(700, 425, "smog").setScale(0.5);
+        this.smog5 = this.smogGroup.create(850, 425, "smog").setScale(0.5);
 
         this.physics.add.collider(this.bird, this.smogGroup);
 
@@ -699,8 +700,8 @@ export default class LevelTwo extends Phaser.Scene {
             Phaser.Input.Keyboard.KeyCodes.F
         );
 
-        // Creating detection area when using the wand
-        this.wandDetectionArea = this.add.rectangle(700, 280, 200, 200);
+        // Creating detection area when using the wand -- change back to 200, 200 for box 
+        this.wandDetectionArea = this.add.rectangle(700, 280, 400, 400);
 
         // Highlight area for wand
         this.wandHighlightArea = this.add
@@ -846,9 +847,14 @@ export default class LevelTwo extends Phaser.Scene {
                     poppedItem.setOrigin(0.5, 0.5);
 
                     // Move popped item to location it will be used
-                    if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(680, 385);
-                        //this.ladderHighlightBox.setVisible(false);
+                    if (poppedItem.name === "wand") {
+                        // have to add anim for wand
+                        if(this.smog5){
+                            this.smogGroup?.remove(this.smog5);
+                            this.smog5.destroy
+                        }
+                        poppedItem.setVisible(false);
+                        this.wandHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "plank") {
                         poppedItem.setPosition(815, 600);
