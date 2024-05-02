@@ -198,7 +198,13 @@ export default class LevelTwo extends Phaser.Scene {
             .setScale(4)
             .setDepth(0);
         this.bird.setCollideWorldBounds(true);
-        this.physics.add.collider(this.bird, this.player, this.handleOnBird, undefined, this);
+        this.physics.add.collider(
+            this.bird,
+            this.player,
+            this.handleOnBird,
+            undefined,
+            this
+        );
 
         this.troll = this.physics.add.sprite(250, 800, "troll").setScale(0.3);
         this.troll.body?.setSize(
@@ -702,14 +708,40 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Creating detection area when using club
-        this.clubDetectionArea = this.add.rectangle(
-            550,
-            400,
-            780,
-            60,
-            0xffff00,
-            0.5
-        );
+        this.clubDetectionArea = this.add.rectangle(750, 700, 500, 60);
+
+        // Highlight area for club
+        this.clubHighlightArea = this.add
+            .rectangle(300, 700, 100, 300, 0xffff00, 0.5)
+            .setVisible(false);
+
+        // Detection area for pot
+        this.potDetectionArea = this.add.rectangle(1050, 700, 100, 250);
+
+        // Highlight area for pot
+        this.potHighlightArea = this.add
+            .rectangle(1050, 700, 100, 250, 0xffff00, 0.5)
+            .setVisible(false);
+
+        // Detection area for seeds
+        this.seedsDetectionArea = this.add.rectangle(950, 700, 100, 250);
+
+        // Highlight area for seeds
+        this.seedsHighlightArea = this.add
+            .rectangle(1025, 560, 100, 100, 0xffff00, 0.5)
+            .setVisible(false);
+
+        // Detection area for can
+        this.canDetectionArea = this.add.rectangle(950, 700, 100, 250);
+
+        // Highlight area for can
+        this.canHighlightArea = this.add
+            .rectangle(1025, 560, 100, 100, 0xffff00, 0.5)
+            .setVisible(false);
+
+        // Detection area for key 
+        this.keyDetectionArea = this.add
+            .rectangle(900, 125, 175, 200);
 
         /*
         // Creating detection areas when using the plank
