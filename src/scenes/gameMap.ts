@@ -19,29 +19,50 @@ export default class GameMap extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("game-map", "assets/game-map.png");
-        this.load.image("level0-unlocked", "assets/level0-button-unlocked.png");
+        this.load.image("game-map", "assets/gameMap/game-map.png");
+        this.load.image(
+            "level0-unlocked",
+            "assets/gameMap/level0-button-unlocked.png"
+        );
         this.load.image(
             "level0-completed",
-            "assets/level0-button-completed.png"
+            "assets/gameMap/level0-button-completed.png"
         );
-        this.load.image("level1-locked", "assets/level1-button-locked.png");
-        this.load.image("level1-unlocked", "assets/level1-button-unlocked.png");
+        this.load.image(
+            "level1-locked",
+            "assets/gameMap/level1-button-locked.png"
+        );
+        this.load.image(
+            "level1-unlocked",
+            "assets/gameMap/level1-button-unlocked.png"
+        );
         this.load.image(
             "level1-completed",
-            "assets/level1-button-completed.png"
+            "assets/gameMap/level1-button-completed.png"
         );
-        this.load.image("level2-locked", "assets/level2-button-locked.png");
-        this.load.image("level2-unlocked", "assets/level2-button-unlocked.png");
+        this.load.image(
+            "level2-locked",
+            "assets/gameMap/level2-button-locked.png"
+        );
+        this.load.image(
+            "level2-unlocked",
+            "assets/gameMap/level2-button-unlocked.png"
+        );
         this.load.image(
             "level2-completed",
-            "assets/level2-button-completed.png"
+            "assets/gameMap/level2-button-completed.png"
         );
-        this.load.image("level3-locked", "assets/level3-button-locked.png");
-        this.load.image("level3-unlocked", "assets/level3-button-unlocked.png");
+        this.load.image(
+            "level3-locked",
+            "assets/gameMap/level3-button-locked.png"
+        );
+        this.load.image(
+            "level3-unlocked",
+            "assets/gameMap/level3-button-unlocked.png"
+        );
         this.load.image(
             "level3-completed",
-            "assets/level3-button-completed.png"
+            "assets/gameMap/level3-button-completed.png"
         );
     }
 
@@ -212,7 +233,7 @@ export default class GameMap extends Phaser.Scene {
         }
 
         // If level 2 is unlocked or completed, make it clickable
-        if (this.level2State > 0) {
+        if (this.level2State >= 0) {
             level2Button.setInteractive();
 
             level2Button.on("pointerup", () => {
