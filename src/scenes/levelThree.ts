@@ -1541,7 +1541,9 @@ export default class LevelThree extends Phaser.Scene {
                                     if (this.elapsedTime <= 30000) {
                                         this.starsPopup = this.threeStarsPopup;
                                         this.threeStarsPopup.add(completedTime);
-                                        this.threeStarsPopup.setVisible(true);
+                                        this.threeStarsPopup
+                                            .setVisible(true)
+                                            .setDepth(20);
                                     }
                                     if (
                                         this.elapsedTime > 30000 &&
@@ -1549,12 +1551,16 @@ export default class LevelThree extends Phaser.Scene {
                                     ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
-                                        this.twoStarsPopup.setVisible(true);
+                                        this.twoStarsPopup
+                                            .setVisible(true)
+                                            .setDepth(20);
                                     }
                                     if (this.elapsedTime > 60000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
-                                        this.oneStarPopup.setVisible(true);
+                                        this.oneStarPopup
+                                            .setVisible(true)
+                                            .setDepth(20);
                                     }
                                     // Animate level complete text
                                     this.tweens.add({
