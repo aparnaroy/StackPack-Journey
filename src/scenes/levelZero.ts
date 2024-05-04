@@ -25,9 +25,12 @@ export default class LevelZero extends Phaser.Scene {
     private popButton1?: Phaser.GameObjects.Image;
     private popButton2?: Phaser.GameObjects.Image;
     private movementInstruction?: Phaser.GameObjects.Image;
+    private topInstruction?: Phaser.GameObjects.Image;
     private orderInstruction?: Phaser.GameObjects.Image;
+    private hintInstruction?: Phaser.GameObjects.Image;
     private freepopDialogue?: Phaser.GameObjects.Image;
-    private glowingSpot?: Phaser.GameObjects.Image;
+    private downArrow?: Phaser.GameObjects.Image;
+    private arrowTween: Phaser.Tweens.Tween;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -83,7 +86,7 @@ export default class LevelZero extends Phaser.Scene {
 
         this.load.image("EF-keys-black", "assets/EF-keys-black.png");
 
-        this.load.image("glowingSpot", "assets/level0/glowingSpot.png");
+        this.load.image("downArrow", "assets/level0/down-arrow.png");
 
         this.load.spritesheet("key", "assets/key.png", {
             frameWidth: 768 / 24,
@@ -149,12 +152,18 @@ export default class LevelZero extends Phaser.Scene {
             "MovementInstructions",
             "assets/level0/Movement-Instructions.png"
         );
-
+        this.load.image(
+            "TopInstructions",
+            "assets/level0/Top-Instructions.png"
+        );
         this.load.image(
             "OrderInstructions",
             "assets/level0/Order-Instructions.png"
         );
-
+        this.load.image(
+            "HintInstructions",
+            "assets/level0/Hint-Instructions.png"
+        );
         this.load.image(
             "FreePopInstructions",
             "assets/level0/FreePop-Instructions.png"
@@ -202,8 +211,8 @@ export default class LevelZero extends Phaser.Scene {
         const EFkeys = this.add.image(10, 115, "EF-keys-black").setOrigin(0, 0);
         EFkeys.setScale(0.35);
 
-        this.glowingSpot = this.add.image(350, 430, "glowingSpot");
-        this.glowingSpot.setScale(0.4);
+        this.downArrow = this.add.image(350, 350, "downArrow");
+        this.downArrow.setScale(0.5);
 
         this.anims.create({
             key: "turn",
@@ -406,11 +415,11 @@ export default class LevelZero extends Phaser.Scene {
         // Creating Pause Popup
         const pausePopup = this.add.image(650, 350, "pause-popup");
         pausePopup.setOrigin(0.5);
-        pausePopup.setDepth(1);
+        pausePopup.setDepth(10);
         pauseGroup.add(pausePopup);
 
         // Exit button for Pause popup
-        const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(1);
+        const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(10);
         exitButton.setOrigin(0.5);
         exitButton.setInteractive();
         pauseGroup.add(exitButton);
@@ -424,6 +433,8 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
+            this.isPaused = false;
+            this.resetScene();
             this.scene.start("game-map", {
                 level0State: this.level0State,
                 level1State: this.level1State,
@@ -433,7 +444,9 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         // Return button for Pause popup
-        const restartButton = this.add.rectangle(640, 425, 200, 75).setDepth(1);
+        const restartButton = this.add
+            .rectangle(640, 425, 200, 75)
+            .setDepth(10);
         restartButton.setOrigin(0.5);
         restartButton.setInteractive();
         pauseGroup.add(restartButton);
@@ -458,7 +471,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         // Resume button for Pause popup
-        const resumeButton = this.add.rectangle(640, 320, 200, 75).setDepth(1);
+        const resumeButton = this.add.rectangle(640, 320, 200, 75).setDepth(10);
         resumeButton.setOrigin(0.5);
         resumeButton.setInteractive();
         pauseGroup.add(resumeButton);
@@ -486,7 +499,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         // No music button for Pause popup
-        const muteMusic = this.add.rectangle(585, 217, 90, 90).setDepth(1);
+        const muteMusic = this.add.rectangle(585, 217, 90, 90).setDepth(10);
         muteMusic.setOrigin(0.5);
         muteMusic.setInteractive();
         pauseGroup.add(muteMusic);
@@ -505,7 +518,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         // No sound button for Pause popup
-        const muteSound = this.add.rectangle(700, 217, 90, 90).setDepth(1);
+        const muteSound = this.add.rectangle(700, 217, 90, 90).setDepth(10);
         muteSound.setOrigin(0.5);
         muteSound.setInteractive();
         pauseGroup.add(muteSound);
@@ -582,7 +595,7 @@ export default class LevelZero extends Phaser.Scene {
         this.isPaused = false;
 
         // Level complete popup - still working
-        const completeExitButton = this.add.circle(790, 185, 35).setDepth(1);
+        const completeExitButton = this.add.circle(790, 185, 35).setDepth(10);
         completeExitButton.setInteractive();
         completeExitButton.on("pointerover", () => {
             completeExitButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -591,7 +604,7 @@ export default class LevelZero extends Phaser.Scene {
             completeExitButton.setFillStyle();
         });
 
-        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(1);
+        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(10);
         completeReplayButton.setInteractive();
         completeReplayButton.on("pointerover", () => {
             completeReplayButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -600,7 +613,7 @@ export default class LevelZero extends Phaser.Scene {
             completeReplayButton.setFillStyle();
         });
 
-        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(1);
+        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(10);
         completeMenuButton.setInteractive();
         completeMenuButton.on("pointerover", () => {
             completeMenuButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -609,7 +622,7 @@ export default class LevelZero extends Phaser.Scene {
             completeMenuButton.setFillStyle();
         });
 
-        const completeNextButton = this.add.circle(800, 505, 55).setDepth(1);
+        const completeNextButton = this.add.circle(800, 505, 55).setDepth(10);
         completeNextButton.setInteractive();
         completeNextButton.on("pointerover", () => {
             completeNextButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -714,7 +727,8 @@ export default class LevelZero extends Phaser.Scene {
         this.oneStarPopup.setVisible(false);
 
         // Set the depth of the character/player sprite to a high value
-        this.player.setDepth(1);
+        this.player.setDepth(3);
+        this.downArrow.setDepth(1);
 
         // Set the depth of other game objects to lower values
         this.key.setDepth(0);
@@ -805,22 +819,40 @@ export default class LevelZero extends Phaser.Scene {
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
 
         // Text Boxes
-        this.pushDialogue = this.add.image(350, 550, "EtoPush").setScale(1, 1);
-        this.popDialogue = this.add.image(750, 650, "FtoPop").setScale(1, 1);
+        this.pushDialogue = this.add
+            .image(350, 420, "EtoPush")
+            .setScale(0.65)
+            .setDepth(2);
+        this.popDialogue = this.add
+            .image(750, 520, "FtoPop")
+            .setScale(0.65)
+            .setDepth(2);
         this.pushButton1 = this.add.image(1100, 650, "EButton").setScale(1, 1);
         this.pushButton2 = this.add.image(1250, 730, "EButton").setScale(1, 1);
         this.popButton1 = this.add.image(750, 500, "FButton").setScale(1, 1);
         this.popButton2 = this.add.image(900, 300, "FButton").setScale(1, 1);
         this.movementInstruction = this.add
             .image(200, 600, "MovementInstructions")
-            .setScale(1, 1);
+            .setScale(1, 1)
+            .setDepth(2);
+        this.topInstruction = this.add
+            .image(1090, 380, "TopInstructions")
+            .setScale(0.65)
+            .setDepth(2);
+        this.topInstruction.setVisible(false);
         this.orderInstruction = this.add
-            .image(1090, 380, "OrderInstructions")
-            .setScale(0.45);
+            .image(1080, 390, "OrderInstructions")
+            .setScale(0.65)
+            .setDepth(2);
         this.orderInstruction.setVisible(false);
+        this.hintInstruction = this.add
+            .image(1090, 380, "HintInstructions")
+            .setScale(0.65)
+            .setDepth(2);
+        this.hintInstruction.setVisible(false);
         this.freepopDialogue = this.add
             .image(190, 170, "FreePopInstructions")
-            .setScale(0.45);
+            .setScale(0.43);
         this.freepopDialogue.setVisible(false);
 
         this.pushDialogue.setVisible(false);
@@ -844,20 +876,18 @@ export default class LevelZero extends Phaser.Scene {
             1000 // Duration of each tween cycle in milliseconds
         );
 
-        // Continuously make glowing spot small and big
-        // Define minimum and maximum scale values
-        const minScaleX = 0.18;
-        const maxScaleX = 0.27;
+        this.arrowTween = this.playArrowTween(this.downArrow.x);
+    }
 
-        // Create a tween to smoothly scale the glowing spot
-        this.tweens.add({
-            targets: this.glowingSpot,
-            scaleX: [minScaleX, maxScaleX], // Scale on x-axis
-            scaleY: this.glowingSpot.scaleY, // Maintain original scale on y-axis
-            duration: 1000,
-            yoyo: true, // Make the tween go back and forth
-            repeat: -1, // Repeat indefinitely
-            ease: "Sine.easeInOut", // Use sine easing for smooth transitions
+    private playArrowTween(minY: number) {
+        let maxY = minY + 30;
+        return this.tweens.add({
+            targets: this.downArrow,
+            y: [minY, maxY],
+            duration: 500,
+            ease: "Cubic.easeOut",
+            yoyo: true,
+            repeat: -1,
         });
     }
 
@@ -1001,7 +1031,7 @@ export default class LevelZero extends Phaser.Scene {
                                                 color: "#000000",
                                             }
                                         )
-                                        .setDepth(1)
+                                        .setDepth(11)
                                         .setVisible(false);
                                     // Level popup depends on time it takes to complete
                                     if (this.elapsedTime <= 30000) {
@@ -1210,13 +1240,13 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private resetScene() {
-        // Reset the stack and collected items and glowing spot
+        // Reset the stack and collected items and down arrow
         this.stack = [];
         this.updateStackView();
         this.collectedItems = [];
         this.lives = 3;
         this.createHearts();
-        this.glowingSpot?.setPosition(350, 430);
+        this.downArrow?.setPosition(350, 350);
     }
 
     private createPulsateEffect(
@@ -1260,6 +1290,7 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private pauseTime() {
+        console.log("HEREEE");
         this.isPaused = !this.isPaused;
         if (this.isPaused) {
             this.pausedTime = this.time.now - this.startTime;
@@ -1278,55 +1309,70 @@ export default class LevelZero extends Phaser.Scene {
             );
         }
 
-        // Check if the player is on top of the glowing spot and if so, move to next location
+        // Check if the player is at arrow location and if so, move to next location
         // After pushing plank
         if (
             this.player &&
-            this.glowingSpot &&
-            this.glowingSpot.x == 350 &&
+            this.downArrow &&
+            this.downArrow.x == 350 &&
             this.stack.length > 0 &&
             this.stack[this.stack.length - 1].name === "plank"
         ) {
-            this.glowingSpot.setPosition(
-                this.plankDetectionArea1.x - 40,
-                this.plankDetectionArea1.y - 65
-            );
-            console.log("HERE");
-            console.log(this.stack);
-            console.log(this.collectedItems);
+            this.downArrow.setPosition(650, 500);
+            this.arrowTween = this.playArrowTween(this.downArrow.y);
         }
         // After popping plank
         if (
             this.player &&
-            this.glowingSpot &&
+            this.downArrow &&
             this.plank &&
-            this.glowingSpot.x == this.plankDetectionArea1.x - 40 &&
+            this.downArrow.x == 650 &&
             this.plank.x == 815
         ) {
-            this.glowingSpot.setPosition(1115, 560);
+            this.downArrow.setPosition(1115, 380);
+            this.arrowTween = this.playArrowTween(this.downArrow.y);
         }
         // After pushing ladder
         if (
             this.player &&
-            this.glowingSpot &&
-            this.glowingSpot.x == 1115 &&
+            this.downArrow &&
+            this.downArrow.x == 1115 &&
             Phaser.Math.Distance.Between(
                 this.player.x,
                 this.player.y,
-                this.glowingSpot.x,
-                this.glowingSpot.y + 150
+                1115,
+                560 + 150
             ) < 90
         ) {
-            this.orderInstruction?.setVisible(true);
-            this.glowingSpot.setVisible(false);
-            this.glowingSpot.setPosition(0, 560);
+            this.topInstruction?.setVisible(true);
+            this.downArrow.setVisible(false);
+            this.downArrow.setPosition(0, 560);
+            setTimeout(() => {
+                this.topInstruction?.setVisible(false);
+                this.orderInstruction?.setVisible(true);
+            }, 4000);
+            setTimeout(() => {
+                this.orderInstruction?.setVisible(false);
+                this.hintInstruction?.setVisible(true);
+            }, 9000);
+            setTimeout(() => {
+                this.hintInstruction?.setVisible(false);
+                this.freepopDialogue?.setVisible(true);
+            }, 15500);
+            setTimeout(() => {
+                this.freepopDialogue?.setVisible(false);
+            }, 19500);
+
+            /*this.orderInstruction?.setVisible(true);
+            this.downArrow.setVisible(false);
+            this.downArrow.setPosition(0, 560);
             setTimeout(() => {
                 this.orderInstruction?.setVisible(false);
                 this.freepopDialogue?.setVisible(true);
             }, 4000);
             setTimeout(() => {
                 this.freepopDialogue?.setVisible(false);
-            }, 8000);
+            }, 8000);*/
         }
 
         // Key animation

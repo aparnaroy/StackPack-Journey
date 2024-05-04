@@ -33,12 +33,12 @@ export const CONFIG = {
         youDiedScene,
         LevelOne,
         LevelThree,
-        LevelTwo
+        LevelTwo,
     ],
     physics: {
         default: "arcade",
         arcade: {
-            debug: false,
+            debug: true,
             gravity: { y: 900 },
         },
     },
