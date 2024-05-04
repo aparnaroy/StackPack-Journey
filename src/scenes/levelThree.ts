@@ -512,8 +512,8 @@ export default class LevelThree extends Phaser.Scene {
                 .sprite(stone.x, stone.y + 20, "sensor")
                 .setAlpha(0);
             sensor.body.setSize(stone.width * 0.02, 10).setOffset(-15, -40); // Adjust sensor size and offset as needed
-            sensor.body.setAllowGravity(false);
-            //this.physics.add.collider(sensor, this.stones);
+            //sensor.body.setAllowGravity(false);
+            this.physics.add.collider(sensor, this.stones);
             if (this.player) {
                 // Make stones fall if player touches the sensors
                 this.physics.add.overlap(sensor, this.player, () => {
@@ -943,6 +943,7 @@ export default class LevelThree extends Phaser.Scene {
 
         exitButton.on("pointerup", () => {
             this.isPaused = false;
+            this.resetScene();
             this.scene.start("game-map", {
                 level0State: this.level0State,
                 level1State: this.level1State,
@@ -1004,9 +1005,6 @@ export default class LevelThree extends Phaser.Scene {
             }
             // Make it so player can click Free Pop button
             popButton.setInteractive();
-            // Reset fireballs
-            //this.fireball1?.setPosition(465, 800);
-            //this.fireball2?.setPosition(700, 800);
         });
 
         // No music button for Pause popup
@@ -1106,7 +1104,7 @@ export default class LevelThree extends Phaser.Scene {
         this.isPaused = false;
 
         // Level complete popup - still working
-        const completeExitButton = this.add.circle(790, 185, 35).setDepth(1);
+        const completeExitButton = this.add.circle(790, 185, 35).setDepth(20);
         completeExitButton.setInteractive();
         completeExitButton.on("pointerover", () => {
             completeExitButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -1115,7 +1113,7 @@ export default class LevelThree extends Phaser.Scene {
             completeExitButton.setFillStyle();
         });
 
-        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(1);
+        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(20);
         completeReplayButton.setInteractive();
         completeReplayButton.on("pointerover", () => {
             completeReplayButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -1124,7 +1122,7 @@ export default class LevelThree extends Phaser.Scene {
             completeReplayButton.setFillStyle();
         });
 
-        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(1);
+        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(20);
         completeMenuButton.setInteractive();
         completeMenuButton.on("pointerover", () => {
             completeMenuButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -1133,7 +1131,7 @@ export default class LevelThree extends Phaser.Scene {
             completeMenuButton.setFillStyle();
         });
 
-        const completeNextButton = this.add.circle(800, 505, 55).setDepth(1);
+        const completeNextButton = this.add.circle(800, 505, 55).setDepth(20);
         completeNextButton.setInteractive();
         completeNextButton.on("pointerover", () => {
             completeNextButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -1347,7 +1345,7 @@ export default class LevelThree extends Phaser.Scene {
                             },
                         });
                         this.tweens.add({
-                            targets: this.toxicGas,
+                            targets: [this.toxicGas, this.gasBarrel],
                             alpha: 0, // Fade out
                             duration: 1200,
                         });
@@ -1537,13 +1535,15 @@ export default class LevelThree extends Phaser.Scene {
                                                 color: "#000000",
                                             }
                                         )
-                                        .setDepth(1)
+                                        .setDepth(21)
                                         .setVisible(false);
                                     // Level popup depends on time it takes to complete
                                     if (this.elapsedTime <= 30000) {
                                         this.starsPopup = this.threeStarsPopup;
                                         this.threeStarsPopup.add(completedTime);
-                                        this.threeStarsPopup.setVisible(true);
+                                        this.threeStarsPopup
+                                            .setVisible(true)
+                                            .setDepth(20);
                                     }
                                     if (
                                         this.elapsedTime > 30000 &&
@@ -1551,12 +1551,16 @@ export default class LevelThree extends Phaser.Scene {
                                     ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
-                                        this.twoStarsPopup.setVisible(true);
+                                        this.twoStarsPopup
+                                            .setVisible(true)
+                                            .setDepth(20);
                                     }
                                     if (this.elapsedTime > 60000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
-                                        this.oneStarPopup.setVisible(true);
+                                        this.oneStarPopup
+                                            .setVisible(true)
+                                            .setDepth(20);
                                     }
                                     // Animate level complete text
                                     this.tweens.add({
@@ -1893,8 +1897,7 @@ export default class LevelThree extends Phaser.Scene {
                     .sprite(stone.x, stone.y + 20, "sensor")
                     .setAlpha(0);
                 sensor.body.setSize(stone.width * 0.02, 10).setOffset(-15, -40); // Adjust sensor size and offset as needed
-                sensor.body.setAllowGravity(false);
-                //this.physics.add.collider(sensor, this.stones);
+                this.physics.add.collider(sensor, this.stones);
                 if (this.player) {
                     // Make stones fall if player touches the sensors
                     this.physics.add.overlap(sensor, this.player, () => {
