@@ -28,6 +28,7 @@ export default class LevelTwo extends Phaser.Scene {
     private troll?: Phaser.Physics.Arcade.Sprite;
     private trollDirection: number = 1; // 1 for right, -1 for left
     private trollSpeed: number = 2;
+    private plant?: Phaser.Physics.Arcade.Sprite;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -141,6 +142,11 @@ export default class LevelTwo extends Phaser.Scene {
         this.load.spritesheet("troll", "assets/level2/troll.png", {
             frameWidth: 6618 / 6,
             frameHeight: 4095 / 5,
+        });
+
+        this.load.spritesheet("plant", "assets/level2/wheat.png", {
+            frameWidth: 102 / 3,
+            frameHeight: 102 / 3,
         });
 
         this.load.image("cloud-platform", "assets/level2/cloud-platform.png");
@@ -288,7 +294,7 @@ export default class LevelTwo extends Phaser.Scene {
 
         this.anims.create({
             key: "fly_right",
-            frames: this.anims.generateFrameNames("bird_right", {
+            frames: this.anims.generateFrameNumbers("bird_right", {
                 start: 70,
                 end: 74,
             }),
@@ -299,7 +305,7 @@ export default class LevelTwo extends Phaser.Scene {
 
         this.anims.create({
             key: "troll_right",
-            frames: this.anims.generateFrameNames("troll", {
+            frames: this.anims.generateFrameNumbers("troll", {
                 start: 21,
                 end: 27,
             }),
@@ -307,6 +313,16 @@ export default class LevelTwo extends Phaser.Scene {
             repeat: -1,
         });
         this.troll.play("troll_right");
+
+        this.anims.create({
+            key: "growing",
+            frames: this.anims.generateFrameNumbers("plant", {
+                start: 0,
+                end: 6,
+            }),
+            frameRate: 1,
+            repeat: 0, 
+        });
 
         this.cursors = this.input.keyboard?.createCursorKeys();
 
@@ -349,15 +365,22 @@ export default class LevelTwo extends Phaser.Scene {
         this.physics.add.collider(this.club, this.clouds);
         this.club.setName("club");
 
-        this.pot = this.add.sprite(900, 660, "pot").setScale(0.07);
+        this.pot = this.add.sprite(900, 660, "pot").setScale(0.065);
         this.physics.add.collider(this.pot, this.ground);
         this.pot.setName("pot");
+        /*
+        const graphics = this.add.graphics();
+        // Draw the collision bounds of the pot sprite
+        const bounds = this.pot.getBounds();
+        graphics.lineStyle(2, 0xff0000);
+        graphics.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
+        */
 
         this.seeds = this.add.sprite(70, 680, "seeds").setScale(0.6);
         this.seeds.setName("seeds");
 
         this.wateringCan = this.add
-            .sprite(650, 640, "watering-can")
+            .sprite(650, 660, "watering-can")
             .setScale(0.75);
         this.wateringCan.setName("can");
 
@@ -700,7 +723,7 @@ export default class LevelTwo extends Phaser.Scene {
             Phaser.Input.Keyboard.KeyCodes.F
         );
 
-        // Creating detection area when using the wand -- change back to 200, 200 for box 
+        // Creating detection area when using the wand -- change back to 200, 200 for box
         this.wandDetectionArea = this.add.rectangle(700, 280, 400, 400);
 
         // Highlight area for wand
@@ -729,7 +752,7 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Highlight area for seeds
         this.seedsHighlightArea = this.add
-            .rectangle(1025, 560, 100, 100, 0xffff00, 0.5)
+            .rectangle(1050, 560, 100, 100, 0xffff00, 0.5)
             .setVisible(false);
 
         // Detection area for can
@@ -737,12 +760,11 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Highlight area for can
         this.canHighlightArea = this.add
-            .rectangle(1025, 560, 100, 100, 0xffff00, 0.5)
+            .rectangle(1050, 560, 100, 100, 0xffff00, 0.5)
             .setVisible(false);
 
-        // Detection area for key 
-        this.keyDetectionArea = this.add
-            .rectangle(900, 125, 175, 200);
+        // Detection area for key
+        this.keyDetectionArea = this.add.rectangle(900, 125, 175, 200);
     }
 
     private updateStackView() {
@@ -849,17 +871,51 @@ export default class LevelTwo extends Phaser.Scene {
                     // Move popped item to location it will be used
                     if (poppedItem.name === "wand") {
                         // have to add anim for wand
-                        if(this.smog5){
+                        if (this.smog5) {
                             this.smogGroup?.remove(this.smog5);
-                            this.smog5.destroy
+                            this.smog5.destroy;
                         }
                         poppedItem.setVisible(false);
                         this.wandHighlightArea.setVisible(false);
                     }
-                    if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(815, 600);
-                        //this.plankHighlightBox.setVisible(false);
-                        //this.plankPlatform?.enableBody(true, 938, 650);
+                    if (poppedItem.name === "pot") {
+                        poppedItem.setPosition(1050, 665).setDepth(1);
+                        this.potHighlightArea.setVisible(false);
+                        this.plant = this.physics.add
+                            .sprite(1050, 100, "plant")
+                            .setScale(10, 12)
+                            .setVisible(false);
+                        this.plant.setCollideWorldBounds(true);
+                        this.physics.world.enable(this.plant);
+                        if (this.pot && this.ground) {
+                            this.physics.world.enable(this.pot);
+                            const rect = this.add.rectangle(1050, 675, 100, 75);
+                            this.physics.world.enable(rect);
+                            this.physics.add.collider(rect, this.ground);
+                            this.physics.add.collider(this.plant, rect);
+                        }
+                    }
+                    if (poppedItem.name === "can") {
+                        poppedItem.setVisible(false);
+                        this.plant?.play("growing");
+                        if(this.player && this.plant && this.pot){
+                            //this.physics.add.collider(this.player, this.pot);
+                            //console.log(this.physics.add.collider(this.player, this.pot));
+                            this.physics.add.collider(
+                                this.player,
+                                this.plant,
+                                this.handleOnClimb,
+                                undefined,
+                                this
+                            );
+                        }
+                        this.canHighlightArea.setVisible(false);
+                    }
+                    if (poppedItem.name === "seeds") {
+                        poppedItem.setVisible(false);
+                        this.plant?.setVisible(true).setFrame(0);
+                        //this.physics.add.collider(this.plant, this.pot);
+                        this.seedsHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
                         this.door?.setTexture("pinkopendoor");
@@ -1142,10 +1198,37 @@ export default class LevelTwo extends Phaser.Scene {
     // Makes player fly on bird
     private handleOnBird() {
         this.onBird = true;
-        if(this.player && this.bird){
+        if (this.player && this.bird) {
             this.player.x = this.bird.x;
             this.player.y =
-                this.bird.y - this.bird.displayHeight / 2 - this.player.displayHeight / 2;
+                this.bird.y -
+                this.bird.displayHeight / 2 -
+                this.player.displayHeight / 2;
+        }
+    }
+
+    // Climbing the plant
+    private handleOnClimb() {
+        if (this.player && this.plant && this.cursors) {
+            // Max distance player can be from ladder to climb it
+            const xTolerance = 30; // Tolerance for X position
+            const yTolerance = 145; // Tolerance for Y position
+            // Calculate horizontal and vertical distances between player and ladder
+            const deltaX = Math.abs(this.player.x - this.plant.x);
+            const deltaY = Math.abs(this.player.y - this.plant.y);
+
+            if (
+                this.plant.x === 680 &&
+                deltaX < xTolerance &&
+                deltaY < yTolerance &&
+                this.cursors.up.isDown
+            ) {
+                this.climbing = true;
+                this.player.anims.play("climb", true);
+                this.player.setVelocityY(-150);
+            } else {
+                this.climbing = false;
+            }
         }
     }
 
@@ -1421,8 +1504,6 @@ export default class LevelTwo extends Phaser.Scene {
             }
         } 
         */
-        
-
 
         /*
         // If player is on the bird, stay on until they hit cursors

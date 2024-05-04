@@ -26,15 +26,27 @@
 -   Level Pause: https://pzuh.itch.io/free-game-gui
 -   <a href='https://pngtree.com/freepng/casual-game-button-set-stock-illustration_5981555.html'>png image from pngtree.com/</a>
 
+### Level 1 Scene:
+
+-   Background: https://www.freepik.com/free-vector/flat-tropical-jungle-background_13643324.htm#fromView=search&page=4&position=11&uuid=ee0e5a5e-ee27-4310-b2b4-27eafb48eec2
+-   Platforms + stone + river: https://dinosdouisen.itch.io/jungle-platformer-game-tileset#google_vignette
+-   Banana, Mushroom, Vine, Monkey, Speech Bubble: Free elements on Canva
+-   Key: https://frakassets.itch.io/free-rotating-key
+-   Door: https://www.artstation.com/artwork/BmOoPz
+-   Hearts: https://opengameart.org/content/heart-full-and-empty-for-health
+-   Level Complete & Pause: https://www.freepik.com/free-vector/set-game-menu-selection-rpg-adventure-game-including-menu-level-selection-options_14245132.htm#fromView=search&page=1&position=7&uuid=041f1bcf-fd58-4f6b-a720-a753efcecd7a
+-   Level Pause: https://pzuh.itch.io/free-game-gui
+-   <a href='https://pngtree.com/freepng/casual-game-button-set-stock-illustration_5981555.html'>png image from pngtree.com/</a>
+
 ### Level 2 Scene: 
 - Background: https://craftpix.net/freebies/free-sky-with-clouds-background-pixel-art-set/
 - Cloud Platforms: https://phaser.io/tutorials/coding-tips-004
 - Club: https://clubpenguin.fandom.com/wiki/Ugg_Club
-- Pot: <a href="https://www.vecteezy.com/free-vector/flowerpot">Flowerpot Vectors by Vecteezy</a>
+- Pot: [<a href="https://www.vecteezy.com/free-vector/flowerpot">Flowerpot Vectors by Vecteezy</a>](https://www.vecteezy.com/vector-art/14150763-plant-pot-icon-cartoon-vector-farm-tool)
 - Bird: https://rmazanek.itch.io/bird-small
 - Wand: https://pngimg.com/image/104781
 - Troll: https://free-game-assets.itch.io/2d-trolls-free-sprite
-
+- Plant: https://danaida.itch.io/free-growing-plants-pack-32x32
 
 ### Level 3 Scene:
 

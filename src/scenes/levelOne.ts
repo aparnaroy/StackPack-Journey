@@ -1,5 +1,11 @@
 import Phaser from "phaser";
 
+interface GameMapData {
+    level0State: number;
+    level1State: number;
+    level2State: number;
+    level3State: number;
+}
 export default class LevelOne extends Phaser.Scene {
     // General Assets
     private player?: Phaser.Physics.Arcade.Sprite;
@@ -15,15 +21,12 @@ export default class LevelOne extends Phaser.Scene {
     private monkey?: Phaser.Physics.Arcade.Sprite;
     private river?: Phaser.Physics.Arcade.Sprite;
     private groundRectangle?: Phaser.GameObjects.Rectangle;
-    private stackRectangle?: Phaser.GameObjects.Rectangle;
     private vineSwing?: Phaser.GameObjects.Sprite;
     private door?: Phaser.GameObjects.Image;
 
-    // Highlight Boxes
+    // Highlight/Detection Boxes
     private stoneDetectionBox?: Phaser.GameObjects.Rectangle;
     private stoneHighlightBox?: Phaser.GameObjects.Rectangle;
-    private stonePlatform?: Phaser.Physics.Arcade.Image;
-    private stonePlatforms?: Phaser.Physics.Arcade.StaticGroup;
 
     private mushroomDetectionBox?: Phaser.GameObjects.Rectangle;
     private mushroomHighlightBox?: Phaser.GameObjects.Rectangle;
@@ -35,6 +38,11 @@ export default class LevelOne extends Phaser.Scene {
     private vineHighlightBox?: Phaser.GameObjects.Rectangle;
 
     private keyDetectionArea?: Phaser.GameObjects.Rectangle;
+
+    private riverDetectionArea?: Phaser.GameObjects.Rectangle;
+
+    private leftRiverBoundary?: Phaser.Physics.Arcade.Sprite;
+    private rightRiverBoundary?: Phaser.Physics.Arcade.Sprite;
 
     // Functionality
     private stack: Phaser.GameObjects.Sprite[] = [];
@@ -53,11 +61,30 @@ export default class LevelOne extends Phaser.Scene {
     private vineStackImg: Phaser.GameObjects.Image;
     private keyStackImg: Phaser.GameObjects.Image;
     private levelCompleteText?: Phaser.GameObjects.Text;
+    //private popButton?: Phaser.GameObjects.Image;
 
     // For Player animations
     private lastDirection: string = "right";
     private isColliding: boolean = false;
     private collidingWithWater: boolean = false;
+
+    // Level States
+    private level0State: number;
+    private level1State: number;
+    private level2State: number;
+    private level3State: number;
+
+    // Timer
+    private timerText: Phaser.GameObjects.Text;
+    private startTime: number;
+    private pausedTime = 0;
+    private elapsedTime: number;
+    private isPaused: boolean = false;
+
+    private threeStarsPopup: Phaser.GameObjects.Group;
+    private twoStarsPopup: Phaser.GameObjects.Group;
+    private oneStarPopup: Phaser.GameObjects.Group;
+    private starsPopup: Phaser.GameObjects.Group;
 
     constructor() {
         super({ key: "Level1" });
@@ -146,9 +173,27 @@ export default class LevelOne extends Phaser.Scene {
         this.load.image("stackKey", "assets/level1/stackKey.png");
         this.load.image("brown-door", "assets/level1/brown-door.png");
         this.load.image("brown-openDoor", "assets/level1/brown-door-open.png");
+
+        this.load.image(
+            "FreePopInstructions",
+            "assets/FreePop-Instructions.png"
+        );
+        this.load.image("pop-button", "assets/freePop2.png");
+
+        this.load.image("pause-button", "assets/pause2.png");
+        this.load.image("pause-popup", "assets/paused-popup.png");
+
+        this.load.image("3stars", "assets/FullStars.png");
+        this.load.image("2stars", "assets/2Stars.png");
+        this.load.image("1star", "assets/1Star.png");
     }
 
-    create() {
+    create(data: GameMapData) {
+        this.level0State = data.level0State;
+        this.level1State = data.level1State;
+        this.level2State = data.level2State;
+        this.level3State = data.level3State;
+
         const backgroundImage = this.add
             .image(0, 0, "level1Background")
             .setOrigin(0, 0);
@@ -363,9 +408,27 @@ export default class LevelOne extends Phaser.Scene {
         this.river
             .setSize(this.river.width - 20, this.river.height - 450)
             .setOffset(10, 200);
-        this.physics.add.collider(this.river, this.player);
         this.river.setPushable(false);
         this.river.setName("river");
+
+        this.leftRiverBoundary = this.physics.add.sprite(570, 550, "mushroom");
+        this.physics.add.collider(this.leftRiverBoundary, this.platforms);
+        this.physics.add.collider(this.leftRiverBoundary, this.player);
+        this.leftRiverBoundary.setPushable(false);
+        this.leftRiverBoundary.setVisible(false);
+        this.leftRiverBoundary.setSize(
+            this.leftRiverBoundary.width - 380,
+            this.leftRiverBoundary.height - 480
+        );
+        this.rightRiverBoundary = this.physics.add.sprite(840, 550, "mushroom");
+        this.physics.add.collider(this.rightRiverBoundary, this.platforms);
+        this.physics.add.collider(this.rightRiverBoundary, this.player);
+        this.rightRiverBoundary.setPushable(false);
+        this.rightRiverBoundary.setVisible(false);
+        this.rightRiverBoundary.setSize(
+            this.rightRiverBoundary.width - 380,
+            this.rightRiverBoundary.height - 480
+        );
 
         this.bananaBubble = this.add
             .image(280, 130, "bananaBubble")
@@ -432,22 +495,6 @@ export default class LevelOne extends Phaser.Scene {
         this.stoneHighlightBox.setAlpha(0.3);
         this.stoneHighlightBox.setVisible(false);
 
-        this.stonePlatforms = this.physics.add.staticGroup();
-        this.stonePlatform = this.stonePlatforms.create(
-            700,
-            600,
-            "SmPlatform"
-        ) as Phaser.Physics.Arcade.Image;
-        this.stonePlatform
-            .setSize(
-                this.stonePlatform.width - 250,
-                this.stonePlatform.height - 500
-            )
-            .setScale(0.5, 0.5);
-        this.stonePlatform.setVisible(false);
-        this.physics.add.collider(this.stonePlatform, this.player);
-        this.stonePlatform.disableBody(true, true);
-
         this.mushroomDetectionBox = this.add.rectangle(1070, 600, 100, 150);
         this.physics.world.enable(this.mushroomDetectionBox);
         this.physics.add.collider(this.mushroomDetectionBox, this.ground);
@@ -484,6 +531,10 @@ export default class LevelOne extends Phaser.Scene {
         this.physics.world.enable(this.keyDetectionArea);
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
 
+        this.riverDetectionArea = this.add.rectangle(700, 600, 200, 20);
+        this.physics.world.enable(this.riverDetectionArea);
+        this.physics.add.collider(this.riverDetectionArea, this.platforms);
+
         // setting depths
         this.stone.depth = 1;
         this.river.depth = 0;
@@ -501,9 +552,322 @@ export default class LevelOne extends Phaser.Scene {
         // Set initial properties for animation
         this.levelCompleteText.setScale(0);
         this.levelCompleteText.setAlpha(0);
+
+        // Free Pop stuff
+        /*this.popButton = this.add.image(70, 140, "pop-button").setScale(0.31);
+        this.popButton.setInteractive();
+
+        const originalScale = this.popButton.scaleX;
+        const hoverScale = originalScale * 1.05;
+        this.popButton.on("pointerover", () => {
+            this.tweens.add({
+                targets: this.popButton,
+                scaleX: hoverScale,
+                scaleY: hoverScale,
+                duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+        });
+
+        this.popButton.on("pointerout", () => {
+            this.tweens.add({
+                targets: this.popButton,
+                scaleX: originalScale,
+                scaleY: originalScale,
+                duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+        });
+
+        this.popButton.on("pointerup", () => {
+            this.freePop();
+        });*/
+
+        // Pause Buttons
+        const pauseGroup = this.add.group();
+
+        // Creating Pause Popup
+        const pausePopup = this.add.image(650, 350, "pause-popup");
+        pausePopup.setOrigin(0.5);
+        pausePopup.setDepth(1);
+        pauseGroup.add(pausePopup);
+
+        // Exit button for Pause popup
+        const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(1);
+        exitButton.setOrigin(0.5);
+        exitButton.setInteractive();
+        pauseGroup.add(exitButton);
+
+        exitButton.on("pointerover", () => {
+            exitButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        exitButton.on("pointerout", () => {
+            exitButton.setFillStyle();
+        });
+
+        exitButton.on("pointerup", () => {
+            this.scene.start("game-map");
+        });
+
+        // Return button for Pause popup
+        const restartButton = this.add.rectangle(640, 425, 200, 75).setDepth(1);
+        restartButton.setOrigin(0.5);
+        restartButton.setInteractive();
+        pauseGroup.add(restartButton);
+
+        restartButton.on("pointerover", () => {
+            restartButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        restartButton.on("pointerout", () => {
+            restartButton.setFillStyle();
+        });
+
+        restartButton.on("pointerup", () => {
+            this.restartStates();
+            this.scene.restart();
+        });
+
+        // Resume button for Pause popup
+        const resumeButton = this.add.rectangle(640, 320, 200, 75).setDepth(1);
+        resumeButton.setOrigin(0.5);
+        resumeButton.setInteractive();
+        pauseGroup.add(resumeButton);
+
+        resumeButton.on("pointerover", () => {
+            resumeButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        resumeButton.on("pointerout", () => {
+            resumeButton.setFillStyle();
+        });
+
+        resumeButton.on("pointerup", () => {
+            pauseGroup.setVisible(false);
+            this.pauseTime();
+        });
+
+        // No music button for Pause popup
+        const muteMusic = this.add.rectangle(585, 217, 90, 90).setDepth(1);
+        muteMusic.setOrigin(0.5);
+        muteMusic.setInteractive();
+        pauseGroup.add(muteMusic);
+
+        muteMusic.on("pointerover", () => {
+            muteMusic.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        muteMusic.on("pointerout", () => {
+            muteMusic.setFillStyle();
+        });
+
+        // Has to get fixed once we have sound
+        muteMusic.on("pointerup", () => {
+            pauseGroup.setVisible(false);
+        });
+
+        // No sound button for Pause popup
+        const muteSound = this.add.rectangle(700, 217, 90, 90).setDepth(1);
+        muteSound.setOrigin(0.5);
+        muteSound.setInteractive();
+        pauseGroup.add(muteSound);
+
+        muteSound.on("pointerover", () => {
+            muteSound.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+
+        muteSound.on("pointerout", () => {
+            muteSound.setFillStyle();
+        });
+
+        // Has to get fixed once we have sound
+        muteSound.on("pointerup", () => {
+            pauseGroup.setVisible(false);
+        });
+
+        pauseGroup.setVisible(false);
+
+        // Creating Pause Button
+        const pauseButton = this.add
+            .image(30, 30, "pause-button")
+            .setScale(0.25);
+        pauseButton.setInteractive();
+
+        const pauseOriginalScale = pauseButton.scaleX;
+        const pauseHoverScale = pauseOriginalScale * 1.05;
+
+        // Change scale on hover
+        pauseButton.on("pointerover", () => {
+            this.tweens.add({
+                targets: pauseButton,
+                scaleX: pauseHoverScale,
+                scaleY: pauseHoverScale,
+                duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+        });
+
+        // Restore original scale when pointer leaves
+        pauseButton.on("pointerout", () => {
+            this.tweens.add({
+                targets: pauseButton,
+                scaleX: pauseOriginalScale,
+                scaleY: pauseOriginalScale,
+                duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+        });
+
+        pauseButton.on("pointerup", () => {
+            this.pauseTime();
+            pauseGroup.setVisible(true);
+        });
+
+        // Creating timer
+        this.timerText = this.add.text(60, 15, "Time: 0", {
+            fontSize: "32px",
+            color: "#000000",
+        });
+        this.startTime = this.time.now;
+        this.pausedTime = 0;
+        this.isPaused = false;
+
+        // Level complete popup - still working
+        const completeExitButton = this.add.circle(790, 185, 35).setDepth(1);
+        completeExitButton.setInteractive();
+        completeExitButton.on("pointerover", () => {
+            completeExitButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeExitButton.on("pointerout", () => {
+            completeExitButton.setFillStyle();
+        });
+
+        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(1);
+        completeReplayButton.setInteractive();
+        completeReplayButton.on("pointerover", () => {
+            completeReplayButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeReplayButton.on("pointerout", () => {
+            completeReplayButton.setFillStyle();
+        });
+
+        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(1);
+        completeMenuButton.setInteractive();
+        completeMenuButton.on("pointerover", () => {
+            completeMenuButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeMenuButton.on("pointerout", () => {
+            completeMenuButton.setFillStyle();
+        });
+
+        const completeNextButton = this.add.circle(800, 505, 55).setDepth(1);
+        completeNextButton.setInteractive();
+        completeNextButton.on("pointerover", () => {
+            completeNextButton.setFillStyle(0xffff00).setAlpha(0.5);
+        });
+        completeNextButton.on("pointerout", () => {
+            completeNextButton.setFillStyle();
+        });
+
+        this.threeStarsPopup = this.add.group();
+        const threeStars = this.add.image(650, 350, "3stars");
+        this.threeStarsPopup.add(threeStars);
+        this.threeStarsPopup.add(completeExitButton);
+        this.threeStarsPopup.add(completeReplayButton);
+        this.threeStarsPopup.add(completeMenuButton);
+        this.threeStarsPopup.add(completeNextButton);
+
+        this.twoStarsPopup = this.add.group();
+        const twoStars = this.add.image(650, 350, "2stars");
+        this.twoStarsPopup.add(twoStars);
+        this.twoStarsPopup.add(completeExitButton);
+        this.twoStarsPopup.add(completeReplayButton);
+        this.twoStarsPopup.add(completeMenuButton);
+        this.twoStarsPopup.add(completeNextButton);
+
+        this.oneStarPopup = this.add.group();
+        const oneStar = this.add.image(650, 350, "1star");
+        this.oneStarPopup.add(oneStar);
+        this.oneStarPopup.add(completeExitButton);
+        this.oneStarPopup.add(completeReplayButton);
+        this.oneStarPopup.add(completeMenuButton);
+        this.oneStarPopup.add(completeNextButton);
+
+        completeExitButton.on("pointerup", () => {
+            if (threeStars.visible) {
+                this.threeStarsPopup.setVisible(false);
+            }
+            if (twoStars.visible) {
+                this.twoStarsPopup.setVisible(false);
+            }
+            if (oneStar.visible) {
+                this.oneStarPopup.setVisible(false);
+            }
+        });
+
+        completeReplayButton.on("pointerup", () => {
+            this.restartStates();
+            this.scene.restart();
+        });
+
+        completeMenuButton.on("pointerup", () => {
+            if (this.level1State == 0) {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: 3,
+                        level1State: 1,
+                        level2State: this.level2State,
+                        level3State: this.level3State,
+                    });
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: 3,
+                        level1State: this.level1State,
+                        level2State: this.level2State,
+                        level3State: this.level3State,
+                    });
+                }, 1000);
+            }
+        });
+
+        completeNextButton.on("pointerup", () => {
+            this.scene.start("Level2");
+        });
+
+        this.threeStarsPopup.setVisible(false);
+        this.twoStarsPopup.setVisible(false);
+        this.oneStarPopup.setVisible(false);
     }
 
     // HELPER FUNCTIONS
+
+    // reset states when restarting level
+    private restartStates() {
+        this.stackY = 300;
+        this.mushroomPopped = false;
+    }
+
+    private formatTime(milliseconds: number) {
+        var mins = Math.floor(milliseconds / 60000);
+        var secs = Math.floor((milliseconds % 60000) / 1000);
+        return (
+            mins.toString().padStart(2, "0") +
+            ":" +
+            secs.toString().padStart(2, "0")
+        );
+    }
+
+    private pauseTime() {
+        this.isPaused = !this.isPaused;
+        if (this.isPaused) {
+            this.pausedTime = this.time.now - this.startTime;
+        } else {
+            this.startTime = this.time.now - this.pausedTime;
+        }
+    }
 
     private vineSwingStart() {
         if (this.vineSwing && this.player) {
@@ -531,7 +895,7 @@ export default class LevelOne extends Phaser.Scene {
     }
 
     private imageViewInStack(item: Phaser.GameObjects.Sprite) {
-        const buffer = 50;
+        const buffer = 60;
         if (item.name === "stone") {
             this.stoneStackImg = this.add
                 .image(1170, this.stackY - buffer, item.name)
@@ -540,17 +904,17 @@ export default class LevelOne extends Phaser.Scene {
         } else if (item.name === "mushroom") {
             this.mushroomStackImg = this.add
                 .image(1170, this.stackY - buffer, item.name)
-                .setScale(0.15, 0.15)
+                .setScale(0.25, 0.25)
                 .setSize(80, 80);
         } else if (item.name === "banana") {
             this.bananaStackImg = this.add
                 .image(1170, this.stackY - buffer, item.name)
-                .setScale(0.15, 0.15)
+                .setScale(0.25, 0.25)
                 .setSize(80, 80);
         } else if (item.name === "vineItem") {
             this.vineStackImg = this.add
                 .image(1170, this.stackY - buffer, item.name)
-                .setScale(0.15, 0.15)
+                .setScale(0.25, 0.25)
                 .setSize(80, 80);
         } else if (item.name === "key") {
             this.keyStackImg = this.add
@@ -564,19 +928,19 @@ export default class LevelOne extends Phaser.Scene {
     private imageViewOutStack(item: Phaser.GameObjects.Sprite) {
         if (item.name === "stone") {
             this.stoneStackImg.setVisible(false);
-            this.stackY = this.stackY + 50;
+            this.stackY = this.stackY + 60;
         } else if (item.name === "mushroom") {
             this.mushroomStackImg.setVisible(false);
-            this.stackY = this.stackY + 50;
+            this.stackY = this.stackY + 60;
         } else if (item.name === "banana") {
             this.bananaStackImg.setVisible(false);
-            this.stackY = this.stackY + 50;
+            this.stackY = this.stackY + 60;
         } else if (item.name === "vineItem") {
             this.vineStackImg.setVisible(false);
-            this.stackY = this.stackY + 50;
+            this.stackY = this.stackY + 60;
         } else if (item.name === "key") {
             this.keyStackImg.setVisible(false);
-            this.stackY = this.stackY + 50;
+            this.stackY = this.stackY + 60;
         }
     }
 
@@ -614,9 +978,6 @@ export default class LevelOne extends Phaser.Scene {
         }
 
         this.isPushingMap[item.name] = true;
-        if (item.name === "mushroom" && this.mushroom) {
-            //this.mushroom.setGravity(0, 0);
-        }
 
         // Save the x and y scales of the collected item
         const currScaleX = item.scaleX;
@@ -686,11 +1047,16 @@ export default class LevelOne extends Phaser.Scene {
                     poppedItem.setOrigin(0.5, 0.5);
 
                     // Move popped item to location it will be used
-                    if (poppedItem.name === "stone") {
-                        poppedItem.setPosition(700, 580).setScale(0.2, 0.2);
+                    if (
+                        poppedItem.name === "stone" &&
+                        this.player &&
+                        this.stone
+                    ) {
+                        poppedItem.setPosition(700, 560).setScale(0.22, 0.22);
                         this.stoneHighlightBox?.setVisible(false);
-                        this.stonePlatform?.enableBody(true, 710, 718);
-                        this.stone?.setVisible(true);
+                        this.stone.setVisible(true);
+                        this.physics.add.collider(this.player, this.stone);
+                        this.stone.setPushable(false);
                     }
                     if (poppedItem.name === "mushroom") {
                         poppedItem.setPosition(1160, 500);
@@ -734,14 +1100,53 @@ export default class LevelOne extends Phaser.Scene {
                                 y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
+                                    this.restartStates();
                                     this.player?.disableBody(true, true);
+                                    var completedTime = this.add
+                                        .text(
+                                            640,
+                                            345,
+                                            this.formatTime(this.elapsedTime),
+                                            {
+                                                fontSize: "40px",
+                                                color: "#000000",
+                                            }
+                                        )
+                                        .setDepth(1)
+                                        .setVisible(false);
+                                    // Level popup depends on time it takes to complete
+                                    if (this.elapsedTime <= 30000) {
+                                        this.starsPopup = this.threeStarsPopup;
+                                        this.threeStarsPopup.add(completedTime);
+                                        this.threeStarsPopup.setVisible(true);
+                                    }
+                                    if (
+                                        this.elapsedTime > 30000 &&
+                                        this.elapsedTime <= 120000
+                                    ) {
+                                        this.starsPopup = this.twoStarsPopup;
+                                        this.twoStarsPopup.add(completedTime);
+                                        this.twoStarsPopup.setVisible(true);
+                                    }
+                                    if (this.elapsedTime > 120000) {
+                                        this.starsPopup = this.oneStarPopup;
+                                        this.oneStarPopup.add(completedTime);
+                                        this.oneStarPopup.setVisible(true);
+                                    }
+                                    this.tweens.add({
+                                        targets: this.starsPopup,
+                                        alpha: 1,
+                                        duration: 5000,
+                                        ease: "Linear",
+                                        delay: 1000, // Delay the animation slightly
+                                    });
                                     // TODO: Add leve complete popup (w/ restart and continue options)
                                     // Transition to game map
-                                    setTimeout(() => {
+                                    /*setTimeout(() => {
                                         this.scene.start("game-map", {
-                                            level1JustUnlocked: true,
+                                            level2JustUnlocked: true,
                                         });
-                                    }, 2000);
+                                    }, 2000);*/
                                     // To re-enable the player later:
                                     /*this.player?.enableBody(
                                         true,
@@ -822,27 +1227,34 @@ export default class LevelOne extends Phaser.Scene {
                 duration: 200,
                 onComplete: () => {
                     // Set item origin back to default (center)
-                    poppedItem.setOrigin(0.5, 0.5);
+                    //poppedItem.setOrigin(0.5, 0.5);
 
                     let originalScaleX = 0;
                     let originalScaleY = 0;
                     // Move popped item to its original location
-                    if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
+                    if (poppedItem.name === "stone") {
+                        poppedItem.setPosition(300, 590);
+                        originalScaleX = 0.3;
+                        originalScaleY = 0.3;
+                    }
+                    if (poppedItem.name === "mushroom") {
+                        poppedItem.setPosition(300, 470);
                         originalScaleX = 0.5;
                         originalScaleY = 0.5;
                     }
-                    if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(350, 530);
+                    if (poppedItem.name === "banana") {
+                        poppedItem.setPosition(900, 310);
                         originalScaleX = 0.5;
                         originalScaleY = 0.5;
                     }
-                    if (poppedItem.name === "key") {
-                        poppedItem.setPosition(1200, 650);
-                        originalScaleX = 2.5;
-                        originalScaleY = 2.5;
+                    if (poppedItem.name === "vineItem") {
+                        poppedItem.setPosition(700, 310);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
                     }
+                    poppedItem.setOrigin(0.5, 0.5);
 
+                    poppedItem.setVisible(true);
                     this.tweens.add({
                         targets: poppedItem,
                         scaleX: originalScaleX,
@@ -851,40 +1263,37 @@ export default class LevelOne extends Phaser.Scene {
                         duration: 300,
                         onComplete: () => {
                             this.updateStackView();
-                            if (poppedItem.name === "ladder") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.1,
-                                    1000
-                                );
-                            }
-                            if (poppedItem.name === "plank") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.15,
-                                    1000
-                                );
-                            }
+                            this.imageViewOutStack(poppedItem);
+                            /*this.createPulsateEffect(
+                                this,
+                                poppedItem,
+                                1.1,
+                                1000
+                            );*/
                         },
                     });
                 },
             });
         }
+        //this.popButton?.setInteractive(false);
+
+        /*setTimeout(() => {
+            this.popButton?.setInteractive(true);
+        }, 5000) */
     }
 
     private createHearts() {
+        this.lives = 3;
         this.hearts = [];
 
-        for (let i = 0; i < this.lives; i++) {
+        for (let i = 0; i < 3; i++) {
             this.hearts.push(
-                this.add.sprite(35 + i * 50, 35, "heart").setScale(0.5)
+                this.add.sprite(32 + i * 50, 80, "heart").setScale(0.5)
             );
         }
     }
 
-    /*private loseLife() {
+    private loseLife() {
         if (!this.isColliding && this.player) {
             this.isColliding = true;
 
@@ -922,16 +1331,16 @@ export default class LevelOne extends Phaser.Scene {
                 500,
                 () => {
                     this.isColliding = false;
-                    if (this.collidingWithRiver) {
+                    if (this.collidingWithWater) {
                         this.player?.setPosition(100, 450); // Reset player's position
-                        this.collidingWithRiver = false;
+                        this.collidingWithWater = false;
                     }
                 },
                 [],
                 this
             );
         }
-    } */
+    }
 
     private playerDie() {
         this.player?.setVelocity(0, 0);
@@ -1152,7 +1561,6 @@ export default class LevelOne extends Phaser.Scene {
                 if (this.keyF?.isDown && !this.keyFPressed) {
                     this.keyFPressed = true;
                     this.useItem();
-                    this.levelCompleteText?.setVisible(true);
                     // Animate level complete text
                     this.tweens.add({
                         targets: this.levelCompleteText,
@@ -1176,13 +1584,36 @@ export default class LevelOne extends Phaser.Scene {
             let playerBounds = this.player.getBounds();
             let mushroomBounds = this.mushroom.getBounds();
             if (
-                playerBounds.bottom > mushroomBounds.top &&
+                playerBounds.bottom > mushroomBounds.top + 50 &&
                 playerBounds.left > mushroomBounds.left &&
                 playerBounds.right < mushroomBounds.right &&
                 this.mushroomPopped
             ) {
                 this.player.setVelocityY(-600);
             }
+        }
+
+        // Checking for collision with water (drown)
+        if (this.player && this.riverDetectionArea) {
+            this.physics.add.collider(
+                this.player,
+                this.riverDetectionArea,
+                () => {
+                    this.collidingWithWater = true;
+                    this.loseLife();
+                },
+                undefined,
+                this
+            );
+        }
+
+        // Timer
+        if (!this.isPaused) {
+            var currentTime = this.time.now;
+            this.elapsedTime = currentTime - this.startTime;
+            this.timerText.setText(
+                "Time: " + this.formatTime(this.elapsedTime)
+            );
         }
     }
 }
