@@ -24,7 +24,7 @@ export default class LevelTwo extends Phaser.Scene {
     private birdSpeed: number = 2;
     private onBird: boolean = false;
     private smogGroup?: Phaser.GameObjects.Group;
-    private smog5?: Phaser.GameObjects.GameObject;
+    private smog5?: Phaser.GameObjects.Sprite;
     private troll?: Phaser.Physics.Arcade.Sprite;
     private trollDirection: number = 1; // 1 for right, -1 for left
     private trollSpeed: number = 2;
@@ -872,8 +872,7 @@ export default class LevelTwo extends Phaser.Scene {
                     if (poppedItem.name === "wand") {
                         // have to add anim for wand
                         if (this.smog5) {
-                            this.smogGroup?.remove(this.smog5);
-                            this.smog5.destroy;
+                            this.smog5.setVisible(false);
                         }
                         poppedItem.setVisible(false);
                         this.wandHighlightArea.setVisible(false);
@@ -1197,14 +1196,29 @@ export default class LevelTwo extends Phaser.Scene {
 
     // Makes player fly on bird
     private handleOnBird() {
-        this.onBird = true;
-        if (this.player && this.bird) {
-            this.player.x = this.bird.x;
-            this.player.y =
-                this.bird.y -
-                this.bird.displayHeight / 2 -
-                this.player.displayHeight / 2;
+        if(this.onBird){
+            this.onBird = false;
         }
+        else {
+            if (this.player && this.bird && this.bird.body && this.player.y) {
+                const birdVelocityX = this.bird.body.velocity.x;
+                const birdVelocityY = this.bird.body.velocity.y;
+
+                this.player.x = this.bird.x;
+                this.player.y =
+                    this.bird.y -
+                    this.bird.displayHeight / 2 -
+                    this.player.displayHeight / 2;
+
+                this.physics.world.collide(this.player, this.bird);
+
+                this.bird.body.velocity.x = birdVelocityX;
+                this.bird.body.velocity.y = birdVelocityY;
+
+                this.onBird = true;
+            }
+        }
+
     }
 
     // Climbing the plant
@@ -1473,61 +1487,18 @@ export default class LevelTwo extends Phaser.Scene {
             }
         }
 
-        /*
-        // If player is on bird, stay on bird until arrow key is hit 
-        if (this.cursors && this.player) {
-            if (this.onBird){
-                this.player.setVelocity(0);
-            }
-            else {
-                if (this.cursors.left.isDown) {
-                    this.player.setVelocityX(-290);
-                } else if (this.cursors.right.isDown) {
-                    this.player.setVelocityX(290);
-                } 
-            }
+        // Making player fly on bird 
+        if(this.onBird && this.player && this.bird){
+            this.player.x = this.bird.x;
+            this.player.y =
+                this.bird.y -
+                this.bird.displayHeight / 2 -
+                this.player.displayHeight / 2;
 
-            if (this.cursors.up.isDown) {
-                this.player.setVelocityY(-530);
-            } else {
-                this.player.setVelocityY(0);
-            }
+            // Ensure player is above the bird
+            this.physics.world.collide(this.player, this.bird);
 
-            if (
-                this.onBird &&
-                (this.cursors.left.isDown ||
-                    this.cursors.right.isDown ||
-                    this.cursors.up.isDown ||
-                    this.cursors.down.isDown)
-            ) {
-                this.onBird = false;
-            }
-        } 
-        */
-
-        /*
-        // If player is on the bird, stay on until they hit cursors
-        if (this.player && this.cursors && this.player.body){
-            if (!this.player.body.touching.none) {
-                // Player is touching something, allow movement
-                if (this.cursors.left.isDown) {
-                    this.player.setVelocityX(-160);
-                } else if (this.cursors.right.isDown) {
-                    this.player.setVelocityX(160);
-                } else {
-                    this.player.setVelocityX(0);
-                }
-
-                if (this.cursors.up.isDown) {
-                    this.player.setVelocityY(-160);
-                } else if (this.cursors.down.isDown) {
-                    this.player.setVelocityY(160);
-                } else {
-                    this.player.setVelocityY(0);
-                }
-            }
         }
-        */
 
         /*
         // Check if player touches the spikes and restart level if so
