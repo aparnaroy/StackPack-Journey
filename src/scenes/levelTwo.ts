@@ -361,7 +361,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.physics.add.collider(this.wand, this.clouds);
         this.wand.setName("wand");
 
-        this.club = this.add.sprite(550, 115, "club").setScale(0.6);
+        this.club = this.add.sprite(this.bird.x, this.bird.y - this.bird.displayHeight / 2 , "club").setScale(0.4);
         this.physics.add.collider(this.club, this.clouds);
         this.club.setName("club");
 
@@ -1485,6 +1485,11 @@ export default class LevelTwo extends Phaser.Scene {
                 // Flip bird horizontally
                 this.troll.flipX = !this.troll.flipX;
             }
+        }
+
+        if(this.club && this.bird){
+            this.club.x = this.bird.x;
+            this.club.y = this.bird.y - this.bird.displayHeight / 2;
         }
 
         // Making player fly on bird 
