@@ -38,6 +38,7 @@ export default class LevelTwo extends Phaser.Scene {
     private keyFPressed: boolean = false; // Flag to check if 'E' was pressed to prevent using multiple items from one long key press
     private lastDirection: string = "right";
     private climbing: boolean = false;
+    private clubCollected: boolean = false; 
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
 
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
@@ -361,7 +362,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.physics.add.collider(this.wand, this.clouds);
         this.wand.setName("wand");
 
-        this.club = this.add.sprite(this.bird.x, this.bird.y - this.bird.displayHeight / 2 , "club").setScale(0.4);
+        this.club = this.add.sprite(450, 115, "club").setScale(0.4);
         this.physics.add.collider(this.club, this.clouds);
         this.club.setName("club");
 
@@ -1328,6 +1329,7 @@ export default class LevelTwo extends Phaser.Scene {
                     this.club.y
                 ) < 100
             ) {
+                this.clubCollected = true;
                 this.collectItem(this.club);
             }
             if (
@@ -1487,7 +1489,7 @@ export default class LevelTwo extends Phaser.Scene {
             }
         }
 
-        if(this.club && this.bird){
+        if(this.club && this.bird && !this.clubCollected){
             this.club.x = this.bird.x;
             this.club.y = this.bird.y - this.bird.displayHeight / 2;
         }
