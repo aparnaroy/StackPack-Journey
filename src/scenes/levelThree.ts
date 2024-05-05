@@ -56,6 +56,7 @@ export default class LevelThree extends Phaser.Scene {
     private chainsawDetectionArea: Phaser.GameObjects.Rectangle;
     private chainsawHighlightBox: Phaser.GameObjects.Rectangle;
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
+    private keyHighlightBox: Phaser.GameObjects.Rectangle;
 
     private lavaArea: Phaser.GameObjects.Rectangle;
     private toxicGasArea: Phaser.GameObjects.Rectangle;
@@ -66,14 +67,15 @@ export default class LevelThree extends Phaser.Scene {
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
+    private usedItems: Phaser.GameObjects.Sprite[] = [];
     private keyE?: Phaser.Input.Keyboard.Key;
     private keyF?: Phaser.Input.Keyboard.Key;
     private keyEPressed: boolean = false; // Flag to check if 'E' was pressed to prevent picking up multiple items from one long key press
     private keyFPressed: boolean = false; // Flag to check if 'E' was pressed to prevent using multiple items from one long key press
     private lastDirection: string = "right";
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
-
-    private levelCompleteText?: Phaser.GameObjects.Text;
+    private flashingRed: boolean = false;
+    private freePopUsed: boolean = false;
 
     private hearts?: Phaser.GameObjects.Sprite[] = [];
     private lives: number = 3;
@@ -409,6 +411,10 @@ export default class LevelThree extends Phaser.Scene {
         });
         popButton.on("pointerup", () => {
             this.freePop();
+            this.freePopUsed = true;
+            popButton.setScale(originalScale);
+            popButton.disableInteractive();
+            popButton.setTint(0x696969);
         });
 
         // Define keys 'E' and 'F' for collecting and using items respectively
@@ -512,8 +518,8 @@ export default class LevelThree extends Phaser.Scene {
                 .sprite(stone.x, stone.y + 20, "sensor")
                 .setAlpha(0);
             sensor.body.setSize(stone.width * 0.02, 10).setOffset(-15, -40); // Adjust sensor size and offset as needed
-            sensor.body.setAllowGravity(false);
-            //this.physics.add.collider(sensor, this.stones);
+            //sensor.body.setAllowGravity(false);
+            this.physics.add.collider(sensor, this.stones);
             if (this.player) {
                 // Make stones fall if player touches the sensors
                 this.physics.add.overlap(sensor, this.player, () => {
@@ -887,6 +893,11 @@ export default class LevelThree extends Phaser.Scene {
         this.physics.world.enable(this.keyDetectionArea);
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
 
+        // Creating a highlighted rectangle to indicate where to use key
+        this.keyHighlightBox = this.add.rectangle(870, 135, 170, 200, 0xffff00);
+        this.keyHighlightBox.setAlpha(0.25);
+        this.keyHighlightBox.setVisible(false);
+
         // Defining lava area for dying
         this.lavaArea = this.add.rectangle(840, 670, 940, 20);
         this.physics.world.enable(this.lavaArea);
@@ -943,6 +954,7 @@ export default class LevelThree extends Phaser.Scene {
 
         exitButton.on("pointerup", () => {
             this.isPaused = false;
+            this.resetScene();
             this.scene.start("game-map", {
                 level0State: this.level0State,
                 level1State: this.level1State,
@@ -1003,10 +1015,9 @@ export default class LevelThree extends Phaser.Scene {
                 this.input.keyboard.enabled = true;
             }
             // Make it so player can click Free Pop button
-            popButton.setInteractive();
-            // Reset fireballs
-            //this.fireball1?.setPosition(465, 800);
-            //this.fireball2?.setPosition(700, 800);
+            if (!this.freePopUsed) {
+                popButton.setInteractive();
+            }
         });
 
         // No music button for Pause popup
@@ -1106,7 +1117,7 @@ export default class LevelThree extends Phaser.Scene {
         this.isPaused = false;
 
         // Level complete popup - still working
-        const completeExitButton = this.add.circle(790, 185, 35).setDepth(1);
+        const completeExitButton = this.add.circle(790, 185, 35).setDepth(20);
         completeExitButton.setInteractive();
         completeExitButton.on("pointerover", () => {
             completeExitButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -1115,7 +1126,7 @@ export default class LevelThree extends Phaser.Scene {
             completeExitButton.setFillStyle();
         });
 
-        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(1);
+        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(20);
         completeReplayButton.setInteractive();
         completeReplayButton.on("pointerover", () => {
             completeReplayButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -1124,7 +1135,7 @@ export default class LevelThree extends Phaser.Scene {
             completeReplayButton.setFillStyle();
         });
 
-        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(1);
+        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(20);
         completeMenuButton.setInteractive();
         completeMenuButton.on("pointerover", () => {
             completeMenuButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -1133,7 +1144,7 @@ export default class LevelThree extends Phaser.Scene {
             completeMenuButton.setFillStyle();
         });
 
-        const completeNextButton = this.add.circle(800, 505, 55).setDepth(1);
+        const completeNextButton = this.add.circle(800, 505, 55).setDepth(20);
         completeNextButton.setInteractive();
         completeNextButton.on("pointerover", () => {
             completeNextButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -1319,6 +1330,9 @@ export default class LevelThree extends Phaser.Scene {
         const poppedItem = this.stack.pop();
 
         if (poppedItem) {
+            // Add the item to the list of used items
+            this.usedItems.push(poppedItem);
+
             // Animation to fade item out from stackpack and then fade in in its new location
             this.tweens.add({
                 targets: poppedItem,
@@ -1347,7 +1361,7 @@ export default class LevelThree extends Phaser.Scene {
                             },
                         });
                         this.tweens.add({
-                            targets: this.toxicGas,
+                            targets: [this.toxicGas, this.gasBarrel],
                             alpha: 0, // Fade out
                             duration: 1200,
                         });
@@ -1509,6 +1523,7 @@ export default class LevelThree extends Phaser.Scene {
                         this.swordHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
+                        this.keyHighlightBox.setVisible(false);
                         this.door?.setTexture("red-opendoor");
                         this.pauseTime();
                         // Make the player get sucked into the door
@@ -1537,13 +1552,15 @@ export default class LevelThree extends Phaser.Scene {
                                                 color: "#000000",
                                             }
                                         )
-                                        .setDepth(1)
+                                        .setDepth(21)
                                         .setVisible(false);
                                     // Level popup depends on time it takes to complete
                                     if (this.elapsedTime <= 30000) {
                                         this.starsPopup = this.threeStarsPopup;
                                         this.threeStarsPopup.add(completedTime);
-                                        this.threeStarsPopup.setVisible(true);
+                                        this.threeStarsPopup
+                                            .setVisible(true)
+                                            .setDepth(20);
                                     }
                                     if (
                                         this.elapsedTime > 30000 &&
@@ -1551,12 +1568,16 @@ export default class LevelThree extends Phaser.Scene {
                                     ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
-                                        this.twoStarsPopup.setVisible(true);
+                                        this.twoStarsPopup
+                                            .setVisible(true)
+                                            .setDepth(20);
                                     }
                                     if (this.elapsedTime > 60000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
-                                        this.oneStarPopup.setVisible(true);
+                                        this.oneStarPopup
+                                            .setVisible(true)
+                                            .setDepth(20);
                                     }
                                     // Animate level complete text
                                     this.tweens.add({
@@ -1586,13 +1607,111 @@ export default class LevelThree extends Phaser.Scene {
         }
     }
 
-    // Animation for using free pop
-    private freePop() {
+    private popWrongItem(usageArea: Phaser.GameObjects.Rectangle) {
         if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
             return; // Prevent popping if a push is in progress
         }
 
         this.loseLife();
+
+        // Remove the top item from the stackpack
+        const poppedItem = this.stack.pop();
+
+        if (poppedItem && this.lives !== 0) {
+            // Remove popped item from grand list of collected items
+            const index = this.collectedItems.indexOf(poppedItem);
+            if (index !== -1) {
+                this.collectedItems.splice(index, 1);
+            }
+
+            // Animation to flash red in location player tried to use item
+            this.tweens.add({
+                targets: usageArea,
+                alpha: 0,
+                duration: 300,
+                yoyo: true,
+                repeat: 1,
+                onStart: () => {
+                    usageArea.alpha = 0.55;
+                    usageArea.fillColor = 0xff0000; // Make area red
+                    this.flashingRed = true;
+                },
+                onComplete: () => {
+                    usageArea.alpha = 0.25; // Reset area color and alpha
+                    usageArea.fillColor = 0xffff00;
+                    this.flashingRed = false;
+                },
+            });
+
+            // Animation to fade item out from stackpack and then fade in in its new location
+            this.tweens.add({
+                targets: poppedItem,
+                alpha: 0, // Fade out
+                duration: 200,
+                onComplete: () => {
+                    // Set item origin back to default (center)
+                    poppedItem.setOrigin(0.5, 0.5);
+
+                    let originalScaleX = 0;
+                    let originalScaleY = 0;
+                    // Move popped item to its original location
+                    if (poppedItem.name === "gas-mask") {
+                        poppedItem.setPosition(160, 610);
+                        originalScaleX = 0.4;
+                        originalScaleY = 0.4;
+                    }
+                    if (poppedItem.name === "water") {
+                        poppedItem.setPosition(1230, 510);
+                        originalScaleX = 0.2;
+                        originalScaleY = 0.2;
+                    }
+                    if (poppedItem.name === "toolbox") {
+                        poppedItem.setPosition(820, 610);
+                        originalScaleX = 0.2;
+                        originalScaleY = 0.2;
+                    }
+                    if (poppedItem.name === "chainsaw") {
+                        poppedItem.setPosition(245, 385);
+                        originalScaleX = 0.45;
+                        originalScaleY = 0.45;
+                    }
+                    if (poppedItem.name === "sword") {
+                        poppedItem.setPosition(50, 600);
+                        originalScaleX = 0.2;
+                        originalScaleY = 0.2;
+                    }
+                    if (poppedItem.name === "key") {
+                        poppedItem.setPosition(580, 610);
+                        originalScaleX = 2.5;
+                        originalScaleY = 2.5;
+                    }
+
+                    this.tweens.add({
+                        targets: poppedItem,
+                        scaleX: originalScaleX,
+                        scaleY: originalScaleY,
+                        alpha: 1, // Fade in
+                        duration: 300,
+                        onComplete: () => {
+                            this.updateStackView();
+                            this.createPulsateEffect(
+                                this,
+                                poppedItem,
+                                1.15,
+                                1000
+                            );
+                        },
+                    });
+                },
+            });
+        }
+    }
+
+    // Animation for using free pop
+    private freePop() {
+        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
+            return; // Prevent popping if a push is in progress
+        }
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
@@ -1721,25 +1840,25 @@ export default class LevelThree extends Phaser.Scene {
                     this.isColliding = false;
                     if (this.collidingWithDeath) {
                         this.player?.setPosition(300, 550); // Reset player's position
-                        this.collidingWithDeath = false;
-                    }
-                    // Reset stone bridge if it has fallen
-                    if (
-                        this.stone0 &&
-                        this.stone1 &&
-                        this.stone2 &&
-                        this.stone3 &&
-                        this.stone4
-                    ) {
+                        // Reset stone bridge if it has fallen
                         if (
-                            this.stone0.y > 470 ||
-                            this.stone1.y > 475 ||
-                            this.stone2.y > 470 ||
-                            this.stone3.y > 473 ||
-                            this.stone4.y > 489
+                            this.stone0 &&
+                            this.stone1 &&
+                            this.stone2 &&
+                            this.stone3 &&
+                            this.stone4
                         ) {
-                            this.resetStones();
+                            if (
+                                this.stone0.y > 470 ||
+                                this.stone1.y > 475 ||
+                                this.stone2.y > 470 ||
+                                this.stone3.y > 473 ||
+                                this.stone4.y > 489
+                            ) {
+                                this.resetStones();
+                            }
                         }
+                        this.collidingWithDeath = false;
                     }
                 },
                 [],
@@ -1766,6 +1885,7 @@ export default class LevelThree extends Phaser.Scene {
             this.stack = [];
             this.updateStackView();
             this.collectedItems = [];
+            this.usedItems = [];
             this.lives = 3;
             this.createHearts();
         });
@@ -1776,6 +1896,7 @@ export default class LevelThree extends Phaser.Scene {
         this.stack = [];
         this.updateStackView();
         this.collectedItems = [];
+        this.usedItems = [];
         this.lives = 3;
         this.createHearts();
     }
@@ -1893,8 +2014,7 @@ export default class LevelThree extends Phaser.Scene {
                     .sprite(stone.x, stone.y + 20, "sensor")
                     .setAlpha(0);
                 sensor.body.setSize(stone.width * 0.02, 10).setOffset(-15, -40); // Adjust sensor size and offset as needed
-                sensor.body.setAllowGravity(false);
-                //this.physics.add.collider(sensor, this.stones);
+                this.physics.add.collider(sensor, this.stones);
                 if (this.player) {
                     // Make stones fall if player touches the sensors
                     this.physics.add.overlap(sensor, this.player, () => {
@@ -1952,7 +2072,7 @@ export default class LevelThree extends Phaser.Scene {
 
         // Skeleton walking animation
         const rightBoundary = 1000;
-        const leftBoundary = 670;
+        const leftBoundary = 715;
         const chaseThreshold = 300;
         const attackThreshold = 70;
         if (!this.usedSword && !this.isPaused) {
@@ -2131,26 +2251,143 @@ export default class LevelThree extends Phaser.Scene {
         }
 
         // Check if player is near detection area
-        if (this.player && this.stack.length > 0) {
+        if (this.player) {
+            // Gas Mask
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.gasMaskDetectionArea.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "gas-mask"
+                this.gasMask &&
+                !this.usedItems.includes(this.gasMask)
             ) {
                 // If player overlaps with gas mask detection area, show the highlight box
                 this.gasMaskHighlightBox.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    // If player presses F
+                    if (this.stack[this.stack.length - 1].name === "gas-mask") {
+                        // If the top item is gas mask, use it
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        // If the top item is not gas mask, pop it and lose life
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.gasMaskHighlightBox);
+                    }
                 }
-            } else if (
+            } else if (!this.flashingRed) {
+                this.gasMaskHighlightBox.setVisible(false);
+            }
+
+            // Water
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.waterDetectionArea.getBounds()
+                ) &&
+                this.water &&
+                !this.usedItems.includes(this.water)
+            ) {
+                // If player overlaps with water detection area, show the highlight box
+                this.waterHighlightBox.setVisible(true);
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    // If player presses F
+                    if (this.stack[this.stack.length - 1].name === "water") {
+                        // If the top item is water, use it
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        // If the top item is not water, pop it and lose life
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.waterHighlightBox);
+                    }
+                }
+            } else if (!this.flashingRed) {
+                this.waterHighlightBox.setVisible(false);
+            }
+
+            // Toolbox
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.toolboxDetectionArea.getBounds()
+                ) &&
+                this.toolbox &&
+                !this.usedItems.includes(this.toolbox)
+            ) {
+                // If player overlaps with toolbox detection area, show highlight box
+                this.toolboxHighlightBox.setVisible(true);
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    // If player presses F
+                    if (this.stack[this.stack.length - 1].name === "toolbox") {
+                        // If the top item is toolbox, use it
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        // If the top item is not toolbox, pop it and lose life
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.toolboxHighlightBox);
+                    }
+                }
+            } else if (!this.flashingRed) {
+                this.toolboxHighlightBox.setVisible(false);
+            }
+
+            // Chainsaw
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.chainsawDetectionArea.getBounds()
+                ) &&
+                this.chainsaw &&
+                !this.usedItems.includes(this.chainsaw)
+            ) {
+                // If player overlaps with chainsaw detection area, show highlight box
+                this.chainsawHighlightBox.setVisible(true);
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    // If player presses F
+                    if (this.stack[this.stack.length - 1].name === "chainsaw") {
+                        // If the top item is chainsaw, use it
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        // If the top item is not chainsaw, pop it and lose life
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.chainsawHighlightBox);
+                    }
+                }
+            } else if (!this.flashingRed) {
+                this.chainsawHighlightBox.setVisible(false);
+            }
+
+            // Sword
+            this.swordDetectionArea.setPosition(
+                this.skeleton?.x,
+                this.swordDetectionArea.y
+            );
+            if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.swordDetectionArea.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "sword"
+                this.sword &&
+                !this.usedItems.includes(this.sword)
             ) {
                 // If player overlaps with sword detection area, show the highlight box
                 this.swordHighlightBox.setPosition(
@@ -2158,82 +2395,56 @@ export default class LevelThree extends Phaser.Scene {
                     this.swordHighlightBox.y
                 );
                 this.swordHighlightBox.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    // If player presses F
+                    if (this.stack[this.stack.length - 1].name === "sword") {
+                        // If the top item is sword, use it
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        // If the top item is not sword, pop it and lose life
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.swordHighlightBox);
+                    }
                 }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.toolboxDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "toolbox"
-            ) {
-                // If player overlaps with toolbox detection area, show the highlight box
-                this.toolboxHighlightBox.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.waterDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "water"
-            ) {
-                // If player overlaps with water detection area, show the highlight box
-                this.waterHighlightBox.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.chainsawDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "chainsaw"
-            ) {
-                // If player overlaps with chainsaw detection area, show the highlight box
-                this.chainsawHighlightBox.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
+            } else if (!this.flashingRed) {
+                this.swordHighlightBox.setVisible(false);
+            }
+
+            // Key
+            if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.keyDetectionArea.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "key"
+                this.key &&
+                !this.usedItems.includes(this.key)
             ) {
-                // If player overlaps with key detection area and killed skeleton, open door
+                // If player overlaps with key detection area, show highlight box
+                this.keyHighlightBox.setVisible(true);
                 if (
                     this.keyF?.isDown &&
                     !this.keyFPressed &&
+                    this.stack.length > 0 &&
                     this.skeletonDead
                 ) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                    /*this.levelCompleteText?.setVisible(true);
-                    // Animate level complete text
-                    this.tweens.add({
-                        targets: this.levelCompleteText,
-                        scale: 1,
-                        alpha: 1,
-                        duration: 1000,
-                        ease: "Bounce",
-                        delay: 500, // Delay the animation slightly
-                    });*/
+                    // If player presses F
+                    if (this.stack[this.stack.length - 1].name === "key") {
+                        // If the top item is key and player killed skeleton, open door
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        // If the top item is not key, pop it and lose life
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.keyHighlightBox);
+                    }
                 }
-            } else {
-                // Otherwise, hide the highlight box
-                this.gasMaskHighlightBox.setVisible(false);
-                this.swordHighlightBox.setVisible(false);
-                this.toolboxHighlightBox.setVisible(false);
-                this.waterHighlightBox.setVisible(false);
-                this.chainsawHighlightBox.setVisible(false);
+            } else if (!this.flashingRed) {
+                this.keyHighlightBox.setVisible(false);
             }
         }
 
