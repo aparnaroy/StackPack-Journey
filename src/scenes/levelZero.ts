@@ -43,6 +43,7 @@ export default class LevelZero extends Phaser.Scene {
     private climbing: boolean = false;
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
     private flashingRed: boolean = false;
+    private freePopUsed: boolean = false;
 
     private ladderDetectionArea: Phaser.GameObjects.Rectangle;
     private ladderHighlightBox: Phaser.GameObjects.Rectangle;
@@ -410,6 +411,10 @@ export default class LevelZero extends Phaser.Scene {
 
         popButton.on("pointerup", () => {
             this.freePop();
+            this.freePopUsed = true;
+            popButton.setScale(originalScale);
+            popButton.disableInteractive();
+            popButton.setTint(0x696969);
         });
 
         // Creating Pause Group for Buttons and Pause Popup
@@ -498,7 +503,9 @@ export default class LevelZero extends Phaser.Scene {
                 this.input.keyboard.enabled = true;
             }
             // Make it so player can click Free Pop button
-            popButton.setInteractive();
+            if (!this.freePopUsed) {
+                popButton.setInteractive();
+            }
         });
 
         // No music button for Pause popup
@@ -831,7 +838,7 @@ export default class LevelZero extends Phaser.Scene {
             .setScale(0.65)
             .setDepth(2);
         this.popDialogue = this.add
-            .image(750, 520, "FtoPop")
+            .image(750, 510, "FtoPop")
             .setScale(0.65)
             .setDepth(2);
         this.pushButton1 = this.add.image(1100, 650, "EButton").setScale(1, 1);
@@ -861,8 +868,8 @@ export default class LevelZero extends Phaser.Scene {
             .setDepth(2);
         this.hintInstruction.setVisible(false);
         this.freepopDialogue = this.add
-            .image(190, 170, "FreePopInstructions")
-            .setScale(0.43);
+            .image(190, 180, "FreePopInstructions")
+            .setScale(0.495);
         this.freepopDialogue.setVisible(false);
 
         this.pushDialogue.setVisible(false);
@@ -1199,8 +1206,6 @@ export default class LevelZero extends Phaser.Scene {
         if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
             return; // Prevent popping if a push is in progress
         }
-
-        this.loseLife();
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();

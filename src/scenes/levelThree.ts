@@ -75,6 +75,7 @@ export default class LevelThree extends Phaser.Scene {
     private lastDirection: string = "right";
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
     private flashingRed: boolean = false;
+    private freePopUsed: boolean = false;
 
     private hearts?: Phaser.GameObjects.Sprite[] = [];
     private lives: number = 3;
@@ -410,6 +411,10 @@ export default class LevelThree extends Phaser.Scene {
         });
         popButton.on("pointerup", () => {
             this.freePop();
+            this.freePopUsed = true;
+            popButton.setScale(originalScale);
+            popButton.disableInteractive();
+            popButton.setTint(0x696969);
         });
 
         // Define keys 'E' and 'F' for collecting and using items respectively
@@ -889,7 +894,7 @@ export default class LevelThree extends Phaser.Scene {
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
 
         // Creating a highlighted rectangle to indicate where to use key
-        this.keyHighlightBox = this.add.rectangle(870, 130, 170, 200, 0xffff00);
+        this.keyHighlightBox = this.add.rectangle(870, 135, 170, 200, 0xffff00);
         this.keyHighlightBox.setAlpha(0.25);
         this.keyHighlightBox.setVisible(false);
 
@@ -1010,7 +1015,9 @@ export default class LevelThree extends Phaser.Scene {
                 this.input.keyboard.enabled = true;
             }
             // Make it so player can click Free Pop button
-            popButton.setInteractive();
+            if (!this.freePopUsed) {
+                popButton.setInteractive();
+            }
         });
 
         // No music button for Pause popup
@@ -1705,8 +1712,6 @@ export default class LevelThree extends Phaser.Scene {
         if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
             return; // Prevent popping if a push is in progress
         }
-
-        this.loseLife();
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
