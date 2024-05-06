@@ -75,7 +75,8 @@ export default class LevelThree extends Phaser.Scene {
     private lastDirection: string = "right";
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
     private flashingRed: boolean = false;
-    private freePopUsed: boolean = false;
+    private freePopsLeft: number = 4;
+    private freePopsLeftText: Phaser.GameObjects.Text;
 
     private hearts?: Phaser.GameObjects.Sprite[] = [];
     private lives: number = 3;
@@ -274,6 +275,14 @@ export default class LevelThree extends Phaser.Scene {
         this.lastDirection = "right";
         this.usedSword = false;
 
+        this.freePopsLeftText = this.add
+            .text(285, 71, `${this.freePopsLeft}`, {
+                fontFamily: "Arial",
+                fontSize: 20,
+                color: "#D0F4DC",
+            })
+            .setDepth(4);
+
         const backgroundImage = this.add
             .image(0, 0, "level3-background")
             .setOrigin(0, 0);
@@ -411,10 +420,13 @@ export default class LevelThree extends Phaser.Scene {
         });
         popButton.on("pointerup", () => {
             this.freePop();
-            this.freePopUsed = true;
-            popButton.setScale(originalScale);
-            popButton.disableInteractive();
-            popButton.setTint(0x696969);
+            this.freePopsLeft -= 1;
+            this.freePopsLeftText.setText(`${this.freePopsLeft}`);
+            if (this.freePopsLeft <= 0) {
+                popButton.setScale(originalScale);
+                popButton.disableInteractive();
+                popButton.setTint(0x696969);
+            }
         });
 
         // Define keys 'E' and 'F' for collecting and using items respectively
@@ -1015,7 +1027,7 @@ export default class LevelThree extends Phaser.Scene {
                 this.input.keyboard.enabled = true;
             }
             // Make it so player can click Free Pop button
-            if (!this.freePopUsed) {
+            if (this.freePopsLeft > 0) {
                 popButton.setInteractive();
             }
         });
@@ -1888,6 +1900,7 @@ export default class LevelThree extends Phaser.Scene {
             this.usedItems = [];
             this.lives = 3;
             this.createHearts();
+            this.freePopsLeft = 4;
         });
     }
 
@@ -1899,6 +1912,7 @@ export default class LevelThree extends Phaser.Scene {
         this.usedItems = [];
         this.lives = 3;
         this.createHearts();
+        this.freePopsLeft = 4;
     }
 
     private formatTime(milliseconds: number) {

@@ -29,6 +29,7 @@ export default class LevelZero extends Phaser.Scene {
     private orderInstruction?: Phaser.GameObjects.Image;
     private hintInstruction?: Phaser.GameObjects.Image;
     private freepopDialogue?: Phaser.GameObjects.Image;
+    private lifoInstruction?: Phaser.GameObjects.Image;
     private downArrow?: Phaser.GameObjects.Image;
     private arrowTween: Phaser.Tweens.Tween;
 
@@ -43,7 +44,8 @@ export default class LevelZero extends Phaser.Scene {
     private climbing: boolean = false;
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
     private flashingRed: boolean = false;
-    private freePopUsed: boolean = false;
+    private freePopsLeft: number = 2;
+    private freePopsLeftText: Phaser.GameObjects.Text;
 
     private ladderDetectionArea: Phaser.GameObjects.Rectangle;
     private ladderHighlightBox: Phaser.GameObjects.Rectangle;
@@ -172,6 +174,11 @@ export default class LevelZero extends Phaser.Scene {
             "FreePopInstructions",
             "assets/level0/FreePop-Instructions.png"
         );
+        this.load.image(
+            "LIFOInstructions",
+            "assets/level0/LIFO-Instructions.png"
+        );
+
         this.load.image("pop-button", "assets/freePop2.png");
 
         this.load.image("pause-button", "assets/pause2.png");
@@ -198,6 +205,14 @@ export default class LevelZero extends Phaser.Scene {
         this.level3State = data.level3State;
 
         this.lastDirection = "right";
+
+        this.freePopsLeftText = this.add
+            .text(285, 71, `${this.freePopsLeft}`, {
+                fontFamily: "Arial",
+                fontSize: 20,
+                color: "#004f28",
+            })
+            .setDepth(4);
 
         const backgroundImage = this.add
             .image(0, 0, "level0-background")
@@ -411,10 +426,13 @@ export default class LevelZero extends Phaser.Scene {
 
         popButton.on("pointerup", () => {
             this.freePop();
-            this.freePopUsed = true;
-            popButton.setScale(originalScale);
-            popButton.disableInteractive();
-            popButton.setTint(0x696969);
+            this.freePopsLeft -= 1;
+            this.freePopsLeftText.setText(`${this.freePopsLeft}`);
+            if (this.freePopsLeft <= 0) {
+                popButton.setScale(originalScale);
+                popButton.disableInteractive();
+                popButton.setTint(0x696969);
+            }
         });
 
         // Creating Pause Group for Buttons and Pause Popup
@@ -503,7 +521,7 @@ export default class LevelZero extends Phaser.Scene {
                 this.input.keyboard.enabled = true;
             }
             // Make it so player can click Free Pop button
-            if (!this.freePopUsed) {
+            if (this.freePopsLeft > 0) {
                 popButton.setInteractive();
             }
         });
@@ -868,9 +886,13 @@ export default class LevelZero extends Phaser.Scene {
             .setDepth(2);
         this.hintInstruction.setVisible(false);
         this.freepopDialogue = this.add
-            .image(190, 180, "FreePopInstructions")
-            .setScale(0.495);
+            .image(235, 170, "FreePopInstructions")
+            .setScale(0.58);
         this.freepopDialogue.setVisible(false);
+        this.lifoInstruction = this.add
+            .image(550, 240, "LIFOInstructions")
+            .setScale(0.59);
+        this.lifoInstruction.setVisible(false);
 
         this.pushDialogue.setVisible(false);
         this.popDialogue.setVisible(false);
@@ -1357,6 +1379,7 @@ export default class LevelZero extends Phaser.Scene {
             this.usedItems = [];
             this.lives = 3;
             this.createHearts();
+            this.freePopsLeft = 2;
         });
     }
 
@@ -1368,6 +1391,7 @@ export default class LevelZero extends Phaser.Scene {
         this.usedItems = [];
         this.lives = 3;
         this.createHearts();
+        this.freePopsLeft = 2;
         this.downArrow?.setPosition(350, 350);
     }
 
@@ -1482,7 +1506,11 @@ export default class LevelZero extends Phaser.Scene {
             }, 15500);
             setTimeout(() => {
                 this.freepopDialogue?.setVisible(false);
+                this.lifoInstruction?.setVisible(true);
             }, 19500);
+            setTimeout(() => {
+                this.lifoInstruction?.setVisible(false);
+            }, 24500);
         }
 
         // Key animation
