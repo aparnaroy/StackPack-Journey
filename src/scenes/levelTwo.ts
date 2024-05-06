@@ -717,7 +717,7 @@ export default class LevelTwo extends Phaser.Scene {
         cloud1.setSize(cloud1.width - 90, cloud1.height - 50).setOffset(0, 30);
         cloud2.setSize(cloud2.width - 80, cloud2.height - 35).setOffset(40, 8);
         cloud3
-            .setSize(cloud3.width - 150, cloud3.height - 40)
+            .setSize(cloud3.width - 250, cloud3.height - 40)
             .setOffset(80, 20);
 
         this.door
@@ -911,9 +911,11 @@ export default class LevelTwo extends Phaser.Scene {
                             .setScale(5, 15)
                             .setVisible(false);
                         this.plant.setCollideWorldBounds(true);
+                        this.plant.setImmovable(true);
                         this.physics.world.enable(this.plant);
                         if (this.pot && this.ground) {
                             this.physics.world.enable(this.pot);
+                            this.physics.add.collider(this.pot, this.ground);
                             const rect = this.add.rectangle(1050, 675, 100, 25);
                             this.physics.world.enable(rect);
                             this.physics.add.collider(rect, this.ground);
@@ -924,15 +926,7 @@ export default class LevelTwo extends Phaser.Scene {
                         poppedItem.setVisible(false);
                         this.plant?.play("growing");
                         if (this.player && this.plant && this.pot) {
-                            //this.physics.add.collider(this.player, this.pot);
-                            //console.log(this.physics.add.collider(this.player, this.pot));
-                            this.physics.add.collider(
-                                this.player,
-                                this.plant,
-                                this.handleOnClimb,
-                                undefined,
-                                this
-                            );
+                            this.physics.add.collider(this.player, this.pot);
                         }
                         this.canHighlightArea.setVisible(false);
                     }
@@ -1244,31 +1238,6 @@ export default class LevelTwo extends Phaser.Scene {
         }
     }
 
-    // Climbing the plant
-    private handleOnClimb() {
-        if (this.player && this.plant && this.cursors) {
-            // Max distance player can be from ladder to climb it
-            const xTolerance = 30; // Tolerance for X position
-            const yTolerance = 145; // Tolerance for Y position
-            // Calculate horizontal and vertical distances between player and ladder
-            const deltaX = Math.abs(this.player.x - this.plant.x);
-            const deltaY = Math.abs(this.player.y - this.plant.y);
-
-            if (
-                this.plant.x === 680 &&
-                deltaX < xTolerance &&
-                deltaY < yTolerance &&
-                this.cursors.up.isDown
-            ) {
-                this.climbing = true;
-                this.player.anims.play("climb", true);
-                this.player.setVelocityY(-150);
-            } else {
-                this.climbing = false;
-            }
-        }
-    }
-
     update() {
         // Updating timer
         if (!this.isPaused) {
@@ -1487,6 +1456,29 @@ export default class LevelTwo extends Phaser.Scene {
             }
         }
 
+        // Climbing the plant
+        if (this.player && this.plant && this.cursors) {
+            // Max distance player can be from ladder to climb it
+            const xTolerance = 30; // Tolerance for X position
+            const yTolerance = 190; // Tolerance for Y position
+            // Calculate horizontal and vertical distances between player and ladder
+            const deltaX = Math.abs(this.player.x - this.plant.x);
+            const deltaY = Math.abs(this.player.y - this.plant.y);
+
+            if (
+                this.plant.x === 1050 &&
+                deltaX < xTolerance &&
+                deltaY < yTolerance &&
+                this.cursors.up.isDown
+            ) {
+                this.climbing = true;
+                this.player.anims.play("climb", true);
+                this.player.setVelocityY(-150);
+            } else {
+                this.climbing = false;
+            }
+        }
+
         // Making bird move back and forth
         if (this.bird) {
             this.bird.x += this.birdDirection * this.birdSpeed;
@@ -1529,7 +1521,6 @@ export default class LevelTwo extends Phaser.Scene {
         }
 
         // Check if player touches smog
-        /*
         if (this.player && this.smogGroup) {
             this.physics.add.collider(
                 this.player,
@@ -1542,6 +1533,5 @@ export default class LevelTwo extends Phaser.Scene {
                 this
             );
         }
-        */
     }
 }
