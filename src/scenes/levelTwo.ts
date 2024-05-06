@@ -324,7 +324,7 @@ export default class LevelTwo extends Phaser.Scene {
                 start: 0,
                 end: 17,
             }),
-            frameRate: 1,
+            frameRate: 5,
             repeat: 0,
         });
 
@@ -908,13 +908,13 @@ export default class LevelTwo extends Phaser.Scene {
                         this.potHighlightArea.setVisible(false);
                         this.plant = this.physics.add
                             .sprite(1050, 100, "plant")
-                            .setScale(5)
+                            .setScale(5, 15)
                             .setVisible(false);
                         this.plant.setCollideWorldBounds(true);
                         this.physics.world.enable(this.plant);
                         if (this.pot && this.ground) {
                             this.physics.world.enable(this.pot);
-                            const rect = this.add.rectangle(1050, 675, 100, 75);
+                            const rect = this.add.rectangle(1050, 675, 100, 25);
                             this.physics.world.enable(rect);
                             this.physics.add.collider(rect, this.ground);
                             this.physics.add.collider(this.plant, rect);
@@ -1529,6 +1529,7 @@ export default class LevelTwo extends Phaser.Scene {
         }
 
         // Check if player touches smog
+        /*
         if (this.player && this.smogGroup) {
             this.physics.add.collider(
                 this.player,
@@ -1541,5 +1542,6 @@ export default class LevelTwo extends Phaser.Scene {
                 this
             );
         }
+        */
     }
 }
