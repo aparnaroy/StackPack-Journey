@@ -34,7 +34,7 @@
 - Bird: https://rmazanek.itch.io/bird-small
 - Wand: https://pngimg.com/image/104781
 - Troll: https://free-game-assets.itch.io/2d-trolls-free-sprite
-- Plant: https://danaida.itch.io/free-growing-plants-pack-32x32
+- Plant: https://opengameart.org/content/plant-growing-sprite
 
 
 ### Level 3 Scene:

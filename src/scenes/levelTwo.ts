@@ -23,8 +23,9 @@ export default class LevelTwo extends Phaser.Scene {
     private birdDirection: number = 1; // 1 for right, -1 for left
     private birdSpeed: number = 2;
     private onBird: boolean = false;
-    private smogGroup?: Phaser.GameObjects.Group;
-    private smog5?: Phaser.GameObjects.Sprite;
+    private smogGroup?: Phaser.Physics.Arcade.StaticGroup;
+    private smog4?: Phaser.Physics.Arcade.Sprite;
+    private smog5?: Phaser.Physics.Arcade.Sprite;
     private troll?: Phaser.Physics.Arcade.Sprite;
     private trollDirection: number = 1; // 1 for right, -1 for left
     private trollSpeed: number = 2;
@@ -147,9 +148,9 @@ export default class LevelTwo extends Phaser.Scene {
             frameHeight: 4095 / 5,
         });
 
-        this.load.spritesheet("plant", "assets/level2/wheat.png", {
-            frameWidth: 102 / 3,
-            frameHeight: 102 / 3,
+        this.load.spritesheet("plant", "assets/level2/plant.png", {
+            frameWidth: 470 / 18,
+            frameHeight: 32,
         });
 
         this.load.image("cloud-platform", "assets/level2/cloud-platform.png");
@@ -321,7 +322,7 @@ export default class LevelTwo extends Phaser.Scene {
             key: "growing",
             frames: this.anims.generateFrameNumbers("plant", {
                 start: 0,
-                end: 6,
+                end: 17,
             }),
             frameRate: 1,
             repeat: 0,
@@ -381,13 +382,13 @@ export default class LevelTwo extends Phaser.Scene {
         this.wateringCan.setName("can");
 
         // Creating smog
-        this.gasSign = this.add.image(125, 450, "sign").setScale(0.20);
+        this.gasSign = this.add.image(125, 450, "sign").setScale(0.2);
         this.smogGroup = this.physics.add.staticGroup();
-        const smog1 = this.smogGroup.create(250, 450, "smog").setScale(0.5);
-        this.smogGroup.create(400, 450, "smog").setScale(0.5);
-        this.smogGroup.create(550, 450, "smog").setScale(0.5);
-        this.smogGroup.create(700, 450, "smog").setScale(0.5);
-        this.smog5 = this.smogGroup.create(850, 450, "smog").setScale(0.5);
+        const smog1 = this.smogGroup.create(250, 425, "smog").setScale(0.5);
+        const smog2 = this.smogGroup.create(400, 425, "smog").setScale(0.5);
+        const smog3 = this.smogGroup.create(550, 425, "smog").setScale(0.5);
+        this.smog4 = this.smogGroup.create(700, 425, "smog").setScale(0.5);
+        this.smog5 = this.smogGroup.create(850, 425, "smog").setScale(0.5);
 
         /*
         const graphics = this.add.graphics();
@@ -723,9 +724,17 @@ export default class LevelTwo extends Phaser.Scene {
             .setSize(this.door.width, this.door.height - 60)
             .setOffset(0, 0);
 
-        smog1
-            .setSize(smog1.width + 250, smog1.height - 450)
-            .setOffset(160, 200);
+        smog1.setSize(smog1.width - 200, smog1.height - 100).setOffset(100, 60);
+        smog2.setSize(smog1.width - 200, smog1.height - 100).setOffset(100, 60);
+        smog3.setSize(smog1.width - 200, smog1.height - 100).setOffset(100, 60);
+        if (this.smog4 && this.smog5) {
+            this.smog4
+                .setSize(smog1.width - 200, smog1.height - 100)
+                .setOffset(100, 60);
+            this.smog5
+                .setSize(smog1.width - 200, smog1.height - 100)
+                .setOffset(100, 60);
+        }
 
         // Define keys 'E' and 'F' for collecting and using items respectively
         this.keyE = this.input.keyboard?.addKey(
@@ -736,11 +745,11 @@ export default class LevelTwo extends Phaser.Scene {
         );
 
         // Creating detection area when using the wand -- change back to 200, 200 for box
-        this.wandDetectionArea = this.add.rectangle(700, 280, 400, 400);
+        this.wandDetectionArea = this.add.rectangle(700, 280, 200, 200);
 
         // Highlight area for wand
         this.wandHighlightArea = this.add
-            .rectangle(550, 400, 780, 60, 0xffff00, 0.5)
+            .rectangle(780, 450, 275, 60, 0xffff00, 0.5)
             .setVisible(false);
 
         // Creating detection area when using club
@@ -883,7 +892,12 @@ export default class LevelTwo extends Phaser.Scene {
                     // Move popped item to location it will be used
                     if (poppedItem.name === "wand") {
                         // have to add anim for wand
-                        if (this.smog5) {
+                        if (this.smog4 && this.smog5 && this.smogGroup) {
+                            this.smogGroup.remove(this.smog4);
+                            this.smogGroup.remove(this.smog5);
+                            this.smog4.setPosition(5000, 5000);
+                            this.smog5.setPosition(5000, 5000);
+                            this.smog4.setVisible(false);
                             this.smog5.setVisible(false);
                         }
                         poppedItem.setVisible(false);
@@ -894,7 +908,7 @@ export default class LevelTwo extends Phaser.Scene {
                         this.potHighlightArea.setVisible(false);
                         this.plant = this.physics.add
                             .sprite(1050, 100, "plant")
-                            .setScale(10, 12)
+                            .setScale(5)
                             .setVisible(false);
                         this.plant.setCollideWorldBounds(true);
                         this.physics.world.enable(this.plant);
@@ -925,7 +939,6 @@ export default class LevelTwo extends Phaser.Scene {
                     if (poppedItem.name === "seeds") {
                         poppedItem.setVisible(false);
                         this.plant?.setVisible(true).setFrame(0);
-                        //this.physics.add.collider(this.plant, this.pot);
                         this.seedsHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
@@ -1478,7 +1491,7 @@ export default class LevelTwo extends Phaser.Scene {
         if (this.bird) {
             this.bird.x += this.birdDirection * this.birdSpeed;
             // Check if the bird reaches the screen edges
-            if (this.bird.x <= 150 || this.bird.x >= 700) {
+            if (this.bird.x <= 200 || this.bird.x >= 700) {
                 // Change direction
                 this.birdDirection *= -1;
                 // Flip bird horizontally
@@ -1522,7 +1535,7 @@ export default class LevelTwo extends Phaser.Scene {
                 this.smogGroup,
                 () => {
                     this.collidingWithSmog = true;
-                    this.loseLife();
+                    this.loseLife(); // have to turn this back on
                 },
                 undefined,
                 this
