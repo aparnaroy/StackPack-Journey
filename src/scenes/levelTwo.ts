@@ -149,8 +149,8 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         this.load.spritesheet("plant", "assets/level2/plant.png", {
-            frameWidth: 470 / 18,
-            frameHeight: 32,
+            frameWidth: 468 / 18,
+            frameHeight: 26,
         });
 
         this.load.image("cloud-platform", "assets/level2/cloud-platform.png");
@@ -717,7 +717,7 @@ export default class LevelTwo extends Phaser.Scene {
         cloud1.setSize(cloud1.width - 90, cloud1.height - 50).setOffset(0, 30);
         cloud2.setSize(cloud2.width - 80, cloud2.height - 35).setOffset(40, 8);
         cloud3
-            .setSize(cloud3.width - 250, cloud3.height - 40)
+            .setSize(cloud3.width - 200, cloud3.height - 40)
             .setOffset(80, 20);
 
         this.door
@@ -908,7 +908,7 @@ export default class LevelTwo extends Phaser.Scene {
                         this.potHighlightArea.setVisible(false);
                         this.plant = this.physics.add
                             .sprite(1050, 100, "plant")
-                            .setScale(5, 15)
+                            .setScale(5, 20)
                             .setVisible(false);
                         this.plant.setCollideWorldBounds(true);
                         this.plant.setImmovable(true);
@@ -916,7 +916,7 @@ export default class LevelTwo extends Phaser.Scene {
                         if (this.pot && this.ground) {
                             this.physics.world.enable(this.pot);
                             this.physics.add.collider(this.pot, this.ground);
-                            const rect = this.add.rectangle(1050, 675, 100, 25);
+                            const rect = this.add.rectangle(1050, 675, 100, 75);
                             this.physics.world.enable(rect);
                             this.physics.add.collider(rect, this.ground);
                             this.physics.add.collider(this.plant, rect);
@@ -1460,7 +1460,8 @@ export default class LevelTwo extends Phaser.Scene {
         if (this.player && this.plant && this.cursors) {
             // Max distance player can be from ladder to climb it
             const xTolerance = 30; // Tolerance for X position
-            const yTolerance = 190; // Tolerance for Y position
+            const yTolerance = 220; // Tolerance for Y position
+            console.log
             // Calculate horizontal and vertical distances between player and ladder
             const deltaX = Math.abs(this.player.x - this.plant.x);
             const deltaY = Math.abs(this.player.y - this.plant.y);
@@ -1520,6 +1521,7 @@ export default class LevelTwo extends Phaser.Scene {
             this.physics.world.collide(this.player, this.bird);
         }
 
+        /*
         // Check if player touches smog
         if (this.player && this.smogGroup) {
             this.physics.add.collider(
@@ -1533,5 +1535,6 @@ export default class LevelTwo extends Phaser.Scene {
                 this
             );
         }
+        */
     }
 }
