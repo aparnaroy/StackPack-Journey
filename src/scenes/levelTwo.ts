@@ -225,6 +225,9 @@ export default class LevelTwo extends Phaser.Scene {
             this.troll.height - 300
         );
         this.troll.setCollideWorldBounds(true);
+        if (this.ground) {
+            this.physics.add.overlap(this.troll, this.ground);
+        }
 
         this.anims.create({
             key: "right",
@@ -1539,20 +1542,19 @@ export default class LevelTwo extends Phaser.Scene {
                     } else if (this.troll.x > this.player.x) {
                         this.troll.flipX = true;
                     }
-                    /*
-                    if (!this.collidingWithDeath) {
+                    if(!this.collidingWithSmog){
                         this.time.delayedCall(
                             500,
                             () => {
-                                this.collidingWithDeath = true;
+                                this.collidingWithSmog = true;
                                 this.loseLife();
                             },
                             [],
                             this
                         );
                     }
-                    */
                 } else {
+                    this.troll.anims.play("troll_right", true);
                     this.troll.x += this.trollDirection * this.trollSpeed;
                     // Check if the troll reaches the screen edges
                     if (this.troll.x <= 150 || this.troll.x >= 525) {
