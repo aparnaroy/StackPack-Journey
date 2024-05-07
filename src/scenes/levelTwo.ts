@@ -334,6 +334,16 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         this.anims.create({
+            key: "troll_die",
+            frames: this.anims.generateFrameNumbers("troll", {
+                start: 7,
+                end: 13,
+            }),
+            frameRate: 10,
+            repeat: 0,
+        });
+
+        this.anims.create({
             key: "growing",
             frames: this.anims.generateFrameNumbers("plant", {
                 start: 0,
@@ -950,6 +960,84 @@ export default class LevelTwo extends Phaser.Scene {
                         this.plant?.setVisible(true).setFrame(0);
                         this.seedsHighlightArea.setVisible(false);
                     }
+                    if (poppedItem.name === "club") {
+                        this.usedClub = true;
+                        this.trollDead = true;
+                        poppedItem.setDepth(5);
+                        if (this.club && this.player && this.troll) {
+                            // Set the club's initial position to the player's location
+                            this.club.setPosition(this.player.x, this.player.y);
+
+                            if (this.troll.x > this.player.x) {
+                                // If the troll is to the right of the player, rotate the club to face right
+                                this.club.setRotation(
+                                    Phaser.Math.DegToRad(132)
+                                ); // Facing right
+                            } else {
+                                // If the troll is to the left of the player, rotate the club to face left
+                                this.club.setRotation(
+                                    Phaser.Math.DegToRad(-48)
+                                ); // Facing left
+                            }
+
+                            // Make the club move towards the troll and rotate down after passing it
+                            this.tweens.add({
+                                targets: this.club,
+                                x: this.troll.x + 100,
+                                y: this.troll.y,
+                                duration: 300, // Adjust duration as needed
+                                onComplete: () => {
+                                    if (this.club) {
+                                        this.tweens.add({
+                                            targets: this.club,
+                                            scaleX: this.club.scaleX * 0.9,
+                                            scaleY: this.club.scaleY * 0.9,
+                                            x: 20,
+                                            y: 950,
+                                            rotation: Phaser.Math.DegToRad(222),
+                                            duration: 100,
+                                            onComplete: () => {
+                                                // Play the die animation for the troll
+                                                if (
+                                                    this.troll &&
+                                                    this.player &&
+                                                    this.troll.x < this.player.x
+                                                ) {
+                                                    this.troll.anims.play(
+                                                        "troll_die",
+                                                        true
+                                                    );
+                                                } else if (
+                                                    this.troll &&
+                                                    this.player &&
+                                                    this.troll.x > this.player.x
+                                                ) {
+                                                    this.troll.anims.play(
+                                                        "troll_die",
+                                                        true
+                                                    );
+                                                    this.troll.flipX = true;
+                                                }
+
+                                                // After the die animation completes, remove the skeleton from the scene
+                                                setTimeout(() => {
+                                                    this.troll?.setVisible(
+                                                        false
+                                                    );
+                                                    this.troll?.setPosition(
+                                                        -600,
+                                                        -600
+                                                    );
+                                                    this.troll?.destroy();
+                                                }, 1000);
+                                            },
+                                        });
+                                    }
+                                },
+                            });
+                        }
+                        this.clubHighlightArea.setVisible(false);
+                    }
                     if (poppedItem.name === "key") {
                         this.door?.setTexture("pinkopendoor");
                         this.pauseTime();
@@ -1510,7 +1598,7 @@ export default class LevelTwo extends Phaser.Scene {
         }
 
         // Making troll move back and forth
-        const chaseThreshold = 300;
+        const chaseThreshold = 400;
         const attackThreshold = 70;
         if (!this.isPaused && !this.usedClub) {
             if (this.troll && this.player) {
@@ -1542,7 +1630,7 @@ export default class LevelTwo extends Phaser.Scene {
                     } else if (this.troll.x > this.player.x) {
                         this.troll.flipX = true;
                     }
-                    if(!this.collidingWithSmog){
+                    if (!this.collidingWithSmog) {
                         this.time.delayedCall(
                             500,
                             () => {
