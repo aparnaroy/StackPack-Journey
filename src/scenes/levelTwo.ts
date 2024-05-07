@@ -29,6 +29,8 @@ export default class LevelTwo extends Phaser.Scene {
     private troll?: Phaser.Physics.Arcade.Sprite;
     private trollDirection: number = 1; // 1 for right, -1 for left
     private trollSpeed: number = 2;
+    private trollDead?: boolean = false;
+    private usedClub?: boolean = false;
     private plant?: Phaser.Physics.Arcade.Sprite;
     private gasSign?: Phaser.GameObjects.Image;
 
@@ -205,7 +207,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.player.setCollideWorldBounds(true);
 
         this.bird = this.physics.add
-            .sprite(200, 200, "bird_right")
+            .sprite(250, 200, "bird_right")
             .setScale(4)
             .setDepth(0);
         this.bird.setCollideWorldBounds(true);
@@ -319,6 +321,16 @@ export default class LevelTwo extends Phaser.Scene {
         this.troll.play("troll_right");
 
         this.anims.create({
+            key: "troll_attack",
+            frames: this.anims.generateFrameNumbers("troll", {
+                start: 0,
+                end: 6,
+            }),
+            frameRate: 10,
+            repeat: -1,
+        });
+
+        this.anims.create({
             key: "growing",
             frames: this.anims.generateFrameNumbers("plant", {
                 start: 0,
@@ -342,7 +354,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.ground.setAlpha(0); // Hide the ground platform
 
         const cloud1 = this.clouds
-            .create(50, 400, "cloud-platform")
+            .create(50, 350, "cloud-platform")
             .setScale(0.5);
         const cloud2 = this.clouds
             .create(450, 200, "cloud-platform")
@@ -382,7 +394,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.wateringCan.setName("can");
 
         // Creating smog
-        this.gasSign = this.add.image(125, 450, "sign").setScale(0.2);
+        this.gasSign = this.add.image(125, 425, "sign").setScale(0.2);
         this.smogGroup = this.physics.add.staticGroup();
         const smog1 = this.smogGroup.create(250, 425, "smog").setScale(0.5);
         const smog2 = this.smogGroup.create(400, 425, "smog").setScale(0.5);
@@ -744,7 +756,7 @@ export default class LevelTwo extends Phaser.Scene {
             Phaser.Input.Keyboard.KeyCodes.F
         );
 
-        // Creating detection area when using the wand -- change back to 200, 200 for box
+        // Creating detection area when using the wand
         this.wandDetectionArea = this.add.rectangle(700, 280, 200, 200);
 
         // Highlight area for wand
@@ -1461,7 +1473,7 @@ export default class LevelTwo extends Phaser.Scene {
             // Max distance player can be from ladder to climb it
             const xTolerance = 30; // Tolerance for X position
             const yTolerance = 220; // Tolerance for Y position
-            console.log
+            console.log;
             // Calculate horizontal and vertical distances between player and ladder
             const deltaX = Math.abs(this.player.x - this.plant.x);
             const deltaY = Math.abs(this.player.y - this.plant.y);
@@ -1481,29 +1493,79 @@ export default class LevelTwo extends Phaser.Scene {
         }
 
         // Making bird move back and forth
-        if (this.bird) {
-            this.bird.x += this.birdDirection * this.birdSpeed;
-            // Check if the bird reaches the screen edges
-            if (this.bird.x <= 200 || this.bird.x >= 700) {
-                // Change direction
-                this.birdDirection *= -1;
-                // Flip bird horizontally
-                this.bird.flipX = !this.bird.flipX;
+        if (!this.isPaused) {
+            if (this.bird) {
+                this.bird.x += this.birdDirection * this.birdSpeed;
+                // Check if the bird reaches the screen edges
+                if (this.bird.x <= 250 || this.bird.x >= 700) {
+                    // Change direction
+                    this.birdDirection *= -1;
+                    // Flip bird horizontally
+                    this.bird.flipX = !this.bird.flipX;
+                }
             }
         }
 
         // Making troll move back and forth
-        if (this.troll) {
-            this.troll.x += this.trollDirection * this.trollSpeed;
-            // Check if the bird reaches the screen edges
-            if (this.troll.x <= 150 || this.troll.x >= 525) {
-                // Change direction
-                this.trollDirection *= -1;
-                // Flip bird horizontally
-                this.troll.flipX = !this.troll.flipX;
+        const chaseThreshold = 300;
+        const attackThreshold = 70;
+        if (!this.isPaused && !this.usedClub) {
+            if (this.troll && this.player) {
+                // Calculate distance between troll and player
+                const distanceX = Math.abs(this.player.x - this.troll.x);
+                const distanceY = Math.abs(this.player.y - this.troll.y);
+
+                // If player is close-ish, move toward player
+                if (
+                    distanceX < chaseThreshold &&
+                    distanceX > attackThreshold &&
+                    distanceY < 40
+                ) {
+                    this.troll.anims.play("troll_right", true);
+                    if (this.troll.x < this.player.x) {
+                        this.troll.x += 4.3; // Move right
+                        this.troll.flipX = false;
+                    } else if (this.troll.x > this.player.x) {
+                        this.troll.x -= 4.3; // Move left
+                        this.troll.flipX = true;
+                        this.troll.anims.play("troll_right", true);
+                    }
+                }
+                // If player is close to troll, troll attacks
+                else if (distanceX <= attackThreshold && distanceY < 100) {
+                    this.troll.anims.play("troll_attack", true); // Attack right
+                    if (this.troll.x < this.player.x) {
+                        this.troll.flipX = false;
+                    } else if (this.troll.x > this.player.x) {
+                        this.troll.flipX = true;
+                    }
+                    /*
+                    if (!this.collidingWithDeath) {
+                        this.time.delayedCall(
+                            500,
+                            () => {
+                                this.collidingWithDeath = true;
+                                this.loseLife();
+                            },
+                            [],
+                            this
+                        );
+                    }
+                    */
+                } else {
+                    this.troll.x += this.trollDirection * this.trollSpeed;
+                    // Check if the troll reaches the screen edges
+                    if (this.troll.x <= 150 || this.troll.x >= 525) {
+                        // Change direction
+                        this.trollDirection *= -1;
+                        // Flip troll horizontally
+                        this.troll.flipX = !this.troll.flipX;
+                    }
+                }
             }
         }
 
+        // Club on top of bird
         if (this.club && this.bird && !this.clubCollected) {
             this.club.x = this.bird.x;
             this.club.y = this.bird.y - this.bird.displayHeight / 2;
