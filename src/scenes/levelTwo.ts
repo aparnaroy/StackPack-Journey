@@ -1673,7 +1673,6 @@ export default class LevelTwo extends Phaser.Scene {
             this.physics.world.collide(this.player, this.bird);
         }
 
-        /*
         // Check if player touches smog
         if (this.player && this.smogGroup) {
             this.physics.add.collider(
@@ -1687,6 +1686,5 @@ export default class LevelTwo extends Phaser.Scene {
                 this
             );
         }
-        */
     }
 }
