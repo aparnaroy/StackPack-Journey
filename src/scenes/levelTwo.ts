@@ -382,8 +382,10 @@ export default class LevelTwo extends Phaser.Scene {
             .create(900, 220, "cloud-platform")
             .setScale(0.5);
 
-        this.invisiblePot = this.clouds.create(1050, 660, "pot").setScale(0.065) as Phaser.Physics.Arcade.Image;
-        this.invisiblePot.setSize(115,200).setOffset(790, 800);
+        this.invisiblePot = this.clouds
+            .create(1050, 660, "pot")
+            .setScale(0.065) as Phaser.Physics.Arcade.Image;
+        this.invisiblePot.setSize(115, 200).setOffset(790, 800);
         this.physics.add.collider(this.player, this.invisiblePot);
         this.invisiblePot.disableBody(true, true);
         this.invisiblePot.setVisible(false);
@@ -417,6 +419,38 @@ export default class LevelTwo extends Phaser.Scene {
             .sprite(650, 660, "watering-can")
             .setScale(0.75);
         this.wateringCan.setName("can");
+
+        // Make collectable items continuously pulsate
+        this.createPulsateEffect(
+            this,
+            this.wand,
+            1.15, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+        this.createPulsateEffect(
+            this,
+            this.pot,
+            1.15, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+        this.createPulsateEffect(
+            this,
+            this.seeds,
+            1.15, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+        this.createPulsateEffect(
+            this,
+            this.wateringCan,
+            1.15, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
+        this.createPulsateEffect(
+            this,
+            this.club,
+            1.15, // Scale factor for pulsating effect
+            1000 // Duration of each tween cycle in milliseconds
+        );
 
         // Creating smog
         this.gasSign = this.add.image(125, 425, "sign").setScale(0.2);
