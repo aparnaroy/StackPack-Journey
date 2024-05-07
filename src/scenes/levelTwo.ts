@@ -12,6 +12,7 @@ export default class LevelTwo extends Phaser.Scene {
     private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
     private key?: Phaser.GameObjects.Sprite;
     private clouds?: Phaser.Physics.Arcade.StaticGroup;
+    private invisiblePot?: Phaser.Physics.Arcade.Image;
     private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
     private wand?: Phaser.GameObjects.Sprite;
@@ -29,6 +30,8 @@ export default class LevelTwo extends Phaser.Scene {
     private troll?: Phaser.Physics.Arcade.Sprite;
     private trollDirection: number = 1; // 1 for right, -1 for left
     private trollSpeed: number = 2;
+    private trollDead?: boolean = false;
+    private usedClub?: boolean = false;
     private plant?: Phaser.Physics.Arcade.Sprite;
     private gasSign?: Phaser.GameObjects.Image;
 
@@ -149,8 +152,8 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         this.load.spritesheet("plant", "assets/level2/plant.png", {
-            frameWidth: 470 / 18,
-            frameHeight: 32,
+            frameWidth: 468 / 18,
+            frameHeight: 26,
         });
 
         this.load.image("cloud-platform", "assets/level2/cloud-platform.png");
@@ -205,9 +208,9 @@ export default class LevelTwo extends Phaser.Scene {
         this.player.setCollideWorldBounds(true);
 
         this.bird = this.physics.add
-            .sprite(200, 200, "bird_right")
+            .sprite(250, 200, "bird_right")
             .setScale(4)
-            .setDepth(0);
+            .setDepth(1);
         this.bird.setCollideWorldBounds(true);
         this.physics.add.collider(
             this.bird,
@@ -223,6 +226,9 @@ export default class LevelTwo extends Phaser.Scene {
             this.troll.height - 300
         );
         this.troll.setCollideWorldBounds(true);
+        if (this.ground) {
+            this.physics.add.overlap(this.troll, this.ground);
+        }
 
         this.anims.create({
             key: "right",
@@ -319,6 +325,26 @@ export default class LevelTwo extends Phaser.Scene {
         this.troll.play("troll_right");
 
         this.anims.create({
+            key: "troll_attack",
+            frames: this.anims.generateFrameNumbers("troll", {
+                start: 0,
+                end: 6,
+            }),
+            frameRate: 10,
+            repeat: -1,
+        });
+
+        this.anims.create({
+            key: "troll_die",
+            frames: this.anims.generateFrameNumbers("troll", {
+                start: 7,
+                end: 13,
+            }),
+            frameRate: 10,
+            repeat: 0,
+        });
+
+        this.anims.create({
             key: "growing",
             frames: this.anims.generateFrameNumbers("plant", {
                 start: 0,
@@ -342,7 +368,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.ground.setAlpha(0); // Hide the ground platform
 
         const cloud1 = this.clouds
-            .create(50, 400, "cloud-platform")
+            .create(50, 350, "cloud-platform")
             .setScale(0.5);
         const cloud2 = this.clouds
             .create(450, 200, "cloud-platform")
@@ -350,6 +376,12 @@ export default class LevelTwo extends Phaser.Scene {
         const cloud3 = this.clouds
             .create(900, 220, "cloud-platform")
             .setScale(0.5);
+
+        this.invisiblePot = this.clouds.create(1050, 660, "pot").setScale(0.065) as Phaser.Physics.Arcade.Image;
+        this.invisiblePot.setSize(115,200).setOffset(790, 800);
+        this.physics.add.collider(this.player, this.invisiblePot);
+        this.invisiblePot.disableBody(true, true);
+        this.invisiblePot.setVisible(false);
 
         this.physics.add.collider(this.player, this.clouds);
 
@@ -382,7 +414,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.wateringCan.setName("can");
 
         // Creating smog
-        this.gasSign = this.add.image(125, 450, "sign").setScale(0.2);
+        this.gasSign = this.add.image(125, 425, "sign").setScale(0.2);
         this.smogGroup = this.physics.add.staticGroup();
         const smog1 = this.smogGroup.create(250, 425, "smog").setScale(0.5);
         const smog2 = this.smogGroup.create(400, 425, "smog").setScale(0.5);
@@ -717,7 +749,7 @@ export default class LevelTwo extends Phaser.Scene {
         cloud1.setSize(cloud1.width - 90, cloud1.height - 50).setOffset(0, 30);
         cloud2.setSize(cloud2.width - 80, cloud2.height - 35).setOffset(40, 8);
         cloud3
-            .setSize(cloud3.width - 250, cloud3.height - 40)
+            .setSize(cloud3.width - 200, cloud3.height - 40)
             .setOffset(80, 20);
 
         this.door
@@ -744,7 +776,7 @@ export default class LevelTwo extends Phaser.Scene {
             Phaser.Input.Keyboard.KeyCodes.F
         );
 
-        // Creating detection area when using the wand -- change back to 200, 200 for box
+        // Creating detection area when using the wand
         this.wandDetectionArea = this.add.rectangle(700, 280, 200, 200);
 
         // Highlight area for wand
@@ -905,10 +937,11 @@ export default class LevelTwo extends Phaser.Scene {
                     }
                     if (poppedItem.name === "pot") {
                         poppedItem.setPosition(1050, 665).setDepth(1);
+                        this.invisiblePot?.enableBody(true)
                         this.potHighlightArea.setVisible(false);
                         this.plant = this.physics.add
                             .sprite(1050, 100, "plant")
-                            .setScale(5, 15)
+                            .setScale(5, 20)
                             .setVisible(false);
                         this.plant.setCollideWorldBounds(true);
                         this.plant.setImmovable(true);
@@ -916,7 +949,7 @@ export default class LevelTwo extends Phaser.Scene {
                         if (this.pot && this.ground) {
                             this.physics.world.enable(this.pot);
                             this.physics.add.collider(this.pot, this.ground);
-                            const rect = this.add.rectangle(1050, 675, 100, 25);
+                            const rect = this.add.rectangle(1050, 675, 100, 75);
                             this.physics.world.enable(rect);
                             this.physics.add.collider(rect, this.ground);
                             this.physics.add.collider(this.plant, rect);
@@ -934,6 +967,84 @@ export default class LevelTwo extends Phaser.Scene {
                         poppedItem.setVisible(false);
                         this.plant?.setVisible(true).setFrame(0);
                         this.seedsHighlightArea.setVisible(false);
+                    }
+                    if (poppedItem.name === "club") {
+                        this.usedClub = true;
+                        this.trollDead = true;
+                        poppedItem.setDepth(5);
+                        if (this.club && this.player && this.troll) {
+                            // Set the club's initial position to the player's location
+                            this.club.setPosition(this.player.x, this.player.y);
+
+                            if (this.troll.x > this.player.x) {
+                                // If the troll is to the right of the player, rotate the club to face right
+                                this.club.setRotation(
+                                    Phaser.Math.DegToRad(132)
+                                ); // Facing right
+                            } else {
+                                // If the troll is to the left of the player, rotate the club to face left
+                                this.club.setRotation(
+                                    Phaser.Math.DegToRad(-48)
+                                ); // Facing left
+                            }
+
+                            // Make the club move towards the troll and rotate down after passing it
+                            this.tweens.add({
+                                targets: this.club,
+                                x: this.troll.x + 100,
+                                y: this.troll.y,
+                                duration: 300, // Adjust duration as needed
+                                onComplete: () => {
+                                    if (this.club) {
+                                        this.tweens.add({
+                                            targets: this.club,
+                                            scaleX: this.club.scaleX * 0.9,
+                                            scaleY: this.club.scaleY * 0.9,
+                                            x: 20,
+                                            y: 950,
+                                            rotation: Phaser.Math.DegToRad(222),
+                                            duration: 100,
+                                            onComplete: () => {
+                                                // Play the die animation for the troll
+                                                if (
+                                                    this.troll &&
+                                                    this.player &&
+                                                    this.troll.x < this.player.x
+                                                ) {
+                                                    this.troll.anims.play(
+                                                        "troll_die",
+                                                        true
+                                                    );
+                                                } else if (
+                                                    this.troll &&
+                                                    this.player &&
+                                                    this.troll.x > this.player.x
+                                                ) {
+                                                    this.troll.anims.play(
+                                                        "troll_die",
+                                                        true
+                                                    );
+                                                    this.troll.flipX = true;
+                                                }
+
+                                                // After the die animation completes, remove the skeleton from the scene
+                                                setTimeout(() => {
+                                                    this.troll?.setVisible(
+                                                        false
+                                                    );
+                                                    this.troll?.setPosition(
+                                                        -600,
+                                                        -600
+                                                    );
+                                                    this.troll?.destroy();
+                                                }, 1000);
+                                            },
+                                        });
+                                    }
+                                },
+                            });
+                        }
+                        this.clubHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
                         this.door?.setTexture("pinkopendoor");
@@ -1460,7 +1571,8 @@ export default class LevelTwo extends Phaser.Scene {
         if (this.player && this.plant && this.cursors) {
             // Max distance player can be from ladder to climb it
             const xTolerance = 30; // Tolerance for X position
-            const yTolerance = 190; // Tolerance for Y position
+            const yTolerance = 220; // Tolerance for Y position
+            console.log;
             // Calculate horizontal and vertical distances between player and ladder
             const deltaX = Math.abs(this.player.x - this.plant.x);
             const deltaY = Math.abs(this.player.y - this.plant.y);
@@ -1480,29 +1592,78 @@ export default class LevelTwo extends Phaser.Scene {
         }
 
         // Making bird move back and forth
-        if (this.bird) {
-            this.bird.x += this.birdDirection * this.birdSpeed;
-            // Check if the bird reaches the screen edges
-            if (this.bird.x <= 200 || this.bird.x >= 700) {
-                // Change direction
-                this.birdDirection *= -1;
-                // Flip bird horizontally
-                this.bird.flipX = !this.bird.flipX;
+        if (!this.isPaused) {
+            if (this.bird) {
+                this.bird.x += this.birdDirection * this.birdSpeed;
+                // Check if the bird reaches the screen edges
+                if (this.bird.x <= 250 || this.bird.x >= 700) {
+                    // Change direction
+                    this.birdDirection *= -1;
+                    // Flip bird horizontally
+                    this.bird.flipX = !this.bird.flipX;
+                }
             }
         }
 
         // Making troll move back and forth
-        if (this.troll) {
-            this.troll.x += this.trollDirection * this.trollSpeed;
-            // Check if the bird reaches the screen edges
-            if (this.troll.x <= 150 || this.troll.x >= 525) {
-                // Change direction
-                this.trollDirection *= -1;
-                // Flip bird horizontally
-                this.troll.flipX = !this.troll.flipX;
+        const chaseThreshold = 400;
+        const attackThreshold = 70;
+        if (!this.isPaused && !this.usedClub) {
+            if (this.troll && this.player) {
+                // Calculate distance between troll and player
+                const distanceX = Math.abs(this.player.x - this.troll.x);
+                const distanceY = Math.abs(this.player.y - this.troll.y);
+
+                // If player is close-ish, move toward player
+                if (
+                    distanceX < chaseThreshold &&
+                    distanceX > attackThreshold &&
+                    distanceY < 40
+                ) {
+                    this.troll.anims.play("troll_right", true);
+                    if (this.troll.x < this.player.x) {
+                        this.troll.x += 4.3; // Move right
+                        this.troll.flipX = false;
+                    } else if (this.troll.x > this.player.x) {
+                        this.troll.x -= 4.3; // Move left
+                        this.troll.flipX = true;
+                        this.troll.anims.play("troll_right", true);
+                    }
+                }
+                // If player is close to troll, troll attacks
+                else if (distanceX <= attackThreshold && distanceY < 100) {
+                    this.troll.anims.play("troll_attack", true); // Attack right
+                    if (this.troll.x < this.player.x) {
+                        this.troll.flipX = false;
+                    } else if (this.troll.x > this.player.x) {
+                        this.troll.flipX = true;
+                    }
+                    if (!this.collidingWithSmog) {
+                        this.time.delayedCall(
+                            500,
+                            () => {
+                                this.collidingWithSmog = true;
+                                this.loseLife();
+                            },
+                            [],
+                            this
+                        );
+                    }
+                } else {
+                    this.troll.anims.play("troll_right", true);
+                    this.troll.x += this.trollDirection * this.trollSpeed;
+                    // Check if the troll reaches the screen edges
+                    if (this.troll.x <= 150 || this.troll.x >= 525) {
+                        // Change direction
+                        this.trollDirection *= -1;
+                        // Flip troll horizontally
+                        this.troll.flipX = !this.troll.flipX;
+                    }
+                }
             }
         }
 
+        // Club on top of bird
         if (this.club && this.bird && !this.clubCollected) {
             this.club.x = this.bird.x;
             this.club.y = this.bird.y - this.bird.displayHeight / 2;
