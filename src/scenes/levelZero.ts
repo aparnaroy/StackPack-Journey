@@ -1359,7 +1359,6 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private playerDie() {
-        //this.player?.setVelocity(0, 0);
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
@@ -1393,6 +1392,10 @@ export default class LevelZero extends Phaser.Scene {
         this.createHearts();
         this.freePopsLeft = 2;
         this.downArrow?.setPosition(350, 350);
+        /*console.log("resetting");
+        this.startTime = this.time.now;
+        this.pausedTime = 0;
+        this.isPaused = false;*/
     }
 
     private createPulsateEffect(
@@ -1447,6 +1450,7 @@ export default class LevelZero extends Phaser.Scene {
     update() {
         // Updating timer
         if (!this.isPaused) {
+            console.log("updating time");
             var currentTime = this.time.now;
             this.elapsedTime = currentTime - this.startTime;
             this.timerText.setText(

@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-interface YouDiedData {
+interface YouDied3Data {
     currentLevelKey: string;
     level0State: number;
     level1State: number;
@@ -8,14 +8,14 @@ interface YouDiedData {
     level3State: number;
 }
 
-export default class youDiedScene extends Phaser.Scene {
+export default class youDiedScene3 extends Phaser.Scene {
     constructor() {
-        super({ key: "YouDiedScene" });
+        super({ key: "YouDiedScene3" });
     }
 
     preload() {}
 
-    create(data: YouDiedData) {
+    create(data: YouDied3Data) {
         const playerDiedText = this.add.text(
             this.cameras.main.width / 2,
             this.cameras.main.height / 2,
@@ -38,8 +38,6 @@ export default class youDiedScene extends Phaser.Scene {
         blackBackground.setDepth(31);
         blackBackground.setAlpha(0);
 
-        console.log("In youdied scene");
-
         // Animate you died text and black background
         this.tweens.add({
             targets: [playerDiedText, blackBackground],
@@ -48,17 +46,14 @@ export default class youDiedScene extends Phaser.Scene {
             duration: 200,
             ease: "Bounce",
             onComplete: () => {
-                console.log("Completed tween");
                 this.time.delayedCall(1000, () => {
-                    console.log("In delayed call");
-                    this.scene.stop("YouDiedScene");
+                    this.scene.stop("YouDiedScene3");
                     this.scene.start(data.currentLevelKey, {
                         level0State: data.level0State,
                         level1State: data.level1State,
                         level2State: data.level2State,
                         level3State: data.level3State,
                     });
-                    //this.scene.start("game-map");
                 });
             },
         });
