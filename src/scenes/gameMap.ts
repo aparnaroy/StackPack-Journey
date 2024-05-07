@@ -161,7 +161,7 @@ export default class GameMap extends Phaser.Scene {
         }
 
         // If level 1 is unlocked or completed, make it clickable
-        if (this.level1State > 0) {
+        if (this.level1State >= 0) {
             level1Button.setInteractive();
 
             level1Button.on("pointerup", () => {

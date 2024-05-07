@@ -8,6 +8,9 @@ import youDiedScene from "./scenes/youDiedScene";
 import LevelOne from "./scenes/levelOne";
 import LevelThree from "./scenes/levelThree";
 import LevelTwo from "./scenes/levelTwo";
+import youDiedScene3 from "./scenes/youDiedScene3";
+import youDiedScene1 from "./scenes/youDiedScene1";
+import youDiedScene2 from "./scenes/youDiedScene2";
 
 const DEFAULT_WIDTH = 1280;
 const DEFAULT_HEIGHT = 720;
@@ -34,6 +37,9 @@ export const CONFIG = {
         LevelOne,
         LevelThree,
         LevelTwo,
+        youDiedScene3,
+        youDiedScene1,
+        youDiedScene2,
     ],
     physics: {
         default: "arcade",

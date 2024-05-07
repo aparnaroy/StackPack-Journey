@@ -1880,11 +1880,10 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     private playerDie() {
-        this.player?.setVelocity(0, 0);
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
-            this.scene.launch("YouDiedScene", {
+            this.scene.launch("YouDiedScene3", {
                 currentLevelKey: this.scene.key,
                 level0State: this.level0State,
                 level1State: this.level1State,

@@ -377,8 +377,10 @@ export default class LevelTwo extends Phaser.Scene {
             .create(900, 220, "cloud-platform")
             .setScale(0.5);
 
-        this.invisiblePot = this.clouds.create(1050, 660, "pot").setScale(0.065) as Phaser.Physics.Arcade.Image;
-        this.invisiblePot.setSize(115,200).setOffset(790, 800);
+        this.invisiblePot = this.clouds
+            .create(1050, 660, "pot")
+            .setScale(0.065) as Phaser.Physics.Arcade.Image;
+        this.invisiblePot.setSize(115, 200).setOffset(790, 800);
         this.physics.add.collider(this.player, this.invisiblePot);
         this.invisiblePot.disableBody(true, true);
         this.invisiblePot.setVisible(false);
@@ -937,7 +939,7 @@ export default class LevelTwo extends Phaser.Scene {
                     }
                     if (poppedItem.name === "pot") {
                         poppedItem.setPosition(1050, 665).setDepth(1);
-                        this.invisiblePot?.enableBody(true)
+                        this.invisiblePot?.enableBody(true);
                         this.potHighlightArea.setVisible(false);
                         this.plant = this.physics.add
                             .sprite(1050, 100, "plant")
@@ -1257,12 +1259,15 @@ export default class LevelTwo extends Phaser.Scene {
     }
 
     private playerDie() {
-        this.player?.setVelocity(0, 0);
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
-            this.scene.launch("YouDiedScene", {
-                previousLevelKey: this.scene.key,
+            this.scene.launch("YouDiedScene2", {
+                currentLevelKey: this.scene.key,
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
             });
             this.player?.clearTint();
 
