@@ -97,6 +97,8 @@ export default class LevelTwo extends Phaser.Scene {
         this.load.image("smog", "assets/level2/smog.png");
         this.load.image("sign", "assets/level2/toxic-gas.png");
 
+        this.load.image("EF-keys-white", "assets/EF-keys-white.png");
+
         this.load.spritesheet("key", "assets/key.png", {
             frameWidth: 768 / 24,
             frameHeight: 32,
@@ -191,6 +193,9 @@ export default class LevelTwo extends Phaser.Scene {
             .image(0, 0, "stackpack")
             .setPosition(1170, 165);
         stackpack.setScale(0.26, 0.26);
+
+        const EFkeys = this.add.image(10, 115, "EF-keys-white").setOrigin(0, 0);
+        EFkeys.setScale(0.35);
 
         this.anims.create({
             key: "turn",
