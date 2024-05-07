@@ -12,6 +12,7 @@ export default class LevelTwo extends Phaser.Scene {
     private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
     private key?: Phaser.GameObjects.Sprite;
     private clouds?: Phaser.Physics.Arcade.StaticGroup;
+    private invisiblePot?: Phaser.Physics.Arcade.Image;
     private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
     private wand?: Phaser.GameObjects.Sprite;
@@ -209,7 +210,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.bird = this.physics.add
             .sprite(250, 200, "bird_right")
             .setScale(4)
-            .setDepth(0);
+            .setDepth(1);
         this.bird.setCollideWorldBounds(true);
         this.physics.add.collider(
             this.bird,
@@ -375,6 +376,12 @@ export default class LevelTwo extends Phaser.Scene {
         const cloud3 = this.clouds
             .create(900, 220, "cloud-platform")
             .setScale(0.5);
+
+        this.invisiblePot = this.clouds.create(1050, 660, "pot").setScale(0.065) as Phaser.Physics.Arcade.Image;
+        this.invisiblePot.setSize(115,200).setOffset(790, 800);
+        this.physics.add.collider(this.player, this.invisiblePot);
+        this.invisiblePot.disableBody(true, true);
+        this.invisiblePot.setVisible(false);
 
         this.physics.add.collider(this.player, this.clouds);
 
@@ -930,6 +937,7 @@ export default class LevelTwo extends Phaser.Scene {
                     }
                     if (poppedItem.name === "pot") {
                         poppedItem.setPosition(1050, 665).setDepth(1);
+                        this.invisiblePot?.enableBody(true)
                         this.potHighlightArea.setVisible(false);
                         this.plant = this.physics.add
                             .sprite(1050, 100, "plant")
@@ -1673,6 +1681,7 @@ export default class LevelTwo extends Phaser.Scene {
             this.physics.world.collide(this.player, this.bird);
         }
 
+        /*
         // Check if player touches smog
         if (this.player && this.smogGroup) {
             this.physics.add.collider(
@@ -1686,5 +1695,6 @@ export default class LevelTwo extends Phaser.Scene {
                 this
             );
         }
+        */
     }
 }
