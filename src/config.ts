@@ -33,7 +33,7 @@ export const CONFIG = {
         youDiedScene,
         LevelOne,
         LevelThree,
-        LevelTwo
+        LevelTwo,
     ],
     physics: {
         default: "arcade",

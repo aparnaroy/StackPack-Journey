@@ -25,12 +25,17 @@ export default class LevelZero extends Phaser.Scene {
     private popButton1?: Phaser.GameObjects.Image;
     private popButton2?: Phaser.GameObjects.Image;
     private movementInstruction?: Phaser.GameObjects.Image;
+    private topInstruction?: Phaser.GameObjects.Image;
     private orderInstruction?: Phaser.GameObjects.Image;
+    private hintInstruction?: Phaser.GameObjects.Image;
     private freepopDialogue?: Phaser.GameObjects.Image;
-    private glowingSpot?: Phaser.GameObjects.Image;
+    private lifoInstruction?: Phaser.GameObjects.Image;
+    private downArrow?: Phaser.GameObjects.Image;
+    private arrowTween: Phaser.Tweens.Tween;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
+    private usedItems: Phaser.GameObjects.Sprite[] = [];
     private keyE?: Phaser.Input.Keyboard.Key;
     private keyF?: Phaser.Input.Keyboard.Key;
     private keyEPressed: boolean = false; // Flag to check if 'E' was pressed to prevent picking up multiple items from one long key press
@@ -38,6 +43,9 @@ export default class LevelZero extends Phaser.Scene {
     private lastDirection: string = "right";
     private climbing: boolean = false;
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
+    private flashingRed: boolean = false;
+    private freePopsLeft: number = 2;
+    private freePopsLeftText: Phaser.GameObjects.Text;
 
     private ladderDetectionArea: Phaser.GameObjects.Rectangle;
     private ladderHighlightBox: Phaser.GameObjects.Rectangle;
@@ -48,6 +56,7 @@ export default class LevelZero extends Phaser.Scene {
     private plankPlatforms?: Phaser.Physics.Arcade.StaticGroup;
     private plankPlatform?: Phaser.Physics.Arcade.Image;
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
+    private keyHighlightBox: Phaser.GameObjects.Rectangle;
 
     private hearts?: Phaser.GameObjects.Sprite[] = [];
     private lives: number = 3;
@@ -83,7 +92,7 @@ export default class LevelZero extends Phaser.Scene {
 
         this.load.image("EF-keys-black", "assets/EF-keys-black.png");
 
-        this.load.image("glowingSpot", "assets/level0/glowingSpot.png");
+        this.load.image("downArrow", "assets/level0/down-arrow.png");
 
         this.load.spritesheet("key", "assets/key.png", {
             frameWidth: 768 / 24,
@@ -149,16 +158,27 @@ export default class LevelZero extends Phaser.Scene {
             "MovementInstructions",
             "assets/level0/Movement-Instructions.png"
         );
-
+        this.load.image(
+            "TopInstructions",
+            "assets/level0/Top-Instructions.png"
+        );
         this.load.image(
             "OrderInstructions",
             "assets/level0/Order-Instructions.png"
         );
-
+        this.load.image(
+            "HintInstructions",
+            "assets/level0/Hint-Instructions.png"
+        );
         this.load.image(
             "FreePopInstructions",
             "assets/level0/FreePop-Instructions.png"
         );
+        this.load.image(
+            "LIFOInstructions",
+            "assets/level0/LIFO-Instructions.png"
+        );
+
         this.load.image("pop-button", "assets/freePop2.png");
 
         this.load.image("pause-button", "assets/pause2.png");
@@ -186,6 +206,14 @@ export default class LevelZero extends Phaser.Scene {
 
         this.lastDirection = "right";
 
+        this.freePopsLeftText = this.add
+            .text(285, 71, `${this.freePopsLeft}`, {
+                fontFamily: "Arial",
+                fontSize: 20,
+                color: "#004f28",
+            })
+            .setDepth(4);
+
         const backgroundImage = this.add
             .image(0, 0, "level0-background")
             .setOrigin(0, 0);
@@ -202,8 +230,8 @@ export default class LevelZero extends Phaser.Scene {
         const EFkeys = this.add.image(10, 115, "EF-keys-black").setOrigin(0, 0);
         EFkeys.setScale(0.35);
 
-        this.glowingSpot = this.add.image(350, 430, "glowingSpot");
-        this.glowingSpot.setScale(0.4);
+        this.downArrow = this.add.image(350, 350, "downArrow");
+        this.downArrow.setScale(0.5);
 
         this.anims.create({
             key: "turn",
@@ -322,7 +350,7 @@ export default class LevelZero extends Phaser.Scene {
         this.key.setName("key");
         this.physics.add.collider(this.key, this.platforms);
 
-        this.ladder = this.add.sprite(1050, 550, "ladder").setScale(0.5, 0.5);
+        this.ladder = this.add.sprite(1050, 550, "ladder").setScale(0.5, 0.55);
         this.ladder.setName("ladder");
 
         this.plank = this.add.sprite(350, 530, "plank").setScale(0.5, 0.5);
@@ -398,6 +426,13 @@ export default class LevelZero extends Phaser.Scene {
 
         popButton.on("pointerup", () => {
             this.freePop();
+            this.freePopsLeft -= 1;
+            this.freePopsLeftText.setText(`${this.freePopsLeft}`);
+            if (this.freePopsLeft <= 0) {
+                popButton.setScale(originalScale);
+                popButton.disableInteractive();
+                popButton.setTint(0x696969);
+            }
         });
 
         // Creating Pause Group for Buttons and Pause Popup
@@ -406,11 +441,11 @@ export default class LevelZero extends Phaser.Scene {
         // Creating Pause Popup
         const pausePopup = this.add.image(650, 350, "pause-popup");
         pausePopup.setOrigin(0.5);
-        pausePopup.setDepth(1);
+        pausePopup.setDepth(10);
         pauseGroup.add(pausePopup);
 
         // Exit button for Pause popup
-        const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(1);
+        const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(10);
         exitButton.setOrigin(0.5);
         exitButton.setInteractive();
         pauseGroup.add(exitButton);
@@ -424,6 +459,8 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
+            this.isPaused = false;
+            this.resetScene();
             this.scene.start("game-map", {
                 level0State: this.level0State,
                 level1State: this.level1State,
@@ -433,7 +470,9 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         // Return button for Pause popup
-        const restartButton = this.add.rectangle(640, 425, 200, 75).setDepth(1);
+        const restartButton = this.add
+            .rectangle(640, 425, 200, 75)
+            .setDepth(10);
         restartButton.setOrigin(0.5);
         restartButton.setInteractive();
         pauseGroup.add(restartButton);
@@ -447,6 +486,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
+            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level0", {
                 level0State: this.level0State,
@@ -457,7 +497,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         // Resume button for Pause popup
-        const resumeButton = this.add.rectangle(640, 320, 200, 75).setDepth(1);
+        const resumeButton = this.add.rectangle(640, 320, 200, 75).setDepth(10);
         resumeButton.setOrigin(0.5);
         resumeButton.setInteractive();
         pauseGroup.add(resumeButton);
@@ -481,11 +521,13 @@ export default class LevelZero extends Phaser.Scene {
                 this.input.keyboard.enabled = true;
             }
             // Make it so player can click Free Pop button
-            popButton.setInteractive();
+            if (this.freePopsLeft > 0) {
+                popButton.setInteractive();
+            }
         });
 
         // No music button for Pause popup
-        const muteMusic = this.add.rectangle(585, 217, 90, 90).setDepth(1);
+        const muteMusic = this.add.rectangle(585, 217, 90, 90).setDepth(10);
         muteMusic.setOrigin(0.5);
         muteMusic.setInteractive();
         pauseGroup.add(muteMusic);
@@ -504,7 +546,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         // No sound button for Pause popup
-        const muteSound = this.add.rectangle(700, 217, 90, 90).setDepth(1);
+        const muteSound = this.add.rectangle(700, 217, 90, 90).setDepth(10);
         muteSound.setOrigin(0.5);
         muteSound.setInteractive();
         pauseGroup.add(muteSound);
@@ -556,17 +598,19 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
-            this.pauseTime();
-            pauseGroup.setVisible(true);
-            // Pause all animations and tweens
-            this.anims.pauseAll();
-            this.tweens.pauseAll();
-            // Make it so player can't enter keyboard input
-            if (this.input.keyboard) {
-                this.input.keyboard.enabled = false;
+            if (!this.isPaused) {
+                this.pauseTime();
+                pauseGroup.setVisible(true);
+                // Pause all animations and tweens
+                this.anims.pauseAll();
+                this.tweens.pauseAll();
+                // Make it so player can't enter keyboard input
+                if (this.input.keyboard) {
+                    this.input.keyboard.enabled = false;
+                }
+                // Make it so player can't click Free Pop button
+                popButton.disableInteractive();
             }
-            // Make it so player can't click Free Pop button
-            popButton.disableInteractive();
         });
 
         // Creating timer
@@ -579,7 +623,7 @@ export default class LevelZero extends Phaser.Scene {
         this.isPaused = false;
 
         // Level complete popup - still working
-        const completeExitButton = this.add.circle(790, 185, 35).setDepth(1);
+        const completeExitButton = this.add.circle(790, 185, 35).setDepth(10);
         completeExitButton.setInteractive();
         completeExitButton.on("pointerover", () => {
             completeExitButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -588,7 +632,7 @@ export default class LevelZero extends Phaser.Scene {
             completeExitButton.setFillStyle();
         });
 
-        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(1);
+        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(10);
         completeReplayButton.setInteractive();
         completeReplayButton.on("pointerover", () => {
             completeReplayButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -597,7 +641,7 @@ export default class LevelZero extends Phaser.Scene {
             completeReplayButton.setFillStyle();
         });
 
-        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(1);
+        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(10);
         completeMenuButton.setInteractive();
         completeMenuButton.on("pointerover", () => {
             completeMenuButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -606,7 +650,7 @@ export default class LevelZero extends Phaser.Scene {
             completeMenuButton.setFillStyle();
         });
 
-        const completeNextButton = this.add.circle(800, 505, 55).setDepth(1);
+        const completeNextButton = this.add.circle(800, 505, 55).setDepth(10);
         completeNextButton.setInteractive();
         completeNextButton.on("pointerover", () => {
             completeNextButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -640,6 +684,7 @@ export default class LevelZero extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.isPaused = false;
             if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
             }
@@ -652,6 +697,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
+            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level0", {
                 level0State: this.level0State,
@@ -662,6 +708,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
+            this.isPaused = false;
             if (this.level1State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
@@ -684,6 +731,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
+            this.isPaused = false;
             if (this.level1State == 0) {
                 // If level 1 was locked before, set it to current level status
                 this.scene.start("Level1", {
@@ -707,14 +755,15 @@ export default class LevelZero extends Phaser.Scene {
         this.oneStarPopup.setVisible(false);
 
         // Set the depth of the character/player sprite to a high value
-        this.player.setDepth(1);
+        this.player.setDepth(3);
+        this.downArrow.setDepth(1);
 
         // Set the depth of other game objects to lower values
         this.key.setDepth(0);
         this.ladder.setDepth(0);
         this.plank.setDepth(0);
         this.spikes.setDepth(0);
-        this.door.setDepth(0);
+        this.door.setDepth(1);
 
         // Resize collision boxes of player and everything else that can be collided with
         this.player
@@ -793,28 +842,57 @@ export default class LevelZero extends Phaser.Scene {
         this.plankHighlightBox.setVisible(false);
 
         // Creating detection area when using key
-        this.keyDetectionArea = this.add.rectangle(875, 150, 200, 200);
+        this.keyDetectionArea = this.add.rectangle(875, 150, 100, 200);
         this.physics.world.enable(this.keyDetectionArea);
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
 
+        this.keyHighlightBox = this.add.rectangle(877, 195, 170, 200, 0xffff00);
+        this.keyHighlightBox.setAlpha(0.25);
+        this.keyHighlightBox.setVisible(false);
+
         // Text Boxes
-        this.pushDialogue = this.add.image(350, 550, "EtoPush").setScale(1, 1);
-        this.popDialogue = this.add.image(750, 650, "FtoPop").setScale(1, 1);
+        this.pushDialogue = this.add
+            .image(350, 420, "EtoPush")
+            .setScale(0.65)
+            .setDepth(2);
+        this.popDialogue = this.add
+            .image(750, 510, "FtoPop")
+            .setScale(0.65)
+            .setDepth(2);
         this.pushButton1 = this.add.image(1100, 650, "EButton").setScale(1, 1);
         this.pushButton2 = this.add.image(1250, 730, "EButton").setScale(1, 1);
         this.popButton1 = this.add.image(750, 500, "FButton").setScale(1, 1);
-        this.popButton2 = this.add.image(900, 300, "FButton").setScale(1, 1);
+        this.popButton2 = this.add
+            .image(900, 300, "FButton")
+            .setScale(1, 1)
+            .setDepth(2);
         this.movementInstruction = this.add
             .image(200, 600, "MovementInstructions")
-            .setScale(1, 1);
+            .setScale(1, 1)
+            .setDepth(2);
+        this.topInstruction = this.add
+            .image(1090, 380, "TopInstructions")
+            .setScale(0.65)
+            .setDepth(2);
+        this.topInstruction.setVisible(false);
         this.orderInstruction = this.add
-            .image(1090, 380, "OrderInstructions")
-            .setScale(0.45);
+            .image(1080, 390, "OrderInstructions")
+            .setScale(0.65)
+            .setDepth(2);
         this.orderInstruction.setVisible(false);
+        this.hintInstruction = this.add
+            .image(1090, 380, "HintInstructions")
+            .setScale(0.65)
+            .setDepth(2);
+        this.hintInstruction.setVisible(false);
         this.freepopDialogue = this.add
-            .image(190, 170, "FreePopInstructions")
-            .setScale(0.45);
+            .image(235, 170, "FreePopInstructions")
+            .setScale(0.58);
         this.freepopDialogue.setVisible(false);
+        this.lifoInstruction = this.add
+            .image(550, 240, "LIFOInstructions")
+            .setScale(0.59);
+        this.lifoInstruction.setVisible(false);
 
         this.pushDialogue.setVisible(false);
         this.popDialogue.setVisible(false);
@@ -837,20 +915,18 @@ export default class LevelZero extends Phaser.Scene {
             1000 // Duration of each tween cycle in milliseconds
         );
 
-        // Continuously make glowing spot small and big
-        // Define minimum and maximum scale values
-        const minScaleX = 0.18;
-        const maxScaleX = 0.27;
+        this.arrowTween = this.playArrowTween(this.downArrow.x);
+    }
 
-        // Create a tween to smoothly scale the glowing spot
-        this.tweens.add({
-            targets: this.glowingSpot,
-            scaleX: [minScaleX, maxScaleX], // Scale on x-axis
-            scaleY: this.glowingSpot.scaleY, // Maintain original scale on y-axis
-            duration: 1000,
-            yoyo: true, // Make the tween go back and forth
-            repeat: -1, // Repeat indefinitely
-            ease: "Sine.easeInOut", // Use sine easing for smooth transitions
+    private playArrowTween(minY: number) {
+        let maxY = minY + 30;
+        return this.tweens.add({
+            targets: this.downArrow,
+            y: [minY, maxY],
+            duration: 500,
+            ease: "Cubic.easeOut",
+            yoyo: true,
+            repeat: -1,
         });
     }
 
@@ -937,6 +1013,101 @@ export default class LevelZero extends Phaser.Scene {
         this.updateStackView();
     }
 
+    private popWrongItem(usageArea: Phaser.GameObjects.Rectangle) {
+        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
+            return; // Prevent popping if a push is in progress
+        }
+
+        this.loseLife();
+
+        // Remove the top item from the stackpack
+        const poppedItem = this.stack.pop();
+
+        if (poppedItem && this.lives !== 0) {
+            // Remove popped item from grand list of collected items
+            const index = this.collectedItems.indexOf(poppedItem);
+            if (index !== -1) {
+                this.collectedItems.splice(index, 1);
+            }
+
+            // Animation to flash red in location player tried to use item
+            this.tweens.add({
+                targets: usageArea,
+                alpha: 0,
+                duration: 300,
+                yoyo: true,
+                repeat: 1,
+                onStart: () => {
+                    usageArea.alpha = 0.55;
+                    usageArea.fillColor = 0xff0000; // Make area red
+                    this.flashingRed = true;
+                },
+                onComplete: () => {
+                    usageArea.alpha = 0.25; // Reset area color and alpha
+                    usageArea.fillColor = 0xffff00;
+                    this.flashingRed = false;
+                },
+            });
+
+            // Animation to fade item out from stackpack and then fade in in its new location
+            this.tweens.add({
+                targets: poppedItem,
+                alpha: 0, // Fade out
+                duration: 200,
+                onComplete: () => {
+                    // Set item origin back to default (center)
+                    poppedItem.setOrigin(0.5, 0.5);
+
+                    let originalScaleX = 0;
+                    let originalScaleY = 0;
+                    // Move popped item to its original location
+                    if (poppedItem.name === "ladder") {
+                        poppedItem.setPosition(1050, 550);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
+                    }
+                    if (poppedItem.name === "plank") {
+                        poppedItem.setPosition(350, 530);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
+                    }
+                    if (poppedItem.name === "key") {
+                        poppedItem.setPosition(1200, 650);
+                        originalScaleX = 2.5;
+                        originalScaleY = 2.5;
+                    }
+
+                    this.tweens.add({
+                        targets: poppedItem,
+                        scaleX: originalScaleX,
+                        scaleY: originalScaleY,
+                        alpha: 1, // Fade in
+                        duration: 300,
+                        onComplete: () => {
+                            this.updateStackView();
+                            if (poppedItem.name === "ladder") {
+                                this.createPulsateEffect(
+                                    this,
+                                    poppedItem,
+                                    1.1,
+                                    1000
+                                );
+                            }
+                            if (poppedItem.name === "plank") {
+                                this.createPulsateEffect(
+                                    this,
+                                    poppedItem,
+                                    1.15,
+                                    1000
+                                );
+                            }
+                        },
+                    });
+                },
+            });
+        }
+    }
+
     private useItem() {
         if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
             return; // Prevent popping if a push is in progress
@@ -946,6 +1117,9 @@ export default class LevelZero extends Phaser.Scene {
         const poppedItem = this.stack.pop();
 
         if (poppedItem) {
+            // Add the item to the list of used items
+            this.usedItems.push(poppedItem);
+
             // Animation to fade item out from stackpack and then fade in in its new location
             this.tweens.add({
                 targets: poppedItem,
@@ -957,7 +1131,7 @@ export default class LevelZero extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(680, 385);
+                        poppedItem.setPosition(680, 365);
                         this.ladderHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "plank") {
@@ -966,6 +1140,7 @@ export default class LevelZero extends Phaser.Scene {
                         this.plankPlatform?.enableBody(true, 938, 650);
                     }
                     if (poppedItem.name === "key") {
+                        this.keyHighlightBox.setVisible(false);
                         this.popButton2?.setVisible(false);
                         this.door?.setTexture("opendoor");
                         this.pauseTime();
@@ -994,13 +1169,15 @@ export default class LevelZero extends Phaser.Scene {
                                                 color: "#000000",
                                             }
                                         )
-                                        .setDepth(1)
+                                        .setDepth(11)
                                         .setVisible(false);
                                     // Level popup depends on time it takes to complete
                                     if (this.elapsedTime <= 30000) {
                                         this.starsPopup = this.threeStarsPopup;
                                         this.threeStarsPopup.add(completedTime);
-                                        this.threeStarsPopup.setVisible(true);
+                                        this.threeStarsPopup
+                                            .setVisible(true)
+                                            .setDepth(10);
                                     }
                                     if (
                                         this.elapsedTime > 30000 &&
@@ -1008,12 +1185,16 @@ export default class LevelZero extends Phaser.Scene {
                                     ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
-                                        this.twoStarsPopup.setVisible(true);
+                                        this.twoStarsPopup
+                                            .setVisible(true)
+                                            .setDepth(10);
                                     }
                                     if (this.elapsedTime > 60000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
-                                        this.oneStarPopup.setVisible(true);
+                                        this.oneStarPopup
+                                            .setVisible(true)
+                                            .setDepth(10);
                                     }
                                     // Animate level complete text
                                     this.tweens.add({
@@ -1047,8 +1228,6 @@ export default class LevelZero extends Phaser.Scene {
         if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
             return; // Prevent popping if a push is in progress
         }
-
-        this.loseLife();
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
@@ -1197,19 +1376,23 @@ export default class LevelZero extends Phaser.Scene {
             this.stack = [];
             this.updateStackView();
             this.collectedItems = [];
+            this.usedItems = [];
             this.lives = 3;
             this.createHearts();
+            this.freePopsLeft = 2;
         });
     }
 
     private resetScene() {
-        // Reset the stack and collected items and glowing spot
+        // Reset the stack and collected items and down arrow
         this.stack = [];
         this.updateStackView();
         this.collectedItems = [];
+        this.usedItems = [];
         this.lives = 3;
         this.createHearts();
-        this.glowingSpot?.setPosition(350, 430);
+        this.freePopsLeft = 2;
+        this.downArrow?.setPosition(350, 350);
     }
 
     private createPulsateEffect(
@@ -1271,55 +1454,63 @@ export default class LevelZero extends Phaser.Scene {
             );
         }
 
-        // Check if the player is on top of the glowing spot and if so, move to next location
+        // Check if the player is at arrow location and if so, move to next location
         // After pushing plank
         if (
             this.player &&
-            this.glowingSpot &&
-            this.glowingSpot.x == 350 &&
+            this.downArrow &&
+            this.downArrow.x == 350 &&
             this.stack.length > 0 &&
             this.stack[this.stack.length - 1].name === "plank"
         ) {
-            this.glowingSpot.setPosition(
-                this.plankDetectionArea1.x - 40,
-                this.plankDetectionArea1.y - 65
-            );
-            console.log("HERE");
-            console.log(this.stack);
-            console.log(this.collectedItems);
+            this.downArrow.setPosition(650, 500);
+            this.arrowTween = this.playArrowTween(this.downArrow.y);
         }
         // After popping plank
         if (
             this.player &&
-            this.glowingSpot &&
+            this.downArrow &&
             this.plank &&
-            this.glowingSpot.x == this.plankDetectionArea1.x - 40 &&
+            this.downArrow.x == 650 &&
             this.plank.x == 815
         ) {
-            this.glowingSpot.setPosition(1115, 560);
+            this.downArrow.setPosition(1115, 380);
+            this.arrowTween = this.playArrowTween(this.downArrow.y);
         }
         // After pushing ladder
         if (
             this.player &&
-            this.glowingSpot &&
-            this.glowingSpot.x == 1115 &&
+            this.downArrow &&
+            this.downArrow.x == 1115 &&
             Phaser.Math.Distance.Between(
                 this.player.x,
                 this.player.y,
-                this.glowingSpot.x,
-                this.glowingSpot.y + 150
+                1115,
+                560 + 150
             ) < 90
         ) {
-            this.orderInstruction?.setVisible(true);
-            this.glowingSpot.setVisible(false);
-            this.glowingSpot.setPosition(0, 560);
+            this.topInstruction?.setVisible(true);
+            this.downArrow.setVisible(false);
+            this.downArrow.setPosition(0, 560);
             setTimeout(() => {
-                this.orderInstruction?.setVisible(false);
-                this.freepopDialogue?.setVisible(true);
+                this.topInstruction?.setVisible(false);
+                this.orderInstruction?.setVisible(true);
             }, 4000);
             setTimeout(() => {
+                this.orderInstruction?.setVisible(false);
+                this.hintInstruction?.setVisible(true);
+            }, 9000);
+            setTimeout(() => {
+                this.hintInstruction?.setVisible(false);
+                this.freepopDialogue?.setVisible(true);
+            }, 15500);
+            setTimeout(() => {
                 this.freepopDialogue?.setVisible(false);
-            }, 8000);
+                this.lifoInstruction?.setVisible(true);
+            }, 19500);
+            setTimeout(() => {
+                this.lifoInstruction?.setVisible(false);
+            }, 24500);
         }
 
         // Key animation
@@ -1327,7 +1518,7 @@ export default class LevelZero extends Phaser.Scene {
             this.key.anims.play("turn", true);
         }
 
-        // show movement instructions until any key is pressed
+        // Show movement instructions until any key is pressed
         if (this.player && this.cursors) {
             if (
                 this.cursors.up.isDown ||
@@ -1423,49 +1614,95 @@ export default class LevelZero extends Phaser.Scene {
         }
 
         // Check if player is near detection area
-        if (this.player && this.stack.length > 0) {
+        if (this.player) {
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.ladderDetectionArea.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "ladder"
+                this.ladder &&
+                !this.usedItems.includes(this.ladder)
             ) {
                 // If player overlaps with ladder detection area, show the highlight box
                 this.ladderHighlightBox.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    // If player presses F
+                    if (this.stack[this.stack.length - 1].name === "ladder") {
+                        // If the top item is ladder, use it
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        // If the top item is not ladder, pop it and lose life
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.ladderHighlightBox);
+                    }
                 }
-            } else if (
+            } else if (!this.flashingRed) {
+                this.ladderHighlightBox.setVisible(false);
+            }
+
+            if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.plankDetectionAreasGroup.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "plank"
+                this.plank &&
+                !this.usedItems.includes(this.plank)
             ) {
                 // If player overlaps with plank detection area, show the highlight box
                 this.plankHighlightBox.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    // If player presses F
+                    if (this.stack[this.stack.length - 1].name === "plank") {
+                        // If the top item is plank, use it
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        // If the top item is not plank, pop it and lose life
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.plankHighlightBox);
+                    }
                 }
-            } else if (
+            } else if (!this.flashingRed) {
+                this.plankHighlightBox.setVisible(false);
+            }
+
+            if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.keyDetectionArea.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "key"
+                this.key &&
+                !this.usedItems.includes(this.key)
             ) {
-                // If player overlaps with key detection area, open door
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
+                // If player overlaps with key detection area, show highlight box
+                this.keyHighlightBox.setVisible(true);
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    // If player presses F
+                    if (this.stack[this.stack.length - 1].name === "key") {
+                        // If the top item is key, use it
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        // If the top item is not key, pop it and lose life
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.keyHighlightBox);
+                    }
                 }
-            } else {
-                // Otherwise, hide the highlight box
-                this.ladderHighlightBox.setVisible(false);
-                this.plankHighlightBox.setVisible(false);
+            } else if (!this.flashingRed) {
+                this.keyHighlightBox.setVisible(false);
             }
         }
 
@@ -1582,34 +1819,42 @@ export default class LevelZero extends Phaser.Scene {
             }
         }
 
-        // F to push button1: ladder
+        // F to pop button1: ladder
         if (this.player && this.stack.length > 0) {
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.ladderDetectionArea.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "ladder"
+                this.ladder &&
+                !this.usedItems.includes(this.ladder)
             ) {
                 this.popButton1?.setVisible(true);
             } else {
                 this.popButton1?.setVisible(false);
             }
+        } else {
+            // If the stack is empty or the player is not present, hide the button
+            this.popButton1?.setVisible(false);
         }
 
-        // F to push button: key
+        // F to pop button: key
         if (this.player && this.stack.length > 0) {
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.keyDetectionArea.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "key"
+                this.key &&
+                !this.usedItems.includes(this.key)
             ) {
                 this.popButton2?.setVisible(true);
             } else {
                 this.popButton2?.setVisible(false);
             }
+        } else {
+            // If the stack is empty or the player is not present, hide the button
+            this.popButton2?.setVisible(false);
         }
     }
 }
