@@ -13,6 +13,7 @@ export default class LevelTwo extends Phaser.Scene {
     private key?: Phaser.GameObjects.Sprite;
     private clouds?: Phaser.Physics.Arcade.StaticGroup;
     private invisiblePot?: Phaser.Physics.Arcade.Image;
+    private invisiblePlant?: Phaser.Physics.Arcade.Image;
     private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
     private wand?: Phaser.GameObjects.Sprite;
@@ -45,6 +46,8 @@ export default class LevelTwo extends Phaser.Scene {
     private climbing: boolean = false;
     private clubCollected: boolean = false;
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
+    private freePopsLeft: number = 4;
+    private freePopsLeftText: Phaser.GameObjects.Text;
 
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
     private wandDetectionArea: Phaser.GameObjects.Rectangle;
@@ -390,6 +393,14 @@ export default class LevelTwo extends Phaser.Scene {
         this.invisiblePot.disableBody(true, true);
         this.invisiblePot.setVisible(false);
 
+        this.invisiblePlant = this.clouds
+            .create(1150, 660, "pot")
+            .setScale(0.065, 0.5) as Phaser.Physics.Arcade.Image;
+        this.invisiblePlant.setSize(115, 600).setOffset(790, 800);
+        this.physics.add.collider(this.player, this.invisiblePlant);
+        this.invisiblePlant.disableBody(true, true);
+        this.invisiblePlant.setVisible(false);
+
         this.physics.add.collider(this.player, this.clouds);
 
         // Create objects: key, door, wand, club, pot, seeds, watering can
@@ -463,16 +474,11 @@ export default class LevelTwo extends Phaser.Scene {
 
         /*
         const graphics = this.add.graphics();
-        // Draw the collision bounds of the pot sprite
-        if(this.smog5){
-            const bounds = this.smog5.getBounds();
-            graphics.lineStyle(2, 0xff0000);
-            graphics.strokeRect(
-                bounds.x,
-                bounds.y,
-                bounds.width,
-                bounds.height
-            );
+        //Draw the collision bounds of the pot sprite
+        if(this.invisiblePot){
+        const bounds = this.invisiblePot.getBounds();
+        graphics.lineStyle(2, 0xff0000);
+        graphics.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
         }
         */
 
@@ -937,7 +943,7 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Add the item to the grand list of collected items
         this.collectedItems.push(item);
-        //this.stopPulsateEffect();
+        this.stopPulsateEffect();
 
         this.updateStackView();
     }
@@ -976,7 +982,7 @@ export default class LevelTwo extends Phaser.Scene {
                     }
                     if (poppedItem.name === "pot") {
                         poppedItem.setPosition(1050, 665).setDepth(1);
-                        this.invisiblePot?.enableBody(true)
+                        this.invisiblePot?.enableBody(true);
                         this.potHighlightArea.setVisible(false);
                         this.plant = this.physics.add
                             .sprite(1050, 100, "plant")
@@ -1005,6 +1011,7 @@ export default class LevelTwo extends Phaser.Scene {
                     if (poppedItem.name === "seeds") {
                         poppedItem.setVisible(false);
                         this.plant?.setVisible(true).setFrame(0);
+                        this.invisiblePlant?.enableBody(true);
                         this.seedsHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "club") {
@@ -1054,6 +1061,7 @@ export default class LevelTwo extends Phaser.Scene {
                                                         "troll_die",
                                                         true
                                                     );
+                                                    this.troll.flipX = false;
                                                 } else if (
                                                     this.troll &&
                                                     this.player &&
@@ -1063,7 +1071,8 @@ export default class LevelTwo extends Phaser.Scene {
                                                         "troll_die",
                                                         true
                                                     );
-                                                    this.troll.flipX = true;
+                                                    this.troll.flipX =
+                                                        !this.troll.flipX;
                                                 }
 
                                                 // After the die animation completes, remove the skeleton from the scene
@@ -1644,7 +1653,7 @@ export default class LevelTwo extends Phaser.Scene {
             }
         }
 
-        // Making troll move back and forth
+        // Making troll move back and forth -- need to fix
         const chaseThreshold = 400;
         const attackThreshold = 70;
         if (!this.isPaused && !this.usedClub) {
@@ -1659,10 +1668,10 @@ export default class LevelTwo extends Phaser.Scene {
                     distanceX > attackThreshold &&
                     distanceY < 40
                 ) {
-                    this.troll.anims.play("troll_right", true);
                     if (this.troll.x < this.player.x) {
                         this.troll.x += 4.3; // Move right
                         this.troll.flipX = false;
+                        this.troll.anims.play("troll_right", true);
                     } else if (this.troll.x > this.player.x) {
                         this.troll.x -= 4.3; // Move left
                         this.troll.flipX = true;
@@ -1696,7 +1705,9 @@ export default class LevelTwo extends Phaser.Scene {
                         // Change direction
                         this.trollDirection *= -1;
                         // Flip troll horizontally
-                        this.troll.flipX = !this.troll.flipX;
+                        if (this.trollDirection < 0) {
+                            this.troll.flipX = !this.troll.flipX;
+                        }
                     }
                 }
             }
