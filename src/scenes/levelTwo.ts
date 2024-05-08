@@ -385,6 +385,7 @@ export default class LevelTwo extends Phaser.Scene {
             .create(900, 220, "cloud-platform")
             .setScale(0.5);
 
+        // Preventing pot and plant from moving
         this.invisiblePot = this.clouds
             .create(1050, 660, "pot")
             .setScale(0.065) as Phaser.Physics.Arcade.Image;
@@ -483,6 +484,7 @@ export default class LevelTwo extends Phaser.Scene {
         */
 
         this.physics.add.collider(this.bird, this.smogGroup);
+        //this.bird.setImmovable(true);
 
         // Creating lives
         this.createHearts();
@@ -1671,12 +1673,11 @@ export default class LevelTwo extends Phaser.Scene {
                     if (this.troll.x < this.player.x) {
                         this.troll.x += 4.3; // Move right
                         this.troll.flipX = false;
-                        this.troll.anims.play("troll_right", true);
                     } else if (this.troll.x > this.player.x) {
                         this.troll.x -= 4.3; // Move left
                         this.troll.flipX = true;
-                        this.troll.anims.play("troll_right", true);
                     }
+                    this.troll.anims.play("troll_right", true);
                 }
                 // If player is close to troll, troll attacks
                 else if (distanceX <= attackThreshold && distanceY < 100) {
@@ -1698,16 +1699,18 @@ export default class LevelTwo extends Phaser.Scene {
                         );
                     }
                 } else {
+                    if (this.trollDirection === 1) {
+                        this.troll.x += this.trollSpeed; // Move right
+                    } else {
+                        this.troll.x -= this.trollSpeed; // Move left
+                    }
+                    this.troll.flipX = this.trollDirection === -1; // Flip troll if moving left
                     this.troll.anims.play("troll_right", true);
-                    this.troll.x += this.trollDirection * this.trollSpeed;
+
                     // Check if the troll reaches the screen edges
                     if (this.troll.x <= 150 || this.troll.x >= 525) {
                         // Change direction
                         this.trollDirection *= -1;
-                        // Flip troll horizontally
-                        if (this.trollDirection < 0) {
-                            this.troll.flipX = !this.troll.flipX;
-                        }
                     }
                 }
             }
