@@ -68,6 +68,8 @@ export default class LevelOne extends Phaser.Scene {
     private lastDirection: string = "right";
     private isColliding: boolean = false;
     private collidingWithWater: boolean = false;
+    private flashingRed: boolean = false;
+    private freePopUsed: boolean = false;
 
     // Level States
     private level0State: number;
@@ -1239,6 +1241,110 @@ export default class LevelOne extends Phaser.Scene {
         }
     }
 
+    private popWrongItem(usageArea: Phaser.GameObjects.Rectangle) {
+        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
+            return; // Prevent popping if a push is in progress
+        }
+
+        this.loseLife();
+
+        // Remove the top item from the stackpack
+        const poppedItem = this.stack.pop();
+
+        if (poppedItem && this.lives !== 0) {
+            // Remove popped item from grand list of collected items
+            const index = this.collectedItems.indexOf(poppedItem);
+            if (index !== -1) {
+                this.collectedItems.splice(index, 1);
+            }
+
+            // Animation to flash red in location player tried to use item
+            this.tweens.add({
+                targets: usageArea,
+                alpha: 0,
+                duration: 300,
+                yoyo: true,
+                repeat: 1,
+                onStart: () => {
+                    usageArea.alpha = 0.55;
+                    usageArea.fillColor = 0xff0000; // Make area red
+                    this.flashingRed = true;
+                },
+                onComplete: () => {
+                    usageArea.alpha = 0.25; // Reset area color and alpha
+                    usageArea.fillColor = 0xffff00;
+                    this.flashingRed = false;
+                },
+            });
+
+            // Animation to fade item out from stackpack and then fade in in its new location
+            this.tweens.add({
+                targets: poppedItem,
+                alpha: 0, // Fade out
+                duration: 200,
+                onComplete: () => {
+                    // Set item origin back to default (center)
+                    poppedItem.setOrigin(0.5, 0.5);
+
+                    let originalScaleX = 0;
+                    let originalScaleY = 0;
+                    // Move popped item to its original location
+                    if (poppedItem.name === "stone") {
+                        poppedItem.setPosition(300, 590);
+                        originalScaleX = 0.3;
+                        originalScaleY = 0.3;
+                    }
+                    if (poppedItem.name === "mushroom") {
+                        poppedItem.setPosition(300, 470);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
+                    }
+                    if (poppedItem.name === "banana") {
+                        poppedItem.setPosition(900, 310);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
+                    }
+                    if (poppedItem.name === "vineItem") {
+                        poppedItem.setPosition(700, 310);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
+                    }
+                    if (poppedItem.name === "key") {
+                        poppedItem.setPosition(290, 270);
+                        originalScaleX = 2.5;
+                        originalScaleY = 2.5;
+                    }
+                    poppedItem.setVisible(true);
+                    this.tweens.add({
+                        targets: poppedItem,
+                        scaleX: originalScaleX,
+                        scaleY: originalScaleY,
+                        alpha: 1, // Fade in
+                        duration: 300,
+                        onComplete: () => {
+                            this.imageViewOutStack(poppedItem);
+                            if (poppedItem.name === "ladder") {
+                                this.createPulsateEffect(
+                                    this,
+                                    poppedItem,
+                                    1.1,
+                                    1000
+                                );
+                            }
+                            if (poppedItem.name === "plank") {
+                                this.createPulsateEffect(
+                                    this,
+                                    poppedItem,
+                                    1.15,
+                                    1000
+                                );
+                            }
+                        },
+                    });
+                },
+            });
+        }
+    }
     // Animation for using free pop
     private freePop() {
         if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
@@ -1375,19 +1481,24 @@ export default class LevelOne extends Phaser.Scene {
     }
 
     private playerDie() {
-        this.player?.setVelocity(0, 0);
+        //this.player?.setVelocity(0, 0);
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
             this.scene.launch("YouDiedScene", {
-                previousLevelKey: this.scene.key,
+                currentLevelKey: this.scene.key,
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
             });
             this.player?.clearTint();
 
             // Reset the stack and collected items
             this.stack = [];
-            this.updateStackView();
+            //this.updateStackView();
             this.collectedItems = [];
+            //this.usedItems = [];
             this.lives = 3;
             this.createHearts();
         });
@@ -1529,33 +1640,44 @@ export default class LevelOne extends Phaser.Scene {
         // Detection Box Checks for popping
         if (
             this.player &&
-            this.stack.length > 0 &&
             this.stoneDetectionBox &&
             this.mushroomDetectionBox &&
             this.bananaDetectionBox &&
-            this.keyDetectionArea
+            this.keyDetectionArea &&
+            this.stoneHighlightBox &&
+            this.mushroomHighlightBox &&
+            this.bananaHighlightBox &&
+            this.vineHighlightBox
         ) {
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.stoneDetectionBox.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "stone"
+                )
             ) {
-                this.stoneHighlightBox?.setVisible(true);
+                this.stoneHighlightBox.setVisible(true);
                 if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
+                    if (this.stack[this.stack.length - 1].name === "stone") {
+                        this.stoneDetectionBox.setVisible(false);
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        this.loseLife();
+                        this.popWrongItem(this.stoneHighlightBox);
+                    }
                 }
             } else if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.mushroomDetectionBox.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "mushroom"
+                )
             ) {
-                this.mushroomHighlightBox?.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
+                this.mushroomHighlightBox.setVisible(true);
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack[this.stack.length - 1].name === "mushroom"
+                ) {
                     this.keyFPressed = true;
                     this.useItem();
                 }
@@ -1563,11 +1685,14 @@ export default class LevelOne extends Phaser.Scene {
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.bananaDetectionBox.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "banana"
+                )
             ) {
-                this.bananaHighlightBox?.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
+                this.bananaHighlightBox.setVisible(true);
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack[this.stack.length - 1].name === "banana"
+                ) {
                     this.keyFPressed = true;
                     this.useItem();
                 }
@@ -1575,11 +1700,14 @@ export default class LevelOne extends Phaser.Scene {
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.bananaDetectionBox.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "vineItem"
+                )
             ) {
-                this.vineHighlightBox?.setVisible(true); // replace with vine highlight box
-                if (this.keyF?.isDown && !this.keyFPressed) {
+                this.vineHighlightBox.setVisible(true); // replace with vine highlight box
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack[this.stack.length - 1].name === "vineItem"
+                ) {
                     this.keyFPressed = true;
                     this.useItem();
                 }
@@ -1604,10 +1732,10 @@ export default class LevelOne extends Phaser.Scene {
                     });
                 }
             } else {
-                this.stoneHighlightBox?.setVisible(false);
-                this.mushroomHighlightBox?.setVisible(false);
-                this.bananaHighlightBox?.setVisible(false);
-                this.vineHighlightBox?.setVisible(false);
+                this.stoneHighlightBox.setVisible(false);
+                this.mushroomHighlightBox.setVisible(false);
+                this.bananaHighlightBox.setVisible(false);
+                this.vineHighlightBox.setVisible(false);
             }
         }
 
