@@ -36,6 +36,7 @@ export default class LevelOne extends Phaser.Scene {
     private bananaDetectionBox?: Phaser.GameObjects.Rectangle;
     private bananaHighlightBox?: Phaser.GameObjects.Rectangle;
 
+    private vineDetectionBox?: Phaser.GameObjects.Rectangle;
     private vineHighlightBox?: Phaser.GameObjects.Rectangle;
 
     private keyDetectionArea?: Phaser.GameObjects.Rectangle;
@@ -48,6 +49,7 @@ export default class LevelOne extends Phaser.Scene {
     // Functionality
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
+    private usedItems: Phaser.GameObjects.Sprite[] = [];
     private keyE?: Phaser.Input.Keyboard.Key;
     private keyF?: Phaser.Input.Keyboard.Key;
     private keyEPressed: boolean = false; // Flag to check if 'E' was pressed to prevent picking up multiple items from one long key press
@@ -62,7 +64,10 @@ export default class LevelOne extends Phaser.Scene {
     private vineStackImg: Phaser.GameObjects.Image;
     private keyStackImg: Phaser.GameObjects.Image;
     private levelCompleteText?: Phaser.GameObjects.Text;
+
     private popButton?: Phaser.GameObjects.Image;
+    private freePopsLeft: number = 2;
+    private freePopsLeftText: Phaser.GameObjects.Text;
 
     // For Player animations
     private lastDirection: string = "right";
@@ -213,6 +218,14 @@ export default class LevelOne extends Phaser.Scene {
 
         this.add.image(640, 70, "vineHook").setScale(0.6, 0.6);
 
+        this.freePopsLeftText = this.add
+            .text(30, 180, `Pops Left: ${this.freePopsLeft}`, {
+                fontFamily: "Arial",
+                fontSize: 18,
+                color: "#FFFFFF",
+            })
+            .setDepth(4);
+
         this.player = this.physics.add
             .sprite(100, 600, "gal_right")
             .setScale(0.77, 0.77)
@@ -351,7 +364,7 @@ export default class LevelOne extends Phaser.Scene {
         this.physics.add.collider(this.player, this.platforms);
 
         // KEY ITEM
-        this.key = this.add.sprite(290, 270, "key").setScale(2.5, 2.5);
+        this.key = this.add.sprite(245, 270, "key").setScale(2.5, 2.5);
         this.physics.add.collider(this.key, this.platforms);
         this.key.setSize(this.key.width - 100, this.key.height - 100);
         this.key.setName("key");
@@ -387,7 +400,7 @@ export default class LevelOne extends Phaser.Scene {
         this.mushroom.setPushable(false);
 
         this.monkey = this.physics.add
-            .sprite(390, 200, "monkey")
+            .sprite(300, 200, "monkey")
             .setScale(0.5, 0.5);
         this.physics.add.collider(this.monkey, this.platforms);
         this.monkey.setSize(this.monkey.width - 300, this.monkey.height - 200);
@@ -446,8 +459,8 @@ export default class LevelOne extends Phaser.Scene {
         );
 
         this.bananaBubble = this.add
-            .image(280, 130, "bananaBubble")
-            .setScale(0.7, 0.7);
+            .image(200, 140, "bananaBubble")
+            .setScale(0.66, 0.66);
 
         this.vineSwing = this.add.sprite(655, 140, "vine").setScale(0.35, 0.35);
         this.vineSwing.setOrigin(0.5, 0);
@@ -524,7 +537,7 @@ export default class LevelOne extends Phaser.Scene {
         this.mushroomHighlightBox.setAlpha(0.3);
         this.mushroomHighlightBox.setVisible(false);
 
-        this.bananaDetectionBox = this.add.rectangle(440, 200, 100, 150);
+        this.bananaDetectionBox = this.add.rectangle(350, 200, 30, 150);
         this.physics.world.enable(this.bananaDetectionBox);
         this.physics.add.collider(this.bananaDetectionBox, this.platforms);
 
@@ -537,6 +550,10 @@ export default class LevelOne extends Phaser.Scene {
         );
         this.bananaHighlightBox.setAlpha(0.3);
         this.bananaHighlightBox.setVisible(false);
+
+        this.vineDetectionBox = this.add.rectangle(470, 200, 30, 150);
+        this.physics.world.enable(this.vineDetectionBox);
+        this.physics.add.collider(this.vineDetectionBox, this.platforms);
 
         this.vineHighlightBox = this.add.rectangle(647, 130, 50, 50, 0xffff00);
         this.vineHighlightBox.setAlpha(0.5);
@@ -569,14 +586,14 @@ export default class LevelOne extends Phaser.Scene {
         this.levelCompleteText.setAlpha(0);
 
         // Free Pop stuff
-        this.popButton = this.add.image(70, 140, "pop-button").setScale(0.31);
-        this.popButton.setInteractive();
+        const popButton = this.add.image(70, 140, "pop-button").setScale(0.31);
+        popButton.setInteractive();
 
-        const originalScale = this.popButton.scaleX;
+        const originalScale = popButton.scaleX;
         const hoverScale = originalScale * 1.05;
-        this.popButton.on("pointerover", () => {
+        popButton.on("pointerover", () => {
             this.tweens.add({
-                targets: this.popButton,
+                targets: popButton,
                 scaleX: hoverScale,
                 scaleY: hoverScale,
                 duration: 115, // Duration of the tween in milliseconds
@@ -584,9 +601,9 @@ export default class LevelOne extends Phaser.Scene {
             });
         });
 
-        this.popButton.on("pointerout", () => {
+        popButton.on("pointerout", () => {
             this.tweens.add({
-                targets: this.popButton,
+                targets: popButton,
                 scaleX: originalScale,
                 scaleY: originalScale,
                 duration: 115, // Duration of the tween in milliseconds
@@ -594,8 +611,15 @@ export default class LevelOne extends Phaser.Scene {
             });
         });
 
-        this.popButton.on("pointerup", () => {
+        popButton.on("pointerup", () => {
             this.freePop();
+            this.freePopsLeft -= 1;
+            this.freePopsLeftText.setText(`Pops Left: ${this.freePopsLeft}`);
+            if (this.freePopsLeft <= 0) {
+                popButton.setScale(originalScale);
+                popButton.disableInteractive();
+                popButton.setTint(0x696969);
+            }
         });
 
         // Pause Buttons
@@ -861,6 +885,7 @@ export default class LevelOne extends Phaser.Scene {
 
     // reset states when restarting level
     private restartStates() {
+        this.usedItems = [];
         this.stackY = 300;
         this.mushroomPopped = false;
         this.startTime = this.time.now;
@@ -1041,7 +1066,7 @@ export default class LevelOne extends Phaser.Scene {
                                 } else if (item.name === "vineItem") {
                                     item.setPosition(700, 350);
                                 } else if (item.name === "key") {
-                                    item.setPosition(290, 270);
+                                    item.setPosition(245, 270);
                                 }
                             },
                         });
@@ -1066,6 +1091,7 @@ export default class LevelOne extends Phaser.Scene {
         const poppedItem = this.stack.pop();
 
         if (poppedItem) {
+            this.usedItems.push(poppedItem);
             // Animation to fade item out from stackpack and then fade in in its new location
             this.tweens.add({
                 targets: poppedItem,
@@ -1310,7 +1336,7 @@ export default class LevelOne extends Phaser.Scene {
                         originalScaleY = 0.5;
                     }
                     if (poppedItem.name === "key") {
-                        poppedItem.setPosition(290, 270);
+                        poppedItem.setPosition(245, 270);
                         originalScaleX = 2.5;
                         originalScaleY = 2.5;
                     }
@@ -1323,22 +1349,12 @@ export default class LevelOne extends Phaser.Scene {
                         duration: 300,
                         onComplete: () => {
                             this.imageViewOutStack(poppedItem);
-                            if (poppedItem.name === "ladder") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.1,
-                                    1000
-                                );
-                            }
-                            if (poppedItem.name === "plank") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.15,
-                                    1000
-                                );
-                            }
+                            this.createPulsateEffect(
+                                this,
+                                poppedItem,
+                                1.1,
+                                1000
+                            );
                         },
                     });
                 },
@@ -1351,13 +1367,15 @@ export default class LevelOne extends Phaser.Scene {
             return; // Prevent popping if a push is in progress
         }
 
-        this.loseLife();
-
         // Remove the top item from the stackpack and from grand list of collected items
         const poppedItem = this.stack.pop();
         this.collectedItems.pop();
 
         if (poppedItem && this.lives !== 0) {
+            const index = this.collectedItems.indexOf(poppedItem);
+            if (index !== -1) {
+                this.collectedItems.splice(index, 1);
+            }
             // Animation to fade item out from stackpack and then fade in in its new location
             this.tweens.add({
                 targets: poppedItem,
@@ -1391,7 +1409,7 @@ export default class LevelOne extends Phaser.Scene {
                         originalScaleY = 0.5;
                     }
                     if (poppedItem.name === "key") {
-                        poppedItem.setPosition(290, 270);
+                        poppedItem.setPosition(245, 270);
                         originalScaleX = 2.5;
                         originalScaleY = 2.5;
                     }
@@ -1407,12 +1425,12 @@ export default class LevelOne extends Phaser.Scene {
                         onComplete: () => {
                             //this.updateStackView();
                             this.imageViewOutStack(poppedItem);
-                            /*this.createPulsateEffect(
+                            this.createPulsateEffect(
                                 this,
                                 poppedItem,
                                 1.1,
                                 1000
-                            );*/
+                            );
                         },
                     });
                 },
@@ -1481,11 +1499,10 @@ export default class LevelOne extends Phaser.Scene {
     }
 
     private playerDie() {
-        //this.player?.setVelocity(0, 0);
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
-            this.scene.launch("YouDiedScene", {
+            this.scene.launch("YouDiedScene1", {
                 currentLevelKey: this.scene.key,
                 level0State: this.level0State,
                 level1State: this.level1State,
@@ -1498,6 +1515,7 @@ export default class LevelOne extends Phaser.Scene {
             this.stack = [];
             //this.updateStackView();
             this.collectedItems = [];
+            this.usedItems = [];
             //this.usedItems = [];
             this.lives = 3;
             this.createHearts();
@@ -1647,13 +1665,20 @@ export default class LevelOne extends Phaser.Scene {
             this.stoneHighlightBox &&
             this.mushroomHighlightBox &&
             this.bananaHighlightBox &&
-            this.vineHighlightBox
+            this.vineDetectionBox &&
+            this.vineHighlightBox &&
+            this.stone &&
+            this.mushroom &&
+            this.banana &&
+            this.vineItem &&
+            this.key
         ) {
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.stoneDetectionBox.getBounds()
-                )
+                ) &&
+                !this.usedItems.includes(this.stone)
             ) {
                 this.stoneHighlightBox.setVisible(true);
                 if (this.keyF?.isDown && !this.keyFPressed) {
@@ -1663,6 +1688,7 @@ export default class LevelOne extends Phaser.Scene {
                         this.useItem();
                     } else {
                         this.loseLife();
+                        this.keyFPressed = true;
                         this.popWrongItem(this.stoneHighlightBox);
                     }
                 }
@@ -1670,46 +1696,55 @@ export default class LevelOne extends Phaser.Scene {
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.mushroomDetectionBox.getBounds()
-                )
+                ) &&
+                !this.usedItems.includes(this.mushroom)
             ) {
                 this.mushroomHighlightBox.setVisible(true);
-                if (
-                    this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack[this.stack.length - 1].name === "mushroom"
-                ) {
-                    this.keyFPressed = true;
-                    this.useItem();
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    if (this.stack[this.stack.length - 1].name === "mushroom") {
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        this.loseLife();
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.mushroomHighlightBox);
+                    }
                 }
             } else if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.bananaDetectionBox.getBounds()
-                )
+                ) &&
+                !this.usedItems.includes(this.banana)
             ) {
                 this.bananaHighlightBox.setVisible(true);
-                if (
-                    this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack[this.stack.length - 1].name === "banana"
-                ) {
-                    this.keyFPressed = true;
-                    this.useItem();
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    if (this.stack[this.stack.length - 1].name === "banana") {
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        this.loseLife();
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.bananaHighlightBox);
+                    }
                 }
             } else if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
-                    this.bananaDetectionBox.getBounds()
-                )
+                    this.vineDetectionBox.getBounds()
+                ) &&
+                !this.usedItems.includes(this.vineItem)
             ) {
                 this.vineHighlightBox.setVisible(true); // replace with vine highlight box
-                if (
-                    this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack[this.stack.length - 1].name === "vineItem"
-                ) {
-                    this.keyFPressed = true;
-                    this.useItem();
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    if (this.stack[this.stack.length - 1].name === "vineItem") {
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        this.loseLife();
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.vineHighlightBox);
+                    }
                 }
             } else if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
