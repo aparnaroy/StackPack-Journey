@@ -38,8 +38,6 @@ export default class youDiedScene extends Phaser.Scene {
         blackBackground.setDepth(31);
         blackBackground.setAlpha(0);
 
-        console.log("In youdied scene");
-
         // Animate you died text and black background
         this.tweens.add({
             targets: [playerDiedText, blackBackground],
@@ -48,9 +46,7 @@ export default class youDiedScene extends Phaser.Scene {
             duration: 200,
             ease: "Bounce",
             onComplete: () => {
-                console.log("Completed tween");
                 this.time.delayedCall(1000, () => {
-                    console.log("In delayed call");
                     this.scene.stop("YouDiedScene");
                     this.scene.start(data.currentLevelKey, {
                         level0State: data.level0State,
@@ -58,7 +54,6 @@ export default class youDiedScene extends Phaser.Scene {
                         level2State: data.level2State,
                         level3State: data.level3State,
                     });
-                    //this.scene.start("game-map");
                 });
             },
         });

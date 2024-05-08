@@ -56,6 +56,7 @@ export default class TitleScreen extends Phaser.Scene {
 
         playButton.on("pointerup", () => {
             this.scene.start("game-map");
+            //this.scene.start("EndCutScene");
         });
     }
 

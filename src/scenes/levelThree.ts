@@ -272,6 +272,8 @@ export default class LevelThree extends Phaser.Scene {
             this.input.keyboard.enabled = true;
         }
 
+        setTimeout(() => (this.startTime = this.time.now));
+
         this.lastDirection = "right";
         this.usedSword = false;
 
@@ -572,8 +574,6 @@ export default class LevelThree extends Phaser.Scene {
         ) as Phaser.Physics.Arcade.Image;
         this.liftWall2.setScale(0.02, 0.2).refreshBody();
         this.liftWall2.setVisible(false);
-
-        this.physics.add.collider(this.player, this.liftPlatforms);
 
         // Add collision between player and platforms
         this.physics.add.collider(this.player, this.liftPlatforms);
@@ -1230,7 +1230,7 @@ export default class LevelThree extends Phaser.Scene {
             this.isPaused = false;
             // TODO: Transition to ending cut scene
             setTimeout(() => {
-                this.scene.start("game-map", {
+                this.scene.start("EndCutScene", {
                     level0State: this.level0State,
                     level1State: this.level1State,
                     level2State: this.level2State,
