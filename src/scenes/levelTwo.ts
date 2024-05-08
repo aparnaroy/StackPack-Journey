@@ -1580,6 +1580,7 @@ export default class LevelTwo extends Phaser.Scene {
             this.createHearts();
             this.freePopsLeft = 3;
             this.clubCollected = false;
+            this.usedClub = false;
         });
     }
 
@@ -1596,6 +1597,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.pausedTime = 0;
         this.isPaused = false;
         this.clubCollected = false;
+        this.usedClub = false;
     }
 
     private createPulsateEffect(
