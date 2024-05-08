@@ -21,9 +21,9 @@ export default class LevelTwo extends Phaser.Scene {
     private pot?: Phaser.GameObjects.Sprite;
     private seeds?: Phaser.GameObjects.Sprite;
     private wateringCan?: Phaser.GameObjects.Sprite;
-    private bird?: Phaser.Physics.Arcade.Sprite;
-    private birdDirection: number = 1; // 1 for right, -1 for left
-    private birdSpeed: number = 2;
+    private flyingBird?: Phaser.Physics.Arcade.Sprite;
+    private birdPlatform!: Phaser.Physics.Arcade.Group;
+    private bird?: Phaser.Physics.Arcade.Image;
     private onBird: boolean = false;
     private smogGroup?: Phaser.Physics.Arcade.StaticGroup;
     private smog4?: Phaser.Physics.Arcade.Sprite;
@@ -215,18 +215,62 @@ export default class LevelTwo extends Phaser.Scene {
             .setOrigin(0.5, 0.5);
         this.player.setCollideWorldBounds(true);
 
-        this.bird = this.physics.add
-            .sprite(250, 200, "bird_right")
+        this.flyingBird = this.physics.add
+            .sprite(230, 330, "bird_right")
             .setScale(4)
             .setDepth(1);
-        this.bird.setCollideWorldBounds(true);
-        this.physics.add.collider(
-            this.bird,
-            this.player,
-            this.handleOnBird,
-            undefined,
-            this
-        );
+        this.flyingBird.setCollideWorldBounds(true);
+
+        this.birdPlatform = this.physics.add.group({
+            immovable: true, // Make immovable by collisions
+            allowGravity: false, // Disable gravity
+        });
+        this.bird = this.birdPlatform.create(
+            230,
+            330,
+            "bird_right"
+        ) as Phaser.Physics.Arcade.Image;
+        this.bird.setScale(4).refreshBody();
+        this.bird
+            .setSize(this.bird.width - 15, this.bird.height - 10)
+            .setOffset(7, 15);
+        this.bird.setVisible(false);
+
+        this.physics.add.collider(this.player, this.birdPlatform);
+
+        // Making bird move back and forth
+        this.tweens.add({
+            targets: this.birdPlatform.getChildren(),
+            x: "+=480",
+            duration: 4000,
+            yoyo: true,
+            repeat: -1,
+            ease: "Linear",
+        });
+        this.tweens.add({
+            targets: this.flyingBird,
+            x: "+=480",
+            duration: 4000,
+            yoyo: true,
+            repeat: -1,
+            ease: "Linear",
+            onYoyo: () => {
+                if (this.flyingBird) {
+                    this.flyingBird.flipX = !this.flyingBird.flipX;
+                    if (this.onBird && this.player) {
+                        this.player.flipX = this.flyingBird.flipX;
+                    }
+                }
+            },
+            onRepeat: () => {
+                if (this.flyingBird) {
+                    this.flyingBird.flipX = !this.flyingBird.flipX;
+                    if (this.onBird && this.player) {
+                        this.player.flipX = this.flyingBird.flipX;
+                    }
+                }
+            },
+        });
 
         this.troll = this.physics.add.sprite(250, 800, "troll").setScale(0.3);
         this.troll.body?.setSize(
@@ -314,12 +358,12 @@ export default class LevelTwo extends Phaser.Scene {
             key: "fly_right",
             frames: this.anims.generateFrameNumbers("bird_right", {
                 start: 70,
-                end: 74,
+                end: 73,
             }),
-            frameRate: 10,
+            frameRate: 9,
             repeat: -1,
         });
-        this.bird.play("fly_right");
+        this.flyingBird.play("fly_right");
 
         this.anims.create({
             key: "troll_right",
@@ -483,8 +527,8 @@ export default class LevelTwo extends Phaser.Scene {
         }
         */
 
+        this.physics.add.collider(this.flyingBird, this.smogGroup);
         this.physics.add.collider(this.bird, this.smogGroup);
-        //this.bird.setImmovable(true);
 
         // Creating lives
         this.createHearts();
@@ -1377,31 +1421,6 @@ export default class LevelTwo extends Phaser.Scene {
         }
     }
 
-    // Makes player fly on bird
-    private handleOnBird() {
-        if (this.onBird) {
-            this.onBird = false;
-        } else {
-            if (this.player && this.bird && this.bird.body && this.player.y) {
-                const birdVelocityX = this.bird.body.velocity.x;
-                const birdVelocityY = this.bird.body.velocity.y;
-
-                this.player.x = this.bird.x;
-                this.player.y =
-                    this.bird.y -
-                    this.bird.displayHeight / 2 -
-                    this.player.displayHeight / 2;
-
-                this.physics.world.collide(this.player, this.bird);
-
-                this.bird.body.velocity.x = birdVelocityX;
-                this.bird.body.velocity.y = birdVelocityY;
-
-                this.onBird = true;
-            }
-        }
-    }
-
     update() {
         // Updating timer
         if (!this.isPaused) {
@@ -1460,7 +1479,7 @@ export default class LevelTwo extends Phaser.Scene {
                     this.player.y,
                     this.key.x,
                     this.key.y
-                ) < 100
+                ) < 30
             ) {
                 this.collectItem(this.key);
             }
@@ -1644,20 +1663,6 @@ export default class LevelTwo extends Phaser.Scene {
             }
         }
 
-        // Making bird move back and forth
-        if (!this.isPaused) {
-            if (this.bird) {
-                this.bird.x += this.birdDirection * this.birdSpeed;
-                // Check if the bird reaches the screen edges
-                if (this.bird.x <= 250 || this.bird.x >= 700) {
-                    // Change direction
-                    this.birdDirection *= -1;
-                    // Flip bird horizontally
-                    this.bird.flipX = !this.bird.flipX;
-                }
-            }
-        }
-
         // Making troll move back and forth -- need to fix
         const chaseThreshold = 400;
         const attackThreshold = 70;
@@ -1725,16 +1730,24 @@ export default class LevelTwo extends Phaser.Scene {
             this.club.y = this.bird.y - this.bird.displayHeight / 2;
         }
 
+        if (
+            this.player &&
+            this.bird &&
+            Phaser.Math.Distance.Between(
+                this.player.x,
+                this.player.y,
+                this.bird.x,
+                this.bird.y
+            ) < 100
+        ) {
+            this.onBird = true;
+        } else {
+            this.onBird = false;
+        }
+
         // Making player fly on bird
         if (this.onBird && this.player && this.bird) {
             this.player.x = this.bird.x;
-            this.player.y =
-                this.bird.y -
-                this.bird.displayHeight / 2 -
-                this.player.displayHeight / 2;
-
-            // Ensure player is above the bird
-            this.physics.world.collide(this.player, this.bird);
         }
 
         // Check if player touches smog
