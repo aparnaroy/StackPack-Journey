@@ -199,6 +199,9 @@ export default class LevelZero extends Phaser.Scene {
             this.input.keyboard.enabled = true;
         }
 
+        // Temporary fix for time not fully resetting bug
+        setTimeout(() => (this.startTime = this.time.now));
+
         this.level0State = data.level0State;
         this.level1State = data.level1State;
         this.level2State = data.level2State;
@@ -614,13 +617,10 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         // Creating timer
-        this.timerText = this.add.text(60, 15, "Time: 0", {
+        this.timerText = this.add.text(60, 15, "Time: 00:00", {
             fontSize: "32px",
             color: "#000000",
         });
-        this.startTime = this.time.now;
-        this.pausedTime = 0;
-        this.isPaused = false;
 
         // Level complete popup - still working
         const completeExitButton = this.add.circle(790, 185, 35).setDepth(10);
@@ -1359,7 +1359,6 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private playerDie() {
-        //this.player?.setVelocity(0, 0);
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
@@ -1393,6 +1392,10 @@ export default class LevelZero extends Phaser.Scene {
         this.createHearts();
         this.freePopsLeft = 2;
         this.downArrow?.setPosition(350, 350);
+        console.log("resetting", this.time.now, this.startTime);
+        this.startTime = this.time.now;
+        this.pausedTime = 0;
+        this.isPaused = false;
     }
 
     private createPulsateEffect(
@@ -1447,6 +1450,7 @@ export default class LevelZero extends Phaser.Scene {
     update() {
         // Updating timer
         if (!this.isPaused) {
+            console.log("updating time", this.time.now, this.startTime);
             var currentTime = this.time.now;
             this.elapsedTime = currentTime - this.startTime;
             this.timerText.setText(
