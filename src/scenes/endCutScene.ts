@@ -36,23 +36,23 @@ export default class EndCutScene extends Phaser.Scene {
     preload() {
         this.load.image(
             "end-cutscene-background",
-            "assets/cutscenes/end-background1.jpeg"
+            "assets/end-cutscene/end-background1.jpeg"
         );
         this.load.image(
             "final-background",
-            "assets/cutscenes/final-background.jpg"
+            "assets/end-cutscene/final-background.jpg"
         );
         this.load.image("just-stackpack", "assets/backpack.png");
 
-        this.load.image("cutscene-heart", "assets/cutscenes/heart.png");
+        this.load.image("cutscene-heart", "assets/end-cutscene/heart.png");
 
         this.load.image(
             "play-again-button",
-            "assets/cutscenes/play-again-button.png"
+            "assets/end-cutscene/play-again-button.png"
         );
         this.load.image(
             "world-map-button",
-            "assets/cutscenes/world-map-button.png"
+            "assets/end-cutscene/world-map-button.png"
         );
 
         this.load.spritesheet(
@@ -310,6 +310,7 @@ export default class EndCutScene extends Phaser.Scene {
         /*this.door
             .setSize(this.door.width, this.door.height - 60)
             .setOffset(0, 0);*/
+
         this.animateEnding();
     }
 
