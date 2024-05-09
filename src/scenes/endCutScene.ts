@@ -15,11 +15,14 @@ export default class EndCutScene extends Phaser.Scene {
     private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
     private stackpack?: Phaser.GameObjects.Image;
+    private heart?: Phaser.GameObjects.Image;
 
     private galMove: string = "right";
     private dudeMove: string = "left";
     private galLastDirection: string = "right";
     private dudeLastDirection: string = "right";
+
+    private delay: number;
 
     private level0State: number;
     private level1State: number;
@@ -35,7 +38,22 @@ export default class EndCutScene extends Phaser.Scene {
             "end-cutscene-background",
             "assets/cutscenes/end-background1.jpeg"
         );
+        this.load.image(
+            "final-background",
+            "assets/cutscenes/final-background.jpg"
+        );
         this.load.image("just-stackpack", "assets/backpack.png");
+
+        this.load.image("cutscene-heart", "assets/cutscenes/heart.png");
+
+        this.load.image(
+            "play-again-button",
+            "assets/cutscenes/play-again-button.png"
+        );
+        this.load.image(
+            "world-map-button",
+            "assets/cutscenes/world-map-button.png"
+        );
 
         this.load.spritesheet(
             "gal_idle_right",
@@ -133,6 +151,8 @@ export default class EndCutScene extends Phaser.Scene {
         this.galLastDirection = "right";
         this.dudeLastDirection = "left";
 
+        this.delay = 0;
+
         const backgroundImage = this.add
             .image(0, 0, "end-cutscene-background")
             .setOrigin(0, 0);
@@ -142,10 +162,18 @@ export default class EndCutScene extends Phaser.Scene {
         );
 
         this.stackpack = this.add
-            .image(0, 0, "just-stackpack")
-            .setPosition(100, 551)
+            .image(100, 150, "just-stackpack")
+            //.setPosition(100, 551)
             .setOrigin(0.5, 1);
         this.stackpack.setScale(0.1, 0.1);
+
+        this.heart = this.add.image(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2,
+            "cutscene-heart"
+        );
+        this.heart.setDepth(20);
+        this.heart.setScale(0);
 
         // Creating Gal
         this.player = this.physics.add
@@ -282,10 +310,19 @@ export default class EndCutScene extends Phaser.Scene {
         /*this.door
             .setSize(this.door.width, this.door.height - 60)
             .setOffset(0, 0);*/
-        this.animateEnding2();
+        this.animateEnding();
     }
 
-    private animateEnding2() {
+    private animateEnding() {
+        // Make stackpack drop to floor
+        this.tweens.add({
+            targets: this.stackpack,
+            y: 551,
+            duration: 900,
+        });
+
+        this.delay = 1000; // Wait 1000 millisseconds before starting
+
         // Step 1: Both player and dude run to the middle of the screen
         setTimeout(() => {
             // Tween for the player
@@ -313,7 +350,7 @@ export default class EndCutScene extends Phaser.Scene {
                     this.dudeMove = "";
                 },
             });
-        }, 1000);
+        }, this.delay);
 
         // Spin around each other
         /*setTimeout(() => {
@@ -460,80 +497,219 @@ export default class EndCutScene extends Phaser.Scene {
                 },
             });
         }, 3000);*/
+        // HERE
 
+        this.delay += 2700;
         // Step 2: Player looks left
+        setTimeout(() => {
+            this.galLastDirection = "left";
+        }, this.delay);
 
+        this.delay += 1000;
         // Step 3: Player looks back right to the dude
+        setTimeout(() => {
+            this.galLastDirection = "right";
+        }, this.delay);
+
+        this.delay += 500;
         // Step 4: Player walks to the left and collects the stackpack
-        // Step 5: Player walks back to the dude
-        // Step 6: A heart appears and fills the whole screen
-    }
-
-    private animateEnding() {
-        // Step 1: Run towards the middle of the screen
-        this.tweens.add({
-            targets: [this.player, this.dude],
-            x: this.cameras.main.centerX,
-            duration: 2000,
-            onComplete: () => {
-                this.dude?.setVelocity(0, 0);
-                // Step 2: Player turns left
-                this.player?.anims.play("gal_walk_left", true);
-
-                // Step 3: Player turns right
-                this.time.delayedCall(1000, () => {
-                    this.player?.anims.play("gal_walk_right", true);
-
-                    // Step 4: Player walks to the left and collects the stackpack
+        setTimeout(() => {
+            this.tweens.add({
+                targets: this.player,
+                x: 220,
+                duration: 1200,
+                onStart: () => {
+                    this.galMove = "left";
+                },
+                onComplete: () => {
+                    this.galMove = "";
+                    // Collect stackpack
                     this.tweens.add({
-                        targets: this.player,
-                        x: this.stackpack?.x,
-                        duration: 2000,
+                        targets: this.stackpack,
+                        x: this.player?.x, // Move towards the player's x position
+                        y: this.player?.y,
+                        scaleX: 0.03, // Shrink horizontally
+                        scaleY: 0.03, // Shrink vertically
+                        duration: 500, // Duration of animation
                         onComplete: () => {
-                            // Stackpack animation (shrink)
-                            this.tweens.add({
-                                targets: this.stackpack,
-                                scaleX: 0,
-                                scaleY: 0,
-                                duration: 1000,
-                            });
-
-                            // Step 5: Player walks back to the dude
-                            this.time.delayedCall(2000, () => {
-                                this.tweens.add({
-                                    targets: this.player,
-                                    x: this.dude?.x,
-                                    duration: 2000,
-                                    onComplete: () => {
-                                        // Step 6: Heart animation
-                                        this.animateHeart();
-                                    },
-                                });
-                            });
+                            this.stackpack?.setVisible(false);
                         },
                     });
-                });
-            },
-        });
+                },
+            });
+        }, this.delay);
+
+        this.delay += 1700;
+        // Step 5: Player walks back to the dude
+        setTimeout(() => {
+            this.tweens.add({
+                targets: this.player,
+                x: this.cameras.main.centerX - 45,
+                duration: 1500,
+                onStart: () => {
+                    this.galMove = "right";
+                },
+            });
+        }, this.delay);
+
+        this.delay += 1500;
+        // Step 6: Player and dude walk to the right together
+        setTimeout(() => {
+            // Player
+            this.player?.setVelocityX(150);
+            this.galMove = "right";
+
+            // Dude
+            this.dude?.setVelocityX(150);
+            this.dudeMove = "rightWalk";
+        }, this.delay);
+
+        this.delay += 500;
+        // Step 7: A heart appears and fills the whole screen
+        setTimeout(() => {
+            this.tweens.add({
+                targets: this.heart,
+                scaleX: 3,
+                scaleY: 3,
+                duration: 2800,
+                onComplete: () => {
+                    // Step 8: Display last scene
+                    this.displayLastScene();
+                },
+            });
+        }, this.delay);
     }
 
-    private animateHeart() {
-        const heart = this.add.image(
-            this.cameras.main.centerX,
-            this.cameras.main.centerY,
-            "heart"
+    private displayLastScene() {
+        // After the cutscene
+        const newBackgroundImage = this.add
+            .image(0, 0, "final-background")
+            .setOrigin(0, 0)
+            .setDepth(30);
+        newBackgroundImage.setScale(
+            this.cameras.main.width / newBackgroundImage.width,
+            this.cameras.main.height / newBackgroundImage.height
         );
-        heart.setScale(0);
 
-        this.tweens.add({
-            targets: heart,
-            scaleX: 1,
-            scaleY: 1,
-            duration: 3000,
-            onComplete: () => {
-                // End of the cutscene
-                console.log("End of cutscene");
-            },
+        const thankYouText = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY - 210,
+            "Thank you for Playing",
+            {
+                fontFamily: "Comic Sans MS",
+                fontSize: "90px",
+                color: "#253347",
+                align: "center",
+                fontStyle: "bold",
+            }
+        );
+        thankYouText.setOrigin(0.5).setDepth(32);
+
+        const authorText = this.add.text(
+            this.cameras.main.centerX + 50,
+            this.cameras.main.centerY + 110,
+            "A game by Aparna Roy, Sam Glover & Emilie Barniak",
+            {
+                fontFamily: "Comic Sans MS",
+                fontSize: "35px",
+                color: "#253347",
+                align: "center",
+            }
+        );
+        authorText.setOrigin(0.5).setDepth(32);
+
+        this.stackpack
+            ?.setVisible(true)
+            .setScale(0.06)
+            .setDepth(35)
+            .setPosition(220, 500);
+
+        this.galMove = "";
+        this.dudeMove = "";
+        this.galLastDirection = "right";
+        this.dudeLastDirection = "left";
+        this.player?.setVelocityX(0);
+        this.dude?.setVelocityX(0);
+        this.player?.setDepth(31);
+        this.player?.setPosition(this.cameras.main.centerX - 80, 315);
+        this.dude?.setDepth(31);
+        this.dude?.setPosition(this.cameras.main.centerX + 80, 315);
+        this.ground?.setPosition(650, 500).refreshBody();
+
+        const playAgainButton = this.add
+            .image(
+                this.cameras.main.centerX - 180,
+                this.cameras.main.centerY + 235,
+                "play-again-button"
+            )
+            .setDepth(30);
+        playAgainButton.setScale(0.4, 0.4);
+        playAgainButton.setInteractive();
+
+        const worldMapButton = this.add
+            .image(
+                this.cameras.main.centerX + 180,
+                this.cameras.main.centerY + 235,
+                "world-map-button"
+            )
+            .setDepth(30);
+        worldMapButton.setScale(0.4, 0.4);
+        worldMapButton.setInteractive();
+
+        const originalScale = playAgainButton.scaleX;
+        const hoverScale = originalScale * 1.06;
+
+        playAgainButton.on("pointerover", () => {
+            this.tweens.add({
+                targets: playAgainButton,
+                scaleX: hoverScale,
+                scaleY: hoverScale,
+                duration: 115,
+                ease: "Linear",
+            });
+        });
+
+        playAgainButton.on("pointerout", () => {
+            this.tweens.add({
+                targets: playAgainButton,
+                scaleX: originalScale,
+                scaleY: originalScale,
+                duration: 115,
+                ease: "Linear",
+            });
+        });
+
+        playAgainButton.on("pointerup", () => {
+            window.location.reload(); // Reload the page
+        });
+
+        worldMapButton.on("pointerover", () => {
+            this.tweens.add({
+                targets: worldMapButton,
+                scaleX: hoverScale,
+                scaleY: hoverScale,
+                duration: 115,
+                ease: "Linear",
+            });
+        });
+
+        worldMapButton.on("pointerout", () => {
+            this.tweens.add({
+                targets: worldMapButton,
+                scaleX: originalScale,
+                scaleY: originalScale,
+                duration: 115,
+                ease: "Linear",
+            });
+        });
+
+        worldMapButton.on("pointerup", () => {
+            this.scene.start("game-map", {
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
+            });
         });
     }
 
@@ -543,11 +719,9 @@ export default class EndCutScene extends Phaser.Scene {
             if (this.galMove == "up") {
                 this.player.setVelocityY(-530);
             } else if (this.galMove == "right") {
-                //this.player.setVelocityX(290);
                 this.player.anims.play("gal_walk_right", true);
                 this.galLastDirection = "right"; // Update last direction
             } else if (this.galMove == "left") {
-                //this.player.setVelocityX(-290);
                 this.player.anims.play("gal_walk_left", true);
                 this.galLastDirection = "left"; // Update last direction
             } else {
@@ -567,13 +741,14 @@ export default class EndCutScene extends Phaser.Scene {
                 this.dude.anims.play("dude_idle_right", true);
                 this.dude.setVelocityY(-530);
             } else if (this.dudeMove == "right") {
-                //this.dude.setVelocityX(290);
                 this.dude.anims.play("dude_run_right", true);
                 this.dudeLastDirection = "right"; // Update last direction
             } else if (this.dudeMove == "left") {
-                //this.dude.setVelocityX(-290);
                 this.dude.anims.play("dude_run_left", true);
                 this.dudeLastDirection = "left"; // Update last direction
+            } else if (this.dudeMove == "rightWalk") {
+                this.dude.anims.play("dude_walk_right", true);
+                this.dudeLastDirection = "right"; // Update last direction
             } else {
                 this.dude.setVelocityX(0);
                 // Check last direction and play corresponding idle animation
@@ -584,51 +759,5 @@ export default class EndCutScene extends Phaser.Scene {
                 }
             }
         }
-        /*// Move the gal with arrow keys
-        // Inside your update function or wherever you handle player movement
-        if (this.player && this.cursors) {
-            if (this.cursors.up.isDown && this.player.body?.touching.down) {
-                this.player.setVelocityY(-530);
-            } else if (this.cursors.right.isDown) {
-                this.player.setVelocityX(290);
-                this.player.anims.play("gal_walk_right", true);
-                this.lastDirection = "right"; // Update last direction
-            } else if (this.cursors.left.isDown) {
-                this.player.setVelocityX(-290);
-                this.player.anims.play("gal_walk_left", true);
-                this.lastDirection = "left"; // Update last direction
-            } else {
-                this.player.setVelocityX(0);
-                // Check last direction and play corresponding idle animation
-                if (this.lastDirection === "right") {
-                    this.player.anims.play("gal_idle_right", true);
-                } else {
-                    this.player.anims.play("gal_idle_left", true);
-                }
-            }
-        }
-
-        if (this.dude && this.cursors) {
-            if (this.cursors.up.isDown && this.dude.body?.touching.down) {
-                this.dude.anims.play("dude_idle_right", true);
-                this.dude.setVelocityY(-530);
-            } else if (this.cursors.right.isDown) {
-                this.dude.setVelocityX(-290);
-                this.dude.anims.play("dude_run_left", true);
-                this.lastDirection = "right"; // Update last direction
-            } else if (this.cursors.left.isDown) {
-                this.dude.setVelocityX(290);
-                this.dude.anims.play("dude_run_right", true);
-                this.lastDirection = "left"; // Update last direction
-            } else {
-                this.dude.setVelocityX(0);
-                // Check last direction and play corresponding idle animation
-                if (this.lastDirection === "right") {
-                    this.dude.anims.play("dude_idle_left", true);
-                } else {
-                    this.dude.anims.play("dude_idle_right", true);
-                }
-            }
-        }*/
     }
 }
