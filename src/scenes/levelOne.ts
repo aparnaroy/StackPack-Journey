@@ -187,6 +187,8 @@ export default class LevelOne extends Phaser.Scene {
             "FreePopInstructions",
             "assets/FreePop-Instructions.png"
         );
+        this.load.image("EF-keys-black", "assets/EF-keys-black.png");
+
         this.load.image("pop-button", "assets/freePop2.png");
 
         this.load.image("pause-button", "assets/pause2.png");
@@ -210,6 +212,9 @@ export default class LevelOne extends Phaser.Scene {
             this.cameras.main.width / backgroundImage.width,
             this.cameras.main.height / backgroundImage.height
         );
+
+        const EFkeys = this.add.image(370, 60, "EF-keys-black");
+        EFkeys.setScale(0.35);
 
         const stackpack = this.add
             .image(0, 0, "stackpack")
@@ -542,8 +547,8 @@ export default class LevelOne extends Phaser.Scene {
         this.physics.add.collider(this.bananaDetectionBox, this.platforms);
 
         this.bananaHighlightBox = this.add.rectangle(
-            280,
-            120,
+            200,
+            125,
             80,
             80,
             0xffff00
@@ -847,24 +852,29 @@ export default class LevelOne extends Phaser.Scene {
 
         completeReplayButton.on("pointerup", () => {
             this.restartStates();
-            this.scene.restart();
+            this.scene.start("level1", {
+                level0State: this.level0State,
+                level1State: 3,
+                level2State: 1,
+                level3State: this.level3State,
+            });
         });
 
         completeMenuButton.on("pointerup", () => {
-            if (this.level1State == 0) {
+            if (this.level2State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
-                        level0State: 3,
-                        level1State: 1,
-                        level2State: this.level2State,
+                        level0State: this.level0State,
+                        level1State: 3,
+                        level2State: 1,
                         level3State: this.level3State,
                     });
                 }, 500);
             } else {
                 setTimeout(() => {
                     this.scene.start("game-map", {
-                        level0State: 3,
-                        level1State: this.level1State,
+                        level0State: this.level0State,
+                        level1State: 3,
                         level2State: this.level2State,
                         level3State: this.level3State,
                     });
@@ -873,7 +883,23 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
-            this.scene.start("Level2");
+            this.isPaused = false;
+            if (this.level2State == 0) {
+                // If level 3 was locked before, set it to current level status
+                this.scene.start("Level2", {
+                    level0State: this.level0State,
+                    level1State: 3,
+                    level2State: 2,
+                    level3State: this.level3State,
+                });
+            } else {
+                this.scene.start("Level2", {
+                    level0State: this.level0State,
+                    level1State: 3,
+                    level2State: this.level2State,
+                    level3State: this.level3State,
+                });
+            }
         });
 
         this.threeStarsPopup.setVisible(false);
@@ -1679,7 +1705,11 @@ export default class LevelOne extends Phaser.Scene {
                 !this.usedItems.includes(this.stone)
             ) {
                 this.stoneHighlightBox.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
                     if (this.stack[this.stack.length - 1].name === "stone") {
                         this.stoneDetectionBox.setVisible(false);
                         this.keyFPressed = true;
@@ -1698,7 +1728,11 @@ export default class LevelOne extends Phaser.Scene {
                 !this.usedItems.includes(this.mushroom)
             ) {
                 this.mushroomHighlightBox.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
                     if (this.stack[this.stack.length - 1].name === "mushroom") {
                         this.keyFPressed = true;
                         this.useItem();
@@ -1716,7 +1750,11 @@ export default class LevelOne extends Phaser.Scene {
                 !this.usedItems.includes(this.banana)
             ) {
                 this.bananaHighlightBox.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
                     if (this.stack[this.stack.length - 1].name === "banana") {
                         this.keyFPressed = true;
                         this.useItem();
@@ -1737,17 +1775,21 @@ export default class LevelOne extends Phaser.Scene {
                     !this.keyFPressed &&
                     this.stack.length > 0
                 ) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                    // Animate level complete text
-                    this.tweens.add({
-                        targets: this.levelCompleteText,
-                        scale: 1,
-                        alpha: 1,
-                        duration: 1000,
-                        ease: "Bounce",
-                        delay: 500, // Delay the animation slightly
-                    });
+                    if (this.stack[this.stack.length - 1].name === "key") {
+                        this.keyFPressed = true;
+                        this.useItem();
+                        this.tweens.add({
+                            targets: this.levelCompleteText,
+                            scale: 1,
+                            alpha: 1,
+                            duration: 1000,
+                            ease: "Bounce",
+                            delay: 500, // Delay the animation slightly
+                        });
+                    } else {
+                        this.loseLife();
+                        this.keyFPressed = true;
+                    }
                 }
             } else {
                 this.stoneHighlightBox.setVisible(false);
@@ -1770,7 +1812,11 @@ export default class LevelOne extends Phaser.Scene {
                 !this.usedItems.includes(this.vineItem)
             ) {
                 this.vineHighlightBox.setVisible(true); // replace with vine highlight box
-                if (this.keyF?.isDown && !this.keyFPressed) {
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
                     if (this.stack[this.stack.length - 1].name === "vineItem") {
                         this.keyFPressed = true;
                         this.useItem();
