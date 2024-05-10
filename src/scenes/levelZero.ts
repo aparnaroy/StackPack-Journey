@@ -933,7 +933,7 @@ export default class LevelZero extends Phaser.Scene {
     private updateStackView() {
         const offsetX = 1170; // starting X position for stack items
         const offsetY = 270; // starting Y position for stack items
-        const padding = 20;
+        const padding = 19.3;
 
         let currTotalHeight = 0;
 
@@ -1011,101 +1011,6 @@ export default class LevelZero extends Phaser.Scene {
         this.stopPulsateEffect();
 
         this.updateStackView();
-    }
-
-    private popWrongItem(usageArea: Phaser.GameObjects.Rectangle) {
-        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
-            return; // Prevent popping if a push is in progress
-        }
-
-        this.loseLife();
-
-        // Remove the top item from the stackpack
-        const poppedItem = this.stack.pop();
-
-        if (poppedItem && this.lives !== 0) {
-            // Remove popped item from grand list of collected items
-            const index = this.collectedItems.indexOf(poppedItem);
-            if (index !== -1) {
-                this.collectedItems.splice(index, 1);
-            }
-
-            // Animation to flash red in location player tried to use item
-            this.tweens.add({
-                targets: usageArea,
-                alpha: 0,
-                duration: 300,
-                yoyo: true,
-                repeat: 1,
-                onStart: () => {
-                    usageArea.alpha = 0.55;
-                    usageArea.fillColor = 0xff0000; // Make area red
-                    this.flashingRed = true;
-                },
-                onComplete: () => {
-                    usageArea.alpha = 0.25; // Reset area color and alpha
-                    usageArea.fillColor = 0xffff00;
-                    this.flashingRed = false;
-                },
-            });
-
-            // Animation to fade item out from stackpack and then fade in in its new location
-            this.tweens.add({
-                targets: poppedItem,
-                alpha: 0, // Fade out
-                duration: 200,
-                onComplete: () => {
-                    // Set item origin back to default (center)
-                    poppedItem.setOrigin(0.5, 0.5);
-
-                    let originalScaleX = 0;
-                    let originalScaleY = 0;
-                    // Move popped item to its original location
-                    if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
-                    }
-                    if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(350, 530);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
-                    }
-                    if (poppedItem.name === "key") {
-                        poppedItem.setPosition(1200, 650);
-                        originalScaleX = 2.5;
-                        originalScaleY = 2.5;
-                    }
-
-                    this.tweens.add({
-                        targets: poppedItem,
-                        scaleX: originalScaleX,
-                        scaleY: originalScaleY,
-                        alpha: 1, // Fade in
-                        duration: 300,
-                        onComplete: () => {
-                            this.updateStackView();
-                            if (poppedItem.name === "ladder") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.1,
-                                    1000
-                                );
-                            }
-                            if (poppedItem.name === "plank") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.15,
-                                    1000
-                                );
-                            }
-                        },
-                    });
-                },
-            });
-        }
     }
 
     private useItem() {
@@ -1298,6 +1203,101 @@ export default class LevelZero extends Phaser.Scene {
         }
     }
 
+    private popWrongItem(usageArea: Phaser.GameObjects.Rectangle) {
+        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
+            return; // Prevent popping if a push is in progress
+        }
+
+        this.loseLife();
+
+        // Remove the top item from the stackpack
+        const poppedItem = this.stack.pop();
+
+        if (poppedItem && this.lives !== 0) {
+            // Remove popped item from grand list of collected items
+            const index = this.collectedItems.indexOf(poppedItem);
+            if (index !== -1) {
+                this.collectedItems.splice(index, 1);
+            }
+
+            // Animation to flash red in location player tried to use item
+            this.tweens.add({
+                targets: usageArea,
+                alpha: 0,
+                duration: 300,
+                yoyo: true,
+                repeat: 1,
+                onStart: () => {
+                    usageArea.alpha = 0.55;
+                    usageArea.fillColor = 0xff0000; // Make area red
+                    this.flashingRed = true;
+                },
+                onComplete: () => {
+                    usageArea.alpha = 0.25; // Reset area color and alpha
+                    usageArea.fillColor = 0xffff00;
+                    this.flashingRed = false;
+                },
+            });
+
+            // Animation to fade item out from stackpack and then fade in in its new location
+            this.tweens.add({
+                targets: poppedItem,
+                alpha: 0, // Fade out
+                duration: 200,
+                onComplete: () => {
+                    // Set item origin back to default (center)
+                    poppedItem.setOrigin(0.5, 0.5);
+
+                    let originalScaleX = 0;
+                    let originalScaleY = 0;
+                    // Move popped item to its original location
+                    if (poppedItem.name === "ladder") {
+                        poppedItem.setPosition(1050, 550);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
+                    }
+                    if (poppedItem.name === "plank") {
+                        poppedItem.setPosition(350, 530);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
+                    }
+                    if (poppedItem.name === "key") {
+                        poppedItem.setPosition(1200, 650);
+                        originalScaleX = 2.5;
+                        originalScaleY = 2.5;
+                    }
+
+                    this.tweens.add({
+                        targets: poppedItem,
+                        scaleX: originalScaleX,
+                        scaleY: originalScaleY,
+                        alpha: 1, // Fade in
+                        duration: 300,
+                        onComplete: () => {
+                            this.updateStackView();
+                            if (poppedItem.name === "ladder") {
+                                this.createPulsateEffect(
+                                    this,
+                                    poppedItem,
+                                    1.1,
+                                    1000
+                                );
+                            }
+                            if (poppedItem.name === "plank") {
+                                this.createPulsateEffect(
+                                    this,
+                                    poppedItem,
+                                    1.15,
+                                    1000
+                                );
+                            }
+                        },
+                    });
+                },
+            });
+        }
+    }
+
     private createHearts() {
         this.lives = 3;
         this.hearts = [];
@@ -1392,7 +1392,7 @@ export default class LevelZero extends Phaser.Scene {
         this.createHearts();
         this.freePopsLeft = 2;
         this.downArrow?.setPosition(350, 350);
-        console.log("resetting", this.time.now, this.startTime);
+        //console.log("resetting", this.time.now, this.startTime);
         this.startTime = this.time.now;
         this.pausedTime = 0;
         this.isPaused = false;
@@ -1450,7 +1450,7 @@ export default class LevelZero extends Phaser.Scene {
     update() {
         // Updating timer
         if (!this.isPaused) {
-            console.log("updating time", this.time.now, this.startTime);
+            //console.log("updating time", this.time.now, this.startTime);
             var currentTime = this.time.now;
             this.elapsedTime = currentTime - this.startTime;
             this.timerText.setText(

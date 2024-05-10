@@ -3,11 +3,18 @@
 ### General:
 
 -   StackPack: https://m.media-amazon.com/images/I/71kHEc5wwLL._AC_UY1000_.jpg
+-   Pink Gal & Blue Guy: https://craftpix.net/freebies/free-pixel-art-tiny-hero-sprites/?num=1&count=215&sq=pink%20monster&pos=4
+-   Hearts: https://opengameart.org/content/heart-full-and-empty-for-health
+-   Level Complete & Pause: https://www.freepik.com/free-vector/set-game-menu-selection-rpg-adventure-game-including-menu-level-selection-options_14245132.htm#fromView=search&page=1&position=7&uuid=041f1bcf-fd58-4f6b-a720-a753efcecd7a
+-   Level Pause: https://pzuh.itch.io/free-game-gui
+-   Pause Button: <a href='https://pngtree.com/freepng/casual-game-button-set-stock-illustration_5981555.html'>png image from pngtree.com/</a>
+-   Key: https://frakassets.itch.io/free-rotating-key
 -   Other: Canva Graphics
 
 ### Title Scene:
 
 -   Background: https://www.vecteezy.com/photo/30493204-fantasy-landscape-with-trees-and-rocks-3d-render-illustration-ai-generated
+-   Background2: <a href='https://pngtree.com/freebackground/grass-sky-white-clouds-blue-sky_2445525.html'>free background photos from pngtree.com/</a>
 
 ### Game Map Scene:
 
@@ -17,26 +24,16 @@
 
 -   Platforms: https://opengameart.org/content/platforms
 -   Background: <a href="https://www.freepik.com/free-vector/nature-roadside-background-scene_40169781.htm#from_view=detail_alsolike">Image by brgfx on Freepik</a>
--   Key: https://frakassets.itch.io/free-rotating-key
 -   Door: https://www.artstation.com/artwork/BmOoPz
 -   Spikes 1: https://opengameart.org/content/spikey-stuff
 -   Spikes 2: https://www.gamedeveloperstudio.com/graphics/viewgraphic.php?page-name=Animated-floor-spikes-game-asset&item=1u5v5h4w8i7s7t806o
--   Hearts: https://opengameart.org/content/heart-full-and-empty-for-health
--   Level Complete & Pause: https://www.freepik.com/free-vector/set-game-menu-selection-rpg-adventure-game-including-menu-level-selection-options_14245132.htm#fromView=search&page=1&position=7&uuid=041f1bcf-fd58-4f6b-a720-a753efcecd7a
--   Level Pause: https://pzuh.itch.io/free-game-gui
--   <a href='https://pngtree.com/freepng/casual-game-button-set-stock-illustration_5981555.html'>png image from pngtree.com/</a>
 
-### Level 1 Scene: 
+### Level 1 Scene:
 
 -   Background: https://www.freepik.com/free-vector/flat-tropical-jungle-background_13643324.htm#fromView=search&page=4&position=11&uuid=ee0e5a5e-ee27-4310-b2b4-27eafb48eec2
 -   Platforms + stone + river: https://dinosdouisen.itch.io/jungle-platformer-game-tileset#google_vignette
 -   Banana, Mushroom, Vine, Monkey, Speech Bubble: Free elements on Canva
--   Key: https://frakassets.itch.io/free-rotating-key
 -   Door: https://www.artstation.com/artwork/BmOoPz
--   Hearts: https://opengameart.org/content/heart-full-and-empty-for-health
--   Level Complete & Pause: https://www.freepik.com/free-vector/set-game-menu-selection-rpg-adventure-game-including-menu-level-selection-options_14245132.htm#fromView=search&page=1&position=7&uuid=041f1bcf-fd58-4f6b-a720-a753efcecd7a
--   Level Pause: https://pzuh.itch.io/free-game-gui
--   <a href='https://pngtree.com/freepng/casual-game-button-set-stock-illustration_5981555.html'>png image from pngtree.com/</a>
 
 ### Level 2 Scene:
 
@@ -65,3 +62,9 @@
 -   Toxic Gas Cloud: https://img.freepik.com/premium-vector/green-smoke-cloud-toxic-smell-cartoon-scent_81894-8958.jpg
 -   Gas Mask: https://img.freepik.com/premium-vector/stencil-gas-mask-icon-flat-vector-chemical-air-toxic-army-isolated_98396-65151.jpg
 -   Fireball: https://static.vecteezy.com/system/resources/previews/012/629/333/original/fireball-drop-effect-png.png
+
+### Ending Cutscene:
+
+-   1st Background: https://t4.ftcdn.net/jpg/01/01/05/97/360_F_101059744_v3iOQuoEiSyUxcgiILvDzWprTkShqd7c.jpg
+-   Heart: https://img.freepik.com/free-vector/bright-red-heart_25030-68313.jpg?size=626&ext=jpg&ga=GA1.1.553209589.1715126400&semt=ais
+-   2nd Background: Image by <a href="https://www.freepik.com/free-vector/hand-painted-watercolor-pastel-sky-background_13446984.htm#query=cloud%20wallpaper&position=1&from_view=keyword&track=ais_user&uuid=9389f922-031f-4b8b-93b8-34b09145c08f">Freepik</a>
