@@ -1217,7 +1217,7 @@ export default class LevelThree extends Phaser.Scene {
             this.isPaused = false;
             // TODO: Transition to ending cut scene
             setTimeout(() => {
-                this.scene.start("game-map", {
+                this.scene.start("EndCutScene", {
                     level0State: this.level0State,
                     level1State: this.level1State,
                     level2State: this.level2State,
