@@ -23,6 +23,7 @@ export default class LevelOne extends Phaser.Scene {
     private groundRectangle?: Phaser.GameObjects.Rectangle;
     private vineSwing?: Phaser.GameObjects.Sprite;
     private door?: Phaser.GameObjects.Image;
+    private mushroomSign?: Phaser.Physics.Arcade.Sprite;
 
     // Highlight/Detection Boxes
     private stoneDetectionBox?: Phaser.GameObjects.Rectangle;
@@ -35,6 +36,7 @@ export default class LevelOne extends Phaser.Scene {
     private bananaDetectionBox?: Phaser.GameObjects.Rectangle;
     private bananaHighlightBox?: Phaser.GameObjects.Rectangle;
 
+    private vineDetectionBox?: Phaser.GameObjects.Rectangle;
     private vineHighlightBox?: Phaser.GameObjects.Rectangle;
 
     private keyDetectionArea?: Phaser.GameObjects.Rectangle;
@@ -47,6 +49,7 @@ export default class LevelOne extends Phaser.Scene {
     // Functionality
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
+    private usedItems: Phaser.GameObjects.Sprite[] = [];
     private keyE?: Phaser.Input.Keyboard.Key;
     private keyF?: Phaser.Input.Keyboard.Key;
     private keyEPressed: boolean = false; // Flag to check if 'E' was pressed to prevent picking up multiple items from one long key press
@@ -61,12 +64,17 @@ export default class LevelOne extends Phaser.Scene {
     private vineStackImg: Phaser.GameObjects.Image;
     private keyStackImg: Phaser.GameObjects.Image;
     private levelCompleteText?: Phaser.GameObjects.Text;
-    //private popButton?: Phaser.GameObjects.Image;
+
+    private popButton?: Phaser.GameObjects.Image;
+    private freePopsLeft: number = 2;
+    private freePopsLeftText: Phaser.GameObjects.Text;
 
     // For Player animations
     private lastDirection: string = "right";
     private isColliding: boolean = false;
     private collidingWithWater: boolean = false;
+    private flashingRed: boolean = false;
+    private freePopUsed: boolean = false;
 
     // Level States
     private level0State: number;
@@ -173,11 +181,14 @@ export default class LevelOne extends Phaser.Scene {
         this.load.image("stackKey", "assets/level1/stackKey.png");
         this.load.image("brown-door", "assets/level1/brown-door.png");
         this.load.image("brown-openDoor", "assets/level1/brown-door-open.png");
+        this.load.image("mushroomSign", "assets/level1/mushroomSign.png");
 
         this.load.image(
             "FreePopInstructions",
             "assets/FreePop-Instructions.png"
         );
+        this.load.image("EF-keys-black", "assets/EF-keys-black.png");
+
         this.load.image("pop-button", "assets/freePop2.png");
 
         this.load.image("pause-button", "assets/pause2.png");
@@ -202,12 +213,23 @@ export default class LevelOne extends Phaser.Scene {
             this.cameras.main.height / backgroundImage.height
         );
 
+        const EFkeys = this.add.image(370, 60, "EF-keys-black");
+        EFkeys.setScale(0.35);
+
         const stackpack = this.add
             .image(0, 0, "stackpack")
             .setPosition(1170, 165);
         stackpack.setScale(0.26, 0.26);
 
         this.add.image(640, 70, "vineHook").setScale(0.6, 0.6);
+
+        this.freePopsLeftText = this.add
+            .text(30, 180, `Pops Left: ${this.freePopsLeft}`, {
+                fontFamily: "Arial",
+                fontSize: 18,
+                color: "#FFFFFF",
+            })
+            .setDepth(4);
 
         this.player = this.physics.add
             .sprite(100, 600, "gal_right")
@@ -347,7 +369,7 @@ export default class LevelOne extends Phaser.Scene {
         this.physics.add.collider(this.player, this.platforms);
 
         // KEY ITEM
-        this.key = this.add.sprite(290, 270, "key").setScale(2.5, 2.5);
+        this.key = this.add.sprite(245, 270, "key").setScale(2.5, 2.5);
         this.physics.add.collider(this.key, this.platforms);
         this.key.setSize(this.key.width - 100, this.key.height - 100);
         this.key.setName("key");
@@ -383,7 +405,7 @@ export default class LevelOne extends Phaser.Scene {
         this.mushroom.setPushable(false);
 
         this.monkey = this.physics.add
-            .sprite(390, 200, "monkey")
+            .sprite(300, 200, "monkey")
             .setScale(0.5, 0.5);
         this.physics.add.collider(this.monkey, this.platforms);
         this.monkey.setSize(this.monkey.width - 300, this.monkey.height - 200);
@@ -411,6 +433,17 @@ export default class LevelOne extends Phaser.Scene {
         this.river.setPushable(false);
         this.river.setName("river");
 
+        this.mushroomSign = this.physics.add.sprite(1100, 550, "mushroomSign");
+        this.physics.add.collider(this.mushroomSign, this.platforms);
+        this.physics.add.collider(this.mushroomSign, this.player);
+        this.mushroomSign.setPushable(false);
+        this.mushroomSign
+            .setSize(
+                this.mushroomSign.width - 200,
+                this.mushroomSign.height - 355
+            )
+            .setScale(0.5, 0.5);
+
         this.leftRiverBoundary = this.physics.add.sprite(570, 550, "mushroom");
         this.physics.add.collider(this.leftRiverBoundary, this.platforms);
         this.physics.add.collider(this.leftRiverBoundary, this.player);
@@ -431,8 +464,8 @@ export default class LevelOne extends Phaser.Scene {
         );
 
         this.bananaBubble = this.add
-            .image(280, 130, "bananaBubble")
-            .setScale(0.7, 0.7);
+            .image(200, 140, "bananaBubble")
+            .setScale(0.66, 0.66);
 
         this.vineSwing = this.add.sprite(655, 140, "vine").setScale(0.35, 0.35);
         this.vineSwing.setOrigin(0.5, 0);
@@ -509,19 +542,23 @@ export default class LevelOne extends Phaser.Scene {
         this.mushroomHighlightBox.setAlpha(0.3);
         this.mushroomHighlightBox.setVisible(false);
 
-        this.bananaDetectionBox = this.add.rectangle(440, 200, 100, 150);
+        this.bananaDetectionBox = this.add.rectangle(350, 200, 30, 150);
         this.physics.world.enable(this.bananaDetectionBox);
         this.physics.add.collider(this.bananaDetectionBox, this.platforms);
 
         this.bananaHighlightBox = this.add.rectangle(
-            280,
-            120,
+            200,
+            125,
             80,
             80,
             0xffff00
         );
         this.bananaHighlightBox.setAlpha(0.3);
         this.bananaHighlightBox.setVisible(false);
+
+        this.vineDetectionBox = this.add.rectangle(490, 200, 30, 150);
+        this.physics.world.enable(this.vineDetectionBox);
+        this.physics.add.collider(this.vineDetectionBox, this.platforms);
 
         this.vineHighlightBox = this.add.rectangle(647, 130, 50, 50, 0xffff00);
         this.vineHighlightBox.setAlpha(0.5);
@@ -554,14 +591,14 @@ export default class LevelOne extends Phaser.Scene {
         this.levelCompleteText.setAlpha(0);
 
         // Free Pop stuff
-        /*this.popButton = this.add.image(70, 140, "pop-button").setScale(0.31);
-        this.popButton.setInteractive();
+        const popButton = this.add.image(70, 140, "pop-button").setScale(0.31);
+        popButton.setInteractive();
 
-        const originalScale = this.popButton.scaleX;
+        const originalScale = popButton.scaleX;
         const hoverScale = originalScale * 1.05;
-        this.popButton.on("pointerover", () => {
+        popButton.on("pointerover", () => {
             this.tweens.add({
-                targets: this.popButton,
+                targets: popButton,
                 scaleX: hoverScale,
                 scaleY: hoverScale,
                 duration: 115, // Duration of the tween in milliseconds
@@ -569,9 +606,9 @@ export default class LevelOne extends Phaser.Scene {
             });
         });
 
-        this.popButton.on("pointerout", () => {
+        popButton.on("pointerout", () => {
             this.tweens.add({
-                targets: this.popButton,
+                targets: popButton,
                 scaleX: originalScale,
                 scaleY: originalScale,
                 duration: 115, // Duration of the tween in milliseconds
@@ -579,9 +616,16 @@ export default class LevelOne extends Phaser.Scene {
             });
         });
 
-        this.popButton.on("pointerup", () => {
+        popButton.on("pointerup", () => {
             this.freePop();
-        });*/
+            this.freePopsLeft -= 1;
+            this.freePopsLeftText.setText(`Pops Left: ${this.freePopsLeft}`);
+            if (this.freePopsLeft <= 0) {
+                popButton.setScale(originalScale);
+                popButton.disableInteractive();
+                popButton.setTint(0x696969);
+            }
+        });
 
         // Pause Buttons
         const pauseGroup = this.add.group();
@@ -808,24 +852,29 @@ export default class LevelOne extends Phaser.Scene {
 
         completeReplayButton.on("pointerup", () => {
             this.restartStates();
-            this.scene.restart();
+            this.scene.start("level1", {
+                level0State: this.level0State,
+                level1State: 3,
+                level2State: 1,
+                level3State: this.level3State,
+            });
         });
 
         completeMenuButton.on("pointerup", () => {
-            if (this.level1State == 0) {
+            if (this.level2State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
-                        level0State: 3,
-                        level1State: 1,
-                        level2State: this.level2State,
+                        level0State: this.level0State,
+                        level1State: 3,
+                        level2State: 1,
                         level3State: this.level3State,
                     });
                 }, 500);
             } else {
                 setTimeout(() => {
                     this.scene.start("game-map", {
-                        level0State: 3,
-                        level1State: this.level1State,
+                        level0State: this.level0State,
+                        level1State: 3,
                         level2State: this.level2State,
                         level3State: this.level3State,
                     });
@@ -834,7 +883,23 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
-            this.scene.start("Level2");
+            this.isPaused = false;
+            if (this.level2State == 0) {
+                // If level 3 was locked before, set it to current level status
+                this.scene.start("Level2", {
+                    level0State: this.level0State,
+                    level1State: 3,
+                    level2State: 2,
+                    level3State: this.level3State,
+                });
+            } else {
+                this.scene.start("Level2", {
+                    level0State: this.level0State,
+                    level1State: 3,
+                    level2State: this.level2State,
+                    level3State: this.level3State,
+                });
+            }
         });
 
         this.threeStarsPopup.setVisible(false);
@@ -846,8 +911,10 @@ export default class LevelOne extends Phaser.Scene {
 
     // reset states when restarting level
     private restartStates() {
+        this.usedItems = [];
         this.stackY = 300;
         this.mushroomPopped = false;
+        this.startTime = this.time.now;
     }
 
     private formatTime(milliseconds: number) {
@@ -923,6 +990,7 @@ export default class LevelOne extends Phaser.Scene {
                 .setSize(80, 80);
         }
         this.stackY -= buffer;
+        this.isPushingMap[item.name] = false;
     }
 
     private imageViewOutStack(item: Phaser.GameObjects.Sprite) {
@@ -1011,9 +1079,21 @@ export default class LevelOne extends Phaser.Scene {
                             onComplete: () => {
                                 // Add the item to the stack
                                 this.stack.push(item);
-                                this.updateStackView();
+                                //this.updateStackView();
                                 item.setVisible(false);
                                 this.imageViewInStack(item);
+                                // put them back in original position for free pop
+                                if (item.name === "stone") {
+                                    item.setPosition(300, 620);
+                                } else if (item.name === "mushroom") {
+                                    item.setPosition(300, 500);
+                                } else if (item.name === "banana") {
+                                    item.setPosition(900, 380);
+                                } else if (item.name === "vineItem") {
+                                    item.setPosition(700, 350);
+                                } else if (item.name === "key") {
+                                    item.setPosition(245, 270);
+                                }
                             },
                         });
                     },
@@ -1025,7 +1105,7 @@ export default class LevelOne extends Phaser.Scene {
         this.collectedItems.push(item);
         this.stopPulsateEffect();
 
-        this.updateStackView();
+        //this.updateStackView();
     }
 
     private useItem() {
@@ -1037,6 +1117,7 @@ export default class LevelOne extends Phaser.Scene {
         const poppedItem = this.stack.pop();
 
         if (poppedItem) {
+            this.usedItems.push(poppedItem);
             // Animation to fade item out from stackpack and then fade in in its new location
             this.tweens.add({
                 targets: poppedItem,
@@ -1071,6 +1152,8 @@ export default class LevelOne extends Phaser.Scene {
                             this.physics.add.collider(this.player, poppedItem);
                         }
                         this.mushroom?.setVisible(true);
+                        this.mushroomSign?.setVisible(false);
+                        this.mushroomSign?.disableBody();
                     }
                     if (poppedItem.name === "banana") {
                         if (this.banana) {
@@ -1101,6 +1184,7 @@ export default class LevelOne extends Phaser.Scene {
                                 duration: 800,
                                 onComplete: () => {
                                     this.restartStates();
+                                    this.level1State = 3;
                                     this.player?.disableBody(true, true);
                                     var completedTime = this.add
                                         .text(
@@ -1155,6 +1239,7 @@ export default class LevelOne extends Phaser.Scene {
                                         true,
                                         true
                                     );*/
+                                    this.restartStates();
                                 },
                             });
                         }
@@ -1199,7 +1284,8 @@ export default class LevelOne extends Phaser.Scene {
                         alpha: 1, // Fade in
                         duration: 300,
                         onComplete: () => {
-                            this.updateStackView();
+                            //this.imageViewOutStack(poppedItem);
+                            //this.updateStackView();
                         },
                     });
                 },
@@ -1207,19 +1293,115 @@ export default class LevelOne extends Phaser.Scene {
         }
     }
 
+    private popWrongItem(usageArea: Phaser.GameObjects.Rectangle) {
+        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
+            return; // Prevent popping if a push is in progress
+        }
+
+        this.loseLife();
+
+        // Remove the top item from the stackpack
+        const poppedItem = this.stack.pop();
+
+        if (poppedItem && this.lives !== 0) {
+            // Remove popped item from grand list of collected items
+            const index = this.collectedItems.indexOf(poppedItem);
+            if (index !== -1) {
+                this.collectedItems.splice(index, 1);
+            }
+
+            // Animation to flash red in location player tried to use item
+            this.tweens.add({
+                targets: usageArea,
+                alpha: 0,
+                duration: 300,
+                yoyo: true,
+                repeat: 1,
+                onStart: () => {
+                    usageArea.alpha = 0.55;
+                    usageArea.fillColor = 0xff0000; // Make area red
+                    this.flashingRed = true;
+                },
+                onComplete: () => {
+                    usageArea.alpha = 0.25; // Reset area color and alpha
+                    usageArea.fillColor = 0xffff00;
+                    this.flashingRed = false;
+                },
+            });
+
+            // Animation to fade item out from stackpack and then fade in in its new location
+            this.tweens.add({
+                targets: poppedItem,
+                alpha: 0, // Fade out
+                duration: 200,
+                onComplete: () => {
+                    // Set item origin back to default (center)
+                    poppedItem.setOrigin(0.5, 0.5);
+
+                    let originalScaleX = 0;
+                    let originalScaleY = 0;
+                    // Move popped item to its original location
+                    if (poppedItem.name === "stone") {
+                        poppedItem.setPosition(300, 590);
+                        originalScaleX = 0.3;
+                        originalScaleY = 0.3;
+                    }
+                    if (poppedItem.name === "mushroom") {
+                        poppedItem.setPosition(300, 470);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
+                    }
+                    if (poppedItem.name === "banana") {
+                        poppedItem.setPosition(900, 310);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
+                    }
+                    if (poppedItem.name === "vineItem") {
+                        poppedItem.setPosition(700, 310);
+                        originalScaleX = 0.5;
+                        originalScaleY = 0.5;
+                    }
+                    if (poppedItem.name === "key") {
+                        poppedItem.setPosition(245, 270);
+                        originalScaleX = 2.5;
+                        originalScaleY = 2.5;
+                    }
+                    poppedItem.setVisible(true);
+                    this.tweens.add({
+                        targets: poppedItem,
+                        scaleX: originalScaleX,
+                        scaleY: originalScaleY,
+                        alpha: 1, // Fade in
+                        duration: 300,
+                        onComplete: () => {
+                            this.imageViewOutStack(poppedItem);
+                            this.createPulsateEffect(
+                                this,
+                                poppedItem,
+                                1.1,
+                                1000
+                            );
+                        },
+                    });
+                },
+            });
+        }
+    }
     // Animation for using free pop
     private freePop() {
         if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
             return; // Prevent popping if a push is in progress
         }
 
-        //this.loseLife();
-
         // Remove the top item from the stackpack and from grand list of collected items
         const poppedItem = this.stack.pop();
         this.collectedItems.pop();
 
         if (poppedItem && this.lives !== 0) {
+            const index = this.collectedItems.indexOf(poppedItem);
+            if (index !== -1) {
+                this.collectedItems.splice(index, 1);
+            }
             // Animation to fade item out from stackpack and then fade in in its new location
             this.tweens.add({
                 targets: poppedItem,
@@ -1252,6 +1434,11 @@ export default class LevelOne extends Phaser.Scene {
                         originalScaleX = 0.5;
                         originalScaleY = 0.5;
                     }
+                    if (poppedItem.name === "key") {
+                        poppedItem.setPosition(245, 270);
+                        originalScaleX = 2.5;
+                        originalScaleY = 2.5;
+                    }
                     poppedItem.setOrigin(0.5, 0.5);
 
                     poppedItem.setVisible(true);
@@ -1262,24 +1449,19 @@ export default class LevelOne extends Phaser.Scene {
                         alpha: 1, // Fade in
                         duration: 300,
                         onComplete: () => {
-                            this.updateStackView();
+                            //this.updateStackView();
                             this.imageViewOutStack(poppedItem);
-                            /*this.createPulsateEffect(
+                            this.createPulsateEffect(
                                 this,
                                 poppedItem,
                                 1.1,
                                 1000
-                            );*/
+                            );
                         },
                     });
                 },
             });
         }
-        //this.popButton?.setInteractive(false);
-
-        /*setTimeout(() => {
-            this.popButton?.setInteractive(true);
-        }, 5000) */
     }
 
     private createHearts() {
@@ -1357,8 +1539,10 @@ export default class LevelOne extends Phaser.Scene {
 
             // Reset the stack and collected items
             this.stack = [];
-            this.updateStackView();
+            //this.updateStackView();
             this.collectedItems = [];
+            this.usedItems = [];
+            //this.usedItems = [];
             this.lives = 3;
             this.createHearts();
         });
@@ -1500,85 +1684,150 @@ export default class LevelOne extends Phaser.Scene {
         // Detection Box Checks for popping
         if (
             this.player &&
-            this.stack.length > 0 &&
             this.stoneDetectionBox &&
             this.mushroomDetectionBox &&
             this.bananaDetectionBox &&
-            this.keyDetectionArea
+            this.keyDetectionArea &&
+            this.stoneHighlightBox &&
+            this.mushroomHighlightBox &&
+            this.bananaHighlightBox &&
+            this.stone &&
+            this.mushroom &&
+            this.banana &&
+            this.vineItem &&
+            this.key
         ) {
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.stoneDetectionBox.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "stone"
+                !this.usedItems.includes(this.stone)
             ) {
-                this.stoneHighlightBox?.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
+                this.stoneHighlightBox.setVisible(true);
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    if (this.stack[this.stack.length - 1].name === "stone") {
+                        this.stoneDetectionBox.setVisible(false);
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        this.loseLife();
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.stoneHighlightBox);
+                    }
                 }
             } else if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.mushroomDetectionBox.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "mushroom"
+                !this.usedItems.includes(this.mushroom)
             ) {
-                this.mushroomHighlightBox?.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
+                this.mushroomHighlightBox.setVisible(true);
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    if (this.stack[this.stack.length - 1].name === "mushroom") {
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        this.loseLife();
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.mushroomHighlightBox);
+                    }
                 }
             } else if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.bananaDetectionBox.getBounds()
                 ) &&
-                this.stack[this.stack.length - 1].name === "banana"
+                !this.usedItems.includes(this.banana)
             ) {
-                this.bananaHighlightBox?.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.bananaDetectionBox.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "vineItem"
-            ) {
-                this.vineHighlightBox?.setVisible(true); // replace with vine highlight box
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
+                this.bananaHighlightBox.setVisible(true);
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    if (this.stack[this.stack.length - 1].name === "banana") {
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        this.loseLife();
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.bananaHighlightBox);
+                    }
                 }
             } else if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.keyDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "key"
+                )
             ) {
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                    // Animate level complete text
-                    this.tweens.add({
-                        targets: this.levelCompleteText,
-                        scale: 1,
-                        alpha: 1,
-                        duration: 1000,
-                        ease: "Bounce",
-                        delay: 500, // Delay the animation slightly
-                    });
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    if (this.stack[this.stack.length - 1].name === "key") {
+                        this.keyFPressed = true;
+                        this.useItem();
+                        this.tweens.add({
+                            targets: this.levelCompleteText,
+                            scale: 1,
+                            alpha: 1,
+                            duration: 1000,
+                            ease: "Bounce",
+                            delay: 500, // Delay the animation slightly
+                        });
+                    } else {
+                        this.loseLife();
+                        this.keyFPressed = true;
+                    }
                 }
             } else {
-                this.stoneHighlightBox?.setVisible(false);
-                this.mushroomHighlightBox?.setVisible(false);
-                this.bananaHighlightBox?.setVisible(false);
-                this.vineHighlightBox?.setVisible(false);
+                this.stoneHighlightBox.setVisible(false);
+                this.mushroomHighlightBox.setVisible(false);
+                this.bananaHighlightBox.setVisible(false);
+            }
+        }
+
+        if (
+            this.player &&
+            this.vineDetectionBox &&
+            this.vineItem &&
+            this.vineHighlightBox
+        ) {
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.vineDetectionBox.getBounds()
+                ) &&
+                !this.usedItems.includes(this.vineItem)
+            ) {
+                this.vineHighlightBox.setVisible(true); // replace with vine highlight box
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
+                    if (this.stack[this.stack.length - 1].name === "vineItem") {
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        this.loseLife();
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.vineHighlightBox);
+                    }
+                }
+            } else {
+                this.vineHighlightBox.setVisible(false);
             }
         }
 
