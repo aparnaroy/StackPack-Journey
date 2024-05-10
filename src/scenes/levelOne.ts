@@ -551,7 +551,7 @@ export default class LevelOne extends Phaser.Scene {
         this.bananaHighlightBox.setAlpha(0.3);
         this.bananaHighlightBox.setVisible(false);
 
-        this.vineDetectionBox = this.add.rectangle(470, 200, 30, 150);
+        this.vineDetectionBox = this.add.rectangle(490, 200, 30, 150);
         this.physics.world.enable(this.vineDetectionBox);
         this.physics.add.collider(this.vineDetectionBox, this.platforms);
 
@@ -1665,8 +1665,6 @@ export default class LevelOne extends Phaser.Scene {
             this.stoneHighlightBox &&
             this.mushroomHighlightBox &&
             this.bananaHighlightBox &&
-            this.vineDetectionBox &&
-            this.vineHighlightBox &&
             this.stone &&
             this.mushroom &&
             this.banana &&
@@ -1731,29 +1729,14 @@ export default class LevelOne extends Phaser.Scene {
             } else if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
-                    this.vineDetectionBox.getBounds()
-                ) &&
-                !this.usedItems.includes(this.vineItem)
-            ) {
-                this.vineHighlightBox.setVisible(true); // replace with vine highlight box
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    if (this.stack[this.stack.length - 1].name === "vineItem") {
-                        this.keyFPressed = true;
-                        this.useItem();
-                    } else {
-                        this.loseLife();
-                        this.keyFPressed = true;
-                        this.popWrongItem(this.vineHighlightBox);
-                    }
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
                     this.keyDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "key"
+                )
             ) {
-                if (this.keyF?.isDown && !this.keyFPressed) {
+                if (
+                    this.keyF?.isDown &&
+                    !this.keyFPressed &&
+                    this.stack.length > 0
+                ) {
                     this.keyFPressed = true;
                     this.useItem();
                     // Animate level complete text
@@ -1770,6 +1753,34 @@ export default class LevelOne extends Phaser.Scene {
                 this.stoneHighlightBox.setVisible(false);
                 this.mushroomHighlightBox.setVisible(false);
                 this.bananaHighlightBox.setVisible(false);
+            }
+        }
+
+        if (
+            this.player &&
+            this.vineDetectionBox &&
+            this.vineItem &&
+            this.vineHighlightBox
+        ) {
+            if (
+                Phaser.Geom.Intersects.RectangleToRectangle(
+                    this.player.getBounds(),
+                    this.vineDetectionBox.getBounds()
+                ) &&
+                !this.usedItems.includes(this.vineItem)
+            ) {
+                this.vineHighlightBox.setVisible(true); // replace with vine highlight box
+                if (this.keyF?.isDown && !this.keyFPressed) {
+                    if (this.stack[this.stack.length - 1].name === "vineItem") {
+                        this.keyFPressed = true;
+                        this.useItem();
+                    } else {
+                        this.loseLife();
+                        this.keyFPressed = true;
+                        this.popWrongItem(this.vineHighlightBox);
+                    }
+                }
+            } else {
                 this.vineHighlightBox.setVisible(false);
             }
         }
