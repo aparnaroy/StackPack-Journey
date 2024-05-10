@@ -14,7 +14,6 @@
 ### Title Scene:
 
 -   Background: https://www.vecteezy.com/photo/30493204-fantasy-landscape-with-trees-and-rocks-3d-render-illustration-ai-generated
--   Background2: <a href='https://pngtree.com/freebackground/grass-sky-white-clouds-blue-sky_2445525.html'>free background photos from pngtree.com/</a>
 
 ### Game Map Scene:
 

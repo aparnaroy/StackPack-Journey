@@ -40,6 +40,7 @@ export default class LevelOne extends Phaser.Scene {
     private vineHighlightBox?: Phaser.GameObjects.Rectangle;
 
     private keyDetectionArea?: Phaser.GameObjects.Rectangle;
+    private keyHighlightBox: Phaser.GameObjects.Rectangle;
 
     private riverDetectionArea?: Phaser.GameObjects.Rectangle;
 
@@ -200,6 +201,18 @@ export default class LevelOne extends Phaser.Scene {
     }
 
     create(data: GameMapData) {
+        this.resetScene();
+        // Resume all animations and tweens
+        this.anims.resumeAll();
+        this.tweens.resumeAll();
+        // Make it so player can enter keyboard input
+        if (this.input.keyboard) {
+            this.input.keyboard.enabled = true;
+        }
+
+        // Temporary fix for time not fully resetting bug
+        setTimeout(() => (this.startTime = this.time.now));
+
         this.level0State = data.level0State;
         this.level1State = data.level1State;
         this.level2State = data.level2State;
@@ -213,7 +226,7 @@ export default class LevelOne extends Phaser.Scene {
             this.cameras.main.height / backgroundImage.height
         );
 
-        const EFkeys = this.add.image(370, 60, "EF-keys-black");
+        const EFkeys = this.add.image(390, 60, "EF-keys-black");
         EFkeys.setScale(0.35);
 
         const stackpack = this.add
@@ -224,7 +237,7 @@ export default class LevelOne extends Phaser.Scene {
         this.add.image(640, 70, "vineHook").setScale(0.6, 0.6);
 
         this.freePopsLeftText = this.add
-            .text(30, 180, `Pops Left: ${this.freePopsLeft}`, {
+            .text(18, 174, `Pops Left: ${this.freePopsLeft}`, {
                 fontFamily: "Arial",
                 fontSize: 18,
                 color: "#FFFFFF",
@@ -234,7 +247,8 @@ export default class LevelOne extends Phaser.Scene {
         this.player = this.physics.add
             .sprite(100, 600, "gal_right")
             .setScale(0.77, 0.77)
-            .setOrigin(0.5, 0.5);
+            .setOrigin(0.5, 0.5)
+            .setDepth(4);
         this.player.setCollideWorldBounds(true);
 
         // KEY ANIM
@@ -376,7 +390,7 @@ export default class LevelOne extends Phaser.Scene {
 
         this.player
             .setSize(this.player.width - 64, this.player.height - 12)
-            .setOffset(32, 10).depth = 100;
+            .setOffset(32, 10);
 
         // ALL ITEMS SPAWNING
         this.banana = this.physics.add
@@ -390,7 +404,7 @@ export default class LevelOne extends Phaser.Scene {
             .sprite(300, 620, "stone")
             .setScale(0.3, 0.3);
         this.physics.add.collider(this.stone, this.platforms);
-        this.stone.setSize(this.stone.width + 200, this.stone.height + 20);
+        this.stone.setSize(this.stone.width + 200, this.stone.height + 30);
         this.stone.setName("stone");
 
         this.mushroom = this.physics.add
@@ -428,7 +442,7 @@ export default class LevelOne extends Phaser.Scene {
             .setScale(0.8, 0.8);
         this.physics.add.collider(this.river, this.platforms);
         this.river
-            .setSize(this.river.width - 20, this.river.height - 450)
+            .setSize(this.river.width - 20, this.river.height - 440)
             .setOffset(10, 200);
         this.river.setPushable(false);
         this.river.setName("river");
@@ -439,28 +453,28 @@ export default class LevelOne extends Phaser.Scene {
         this.mushroomSign.setPushable(false);
         this.mushroomSign
             .setSize(
-                this.mushroomSign.width - 200,
+                this.mushroomSign.width - 250,
                 this.mushroomSign.height - 355
             )
             .setScale(0.5, 0.5);
 
-        this.leftRiverBoundary = this.physics.add.sprite(570, 550, "mushroom");
+        this.leftRiverBoundary = this.physics.add.sprite(580, 550, "mushroom");
         this.physics.add.collider(this.leftRiverBoundary, this.platforms);
         this.physics.add.collider(this.leftRiverBoundary, this.player);
         this.leftRiverBoundary.setPushable(false);
         this.leftRiverBoundary.setVisible(false);
         this.leftRiverBoundary.setSize(
-            this.leftRiverBoundary.width - 380,
-            this.leftRiverBoundary.height - 480
+            this.leftRiverBoundary.width - 420,
+            this.leftRiverBoundary.height - 470
         );
-        this.rightRiverBoundary = this.physics.add.sprite(840, 550, "mushroom");
+        this.rightRiverBoundary = this.physics.add.sprite(820, 550, "mushroom");
         this.physics.add.collider(this.rightRiverBoundary, this.platforms);
         this.physics.add.collider(this.rightRiverBoundary, this.player);
         this.rightRiverBoundary.setPushable(false);
         this.rightRiverBoundary.setVisible(false);
         this.rightRiverBoundary.setSize(
-            this.rightRiverBoundary.width - 380,
-            this.rightRiverBoundary.height - 480
+            this.rightRiverBoundary.width - 410,
+            this.rightRiverBoundary.height - 500
         );
 
         this.bananaBubble = this.add
@@ -472,7 +486,10 @@ export default class LevelOne extends Phaser.Scene {
         this.vineSwing.setAngle(this.vineSwing.angle + 60);
         this.vineSwing.setVisible(false);
 
-        this.door = this.add.image(910, 140, "brown-door").setScale(0.35, 0.35);
+        this.door = this.add
+            .image(910, 140, "brown-door")
+            .setScale(0.35, 0.35)
+            .setDepth(2);
 
         // Handling Pushing.Popping
         this.keyE = this.input.keyboard?.addKey(
@@ -568,6 +585,10 @@ export default class LevelOne extends Phaser.Scene {
         this.physics.world.enable(this.keyDetectionArea);
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
 
+        this.keyHighlightBox = this.add.rectangle(900, 140, 170, 190, 0xffff00);
+        this.keyHighlightBox.setAlpha(0.25);
+        this.keyHighlightBox.setVisible(false);
+
         this.riverDetectionArea = this.add.rectangle(700, 600, 200, 20);
         this.physics.world.enable(this.riverDetectionArea);
         this.physics.add.collider(this.riverDetectionArea, this.platforms);
@@ -591,7 +612,7 @@ export default class LevelOne extends Phaser.Scene {
         this.levelCompleteText.setAlpha(0);
 
         // Free Pop stuff
-        const popButton = this.add.image(70, 140, "pop-button").setScale(0.31);
+        const popButton = this.add.image(65, 140, "pop-button").setScale(0.31);
         popButton.setInteractive();
 
         const originalScale = popButton.scaleX;
@@ -633,11 +654,11 @@ export default class LevelOne extends Phaser.Scene {
         // Creating Pause Popup
         const pausePopup = this.add.image(650, 350, "pause-popup");
         pausePopup.setOrigin(0.5);
-        pausePopup.setDepth(1);
+        pausePopup.setDepth(9);
         pauseGroup.add(pausePopup);
 
         // Exit button for Pause popup
-        const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(1);
+        const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(10);
         exitButton.setOrigin(0.5);
         exitButton.setInteractive();
         pauseGroup.add(exitButton);
@@ -651,11 +672,20 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
-            this.scene.start("game-map");
+            this.isPaused = false;
+            this.resetScene();
+            this.scene.start("game-map", {
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
+            });
         });
 
         // Return button for Pause popup
-        const restartButton = this.add.rectangle(640, 425, 200, 75).setDepth(1);
+        const restartButton = this.add
+            .rectangle(640, 425, 200, 75)
+            .setDepth(10);
         restartButton.setOrigin(0.5);
         restartButton.setInteractive();
         pauseGroup.add(restartButton);
@@ -669,12 +699,18 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
-            this.restartStates();
-            this.scene.restart();
+            this.isPaused = false;
+            this.resetScene();
+            this.scene.start("Level1", {
+                level0State: this.level0State,
+                level1State: this.level1State,
+                level2State: this.level2State,
+                level3State: this.level3State,
+            });
         });
 
         // Resume button for Pause popup
-        const resumeButton = this.add.rectangle(640, 320, 200, 75).setDepth(1);
+        const resumeButton = this.add.rectangle(640, 320, 200, 75).setDepth(10);
         resumeButton.setOrigin(0.5);
         resumeButton.setInteractive();
         pauseGroup.add(resumeButton);
@@ -690,10 +726,21 @@ export default class LevelOne extends Phaser.Scene {
         resumeButton.on("pointerup", () => {
             pauseGroup.setVisible(false);
             this.pauseTime();
+            // Resume all animations and tweens
+            this.anims.resumeAll();
+            this.tweens.resumeAll();
+            // Make it so player can enter keyboard input
+            if (this.input.keyboard) {
+                this.input.keyboard.enabled = true;
+            }
+            // Make it so player can click Free Pop button
+            if (this.freePopsLeft > 0) {
+                popButton.setInteractive();
+            }
         });
 
         // No music button for Pause popup
-        const muteMusic = this.add.rectangle(585, 217, 90, 90).setDepth(1);
+        const muteMusic = this.add.rectangle(585, 217, 90, 90).setDepth(10);
         muteMusic.setOrigin(0.5);
         muteMusic.setInteractive();
         pauseGroup.add(muteMusic);
@@ -712,7 +759,7 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         // No sound button for Pause popup
-        const muteSound = this.add.rectangle(700, 217, 90, 90).setDepth(1);
+        const muteSound = this.add.rectangle(700, 217, 90, 90).setDepth(10);
         muteSound.setOrigin(0.5);
         muteSound.setInteractive();
         pauseGroup.add(muteSound);
@@ -764,12 +811,23 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
-            this.pauseTime();
-            pauseGroup.setVisible(true);
+            if (!this.isPaused) {
+                this.pauseTime();
+                pauseGroup.setVisible(true);
+                // Pause all animations and tweens
+                this.anims.pauseAll();
+                this.tweens.pauseAll();
+                // Make it so player can't enter keyboard input
+                if (this.input.keyboard) {
+                    this.input.keyboard.enabled = false;
+                }
+                // Make it so player can't click Free Pop button
+                popButton.disableInteractive();
+            }
         });
 
         // Creating timer
-        this.timerText = this.add.text(60, 15, "Time: 0", {
+        this.timerText = this.add.text(60, 15, "Time: 00:00", {
             fontSize: "32px",
             color: "#000000",
         });
@@ -778,7 +836,7 @@ export default class LevelOne extends Phaser.Scene {
         this.isPaused = false;
 
         // Level complete popup - still working
-        const completeExitButton = this.add.circle(790, 185, 35).setDepth(1);
+        const completeExitButton = this.add.circle(790, 185, 35).setDepth(10);
         completeExitButton.setInteractive();
         completeExitButton.on("pointerover", () => {
             completeExitButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -787,7 +845,7 @@ export default class LevelOne extends Phaser.Scene {
             completeExitButton.setFillStyle();
         });
 
-        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(1);
+        const completeReplayButton = this.add.circle(510, 505, 55).setDepth(10);
         completeReplayButton.setInteractive();
         completeReplayButton.on("pointerover", () => {
             completeReplayButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -796,7 +854,7 @@ export default class LevelOne extends Phaser.Scene {
             completeReplayButton.setFillStyle();
         });
 
-        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(1);
+        const completeMenuButton = this.add.circle(655, 530, 55).setDepth(10);
         completeMenuButton.setInteractive();
         completeMenuButton.on("pointerover", () => {
             completeMenuButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -805,7 +863,7 @@ export default class LevelOne extends Phaser.Scene {
             completeMenuButton.setFillStyle();
         });
 
-        const completeNextButton = this.add.circle(800, 505, 55).setDepth(1);
+        const completeNextButton = this.add.circle(800, 505, 55).setDepth(10);
         completeNextButton.setInteractive();
         completeNextButton.on("pointerover", () => {
             completeNextButton.setFillStyle(0xffff00).setAlpha(0.5);
@@ -851,16 +909,18 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
-            this.restartStates();
-            this.scene.start("level1", {
+            this.isPaused = false;
+            this.resetScene();
+            this.scene.start("Level1", {
                 level0State: this.level0State,
-                level1State: 3,
-                level2State: 1,
+                level1State: this.level1State,
+                level2State: this.level2State,
                 level3State: this.level3State,
             });
         });
 
         completeMenuButton.on("pointerup", () => {
+            this.isPaused = false;
             if (this.level2State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
@@ -885,7 +945,7 @@ export default class LevelOne extends Phaser.Scene {
         completeNextButton.on("pointerup", () => {
             this.isPaused = false;
             if (this.level2State == 0) {
-                // If level 3 was locked before, set it to current level status
+                // If level 2 was locked before, set it to current level status
                 this.scene.start("Level2", {
                     level0State: this.level0State,
                     level1State: 3,
@@ -910,12 +970,12 @@ export default class LevelOne extends Phaser.Scene {
     // HELPER FUNCTIONS
 
     // reset states when restarting level
-    private restartStates() {
+    /*private restartStates() {
         this.usedItems = [];
         this.stackY = 300;
         this.mushroomPopped = false;
         this.startTime = this.time.now;
-    }
+    }*/
 
     private formatTime(milliseconds: number) {
         var mins = Math.floor(milliseconds / 60000);
@@ -1040,6 +1100,7 @@ export default class LevelOne extends Phaser.Scene {
             });
         });
     }
+
     private collectItem(item: Phaser.GameObjects.Sprite) {
         if (this.collectedItems.includes(item)) {
             return;
@@ -1171,8 +1232,10 @@ export default class LevelOne extends Phaser.Scene {
                         this.vineSwingStart();
                     }
                     if (poppedItem.name === "key") {
+                        this.keyHighlightBox.setVisible(false);
                         poppedItem.setVisible(false);
                         this.door?.setTexture("brown-openDoor");
+                        this.pauseTime();
                         if (this.player && this.door) {
                             this.tweens.add({
                                 targets: this.player,
@@ -1183,9 +1246,10 @@ export default class LevelOne extends Phaser.Scene {
                                 y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
-                                    this.restartStates();
-                                    this.level1State = 3;
-                                    this.player?.disableBody(true, true);
+                                    if (this.input.keyboard) {
+                                        this.input.keyboard.enabled = false;
+                                    }
+                                    this.player?.setVisible(false);
                                     var completedTime = this.add
                                         .text(
                                             640,
@@ -1196,13 +1260,15 @@ export default class LevelOne extends Phaser.Scene {
                                                 color: "#000000",
                                             }
                                         )
-                                        .setDepth(1)
+                                        .setDepth(11)
                                         .setVisible(false);
                                     // Level popup depends on time it takes to complete
                                     if (this.elapsedTime <= 30000) {
                                         this.starsPopup = this.threeStarsPopup;
                                         this.threeStarsPopup.add(completedTime);
-                                        this.threeStarsPopup.setVisible(true);
+                                        this.threeStarsPopup
+                                            .setVisible(true)
+                                            .setDepth(10);
                                     }
                                     if (
                                         this.elapsedTime > 30000 &&
@@ -1210,12 +1276,16 @@ export default class LevelOne extends Phaser.Scene {
                                     ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
-                                        this.twoStarsPopup.setVisible(true);
+                                        this.twoStarsPopup
+                                            .setVisible(true)
+                                            .setDepth(10);
                                     }
                                     if (this.elapsedTime > 120000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
-                                        this.oneStarPopup.setVisible(true);
+                                        this.oneStarPopup
+                                            .setVisible(true)
+                                            .setDepth(10);
                                     }
                                     this.tweens.add({
                                         targets: this.starsPopup,
@@ -1224,58 +1294,11 @@ export default class LevelOne extends Phaser.Scene {
                                         ease: "Linear",
                                         delay: 1000, // Delay the animation slightly
                                     });
-                                    // TODO: Add leve complete popup (w/ restart and continue options)
-                                    // Transition to game map
-                                    /*setTimeout(() => {
-                                        this.scene.start("game-map", {
-                                            level2JustUnlocked: true,
-                                        });
-                                    }, 2000);*/
-                                    // To re-enable the player later:
-                                    /*this.player?.enableBody(
-                                        true,
-                                        this.player.x,
-                                        this.player.y,
-                                        true,
-                                        true
-                                    );*/
-                                    this.restartStates();
                                 },
                             });
                         }
                     }
                     this.imageViewOutStack(poppedItem);
-                    /*if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(815, 600);
-                        this.plankHighlightBox.setVisible(false);
-                        this.plankPlatform?.enableBody(true, 938, 650);
-                    }
-                    if (poppedItem.name === "key") {
-                        this.popButton2?.setVisible(false);
-                        this.door?.setTexture("opendoor");
-                        // Make the player get sucked into the door
-                        if (this.player && this.door) {
-                            this.tweens.add({
-                                targets: this.player,
-                                scaleX: 0.27,
-                                scaleY: 0.27,
-                                rotation: Math.PI * 3,
-                                x: this.door.x - 10,
-                                y: this.door.y + 15,
-                                duration: 800,
-                                onComplete: () => {
-                                    this.player?.disableBody(true, true);
-                                    // TODO: Add leve complete popup (w/ restart and continue options)
-                                    // Transition to game map
-                                    setTimeout(() => {
-                                        this.scene.start("game-map", {
-                                            level1JustUnlocked: true,
-                                        });
-                                    }, 2000);
-                                },
-                            });
-                        }
-                    }*/
 
                     this.tweens.add({
                         targets: poppedItem,
@@ -1387,6 +1410,7 @@ export default class LevelOne extends Phaser.Scene {
             });
         }
     }
+
     // Animation for using free pop
     private freePop() {
         if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
@@ -1539,13 +1563,28 @@ export default class LevelOne extends Phaser.Scene {
 
             // Reset the stack and collected items
             this.stack = [];
-            //this.updateStackView();
             this.collectedItems = [];
             this.usedItems = [];
-            //this.usedItems = [];
             this.lives = 3;
             this.createHearts();
+            this.freePopsLeft = 2;
         });
+    }
+
+    private resetScene() {
+        // Reset the stack and collected items
+        this.stack = [];
+        this.updateStackView();
+        this.collectedItems = [];
+        this.usedItems = [];
+        this.lives = 3;
+        this.createHearts();
+        this.freePopsLeft = 2;
+        this.startTime = this.time.now;
+        this.pausedTime = 0;
+        this.isPaused = false;
+        this.stackY = 300;
+        this.mushroomPopped = false;
     }
 
     private createPulsateEffect(
@@ -1715,7 +1754,6 @@ export default class LevelOne extends Phaser.Scene {
                         this.keyFPressed = true;
                         this.useItem();
                     } else {
-                        this.loseLife();
                         this.keyFPressed = true;
                         this.popWrongItem(this.stoneHighlightBox);
                     }
@@ -1737,7 +1775,6 @@ export default class LevelOne extends Phaser.Scene {
                         this.keyFPressed = true;
                         this.useItem();
                     } else {
-                        this.loseLife();
                         this.keyFPressed = true;
                         this.popWrongItem(this.mushroomHighlightBox);
                     }
@@ -1759,7 +1796,6 @@ export default class LevelOne extends Phaser.Scene {
                         this.keyFPressed = true;
                         this.useItem();
                     } else {
-                        this.loseLife();
                         this.keyFPressed = true;
                         this.popWrongItem(this.bananaHighlightBox);
                     }
@@ -1768,8 +1804,10 @@ export default class LevelOne extends Phaser.Scene {
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
                     this.keyDetectionArea.getBounds()
-                )
+                ) &&
+                !this.usedItems.includes(this.key)
             ) {
+                this.keyHighlightBox.setVisible(true);
                 if (
                     this.keyF?.isDown &&
                     !this.keyFPressed &&
@@ -1787,14 +1825,15 @@ export default class LevelOne extends Phaser.Scene {
                             delay: 500, // Delay the animation slightly
                         });
                     } else {
-                        this.loseLife();
                         this.keyFPressed = true;
+                        this.popWrongItem(this.keyHighlightBox);
                     }
                 }
             } else {
                 this.stoneHighlightBox.setVisible(false);
                 this.mushroomHighlightBox.setVisible(false);
                 this.bananaHighlightBox.setVisible(false);
+                this.keyHighlightBox.setVisible(false);
             }
         }
 
@@ -1821,7 +1860,6 @@ export default class LevelOne extends Phaser.Scene {
                         this.keyFPressed = true;
                         this.useItem();
                     } else {
-                        this.loseLife();
                         this.keyFPressed = true;
                         this.popWrongItem(this.vineHighlightBox);
                     }
@@ -1836,12 +1874,12 @@ export default class LevelOne extends Phaser.Scene {
             let playerBounds = this.player.getBounds();
             let mushroomBounds = this.mushroom.getBounds();
             if (
-                playerBounds.bottom > mushroomBounds.top + 50 &&
+                playerBounds.bottom > mushroomBounds.top + 100 &&
                 playerBounds.left > mushroomBounds.left &&
                 playerBounds.right < mushroomBounds.right &&
                 this.mushroomPopped
             ) {
-                this.player.setVelocityY(-600);
+                this.player.setVelocityY(-640);
             }
         }
 

@@ -228,7 +228,7 @@ export default class GameMap extends Phaser.Scene {
             level2Button.setTexture("level2-unlocked");
         }
         // If level 2 is completed
-        else if (this.level1State == 3) {
+        else if (this.level2State == 3) {
             level2Button.setTexture("level2-completed");
         }
 
