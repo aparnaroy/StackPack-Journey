@@ -5,6 +5,10 @@ interface GameMapData {
     level1State: number;
     level2State: number;
     level3State: number;
+    level0Stars: number;
+    level1Stars: number;
+    level2Stars: number;
+    level3Stars: number;
 }
 
 export default class LevelZero extends Phaser.Scene {
@@ -67,6 +71,10 @@ export default class LevelZero extends Phaser.Scene {
     private level1State: number;
     private level2State: number;
     private level3State: number;
+    private level0Stars: number;
+    private level1Stars: number;
+    private level2Stars: number;
+    private level3Stars: number;
 
     private timerText: Phaser.GameObjects.Text;
     private startTime: number;
@@ -206,6 +214,10 @@ export default class LevelZero extends Phaser.Scene {
         this.level1State = data.level1State;
         this.level2State = data.level2State;
         this.level3State = data.level3State;
+        this.level0Stars = data.level0Stars;
+        this.level1Stars = data.level1Stars;
+        this.level2Stars = data.level2Stars;
+        this.level3Stars = data.level3Stars;
 
         this.lastDirection = "right";
 
@@ -469,6 +481,10 @@ export default class LevelZero extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
@@ -495,6 +511,10 @@ export default class LevelZero extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
@@ -702,10 +722,15 @@ export default class LevelZero extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
         completeMenuButton.on("pointerup", () => {
+            console.log(this.level0Stars);
             if (this.level1State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
@@ -713,6 +738,10 @@ export default class LevelZero extends Phaser.Scene {
                         level1State: 1,
                         level2State: this.level2State,
                         level3State: this.level3State,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
                     });
                 }, 500);
             } else {
@@ -722,6 +751,10 @@ export default class LevelZero extends Phaser.Scene {
                         level1State: this.level1State,
                         level2State: this.level2State,
                         level3State: this.level3State,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
                     });
                 }, 1000);
             }
@@ -735,6 +768,10 @@ export default class LevelZero extends Phaser.Scene {
                     level1State: 2,
                     level2State: this.level2State,
                     level3State: this.level3State,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             } else {
                 this.scene.start("Level1", {
@@ -742,6 +779,10 @@ export default class LevelZero extends Phaser.Scene {
                     level1State: this.level1State,
                     level2State: this.level2State,
                     level3State: this.level3State,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             }
         });
@@ -1079,23 +1120,32 @@ export default class LevelZero extends Phaser.Scene {
                                         this.threeStarsPopup
                                             .setVisible(true)
                                             .setDepth(10);
+                                        this.level0Stars = 3;
                                     }
                                     if (
                                         this.elapsedTime > 30000 &&
-                                        this.elapsedTime <= 60000
+                                        this.elapsedTime <= 40000
                                     ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
                                         this.twoStarsPopup
                                             .setVisible(true)
                                             .setDepth(10);
+                                        // Update stars if its better than previous time
+                                        if (this.level0Stars < 2) {
+                                            this.level0Stars = 2;
+                                        }
                                     }
-                                    if (this.elapsedTime > 60000) {
+                                    if (this.elapsedTime > 40000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
                                         this.oneStarPopup
                                             .setVisible(true)
                                             .setDepth(10);
+                                        // Update stars if its better than previous time
+                                        if (this.level0Stars < 1) {
+                                            this.level0Stars = 1;
+                                        }
                                     }
                                     // Animate level complete text
                                     this.tweens.add({

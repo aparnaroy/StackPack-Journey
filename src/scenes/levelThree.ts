@@ -1211,15 +1211,26 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
-            // Transition to ending cut scene
-            setTimeout(() => {
-                this.scene.start("EndCutScene", {
-                    level0State: this.level0State,
-                    level1State: this.level1State,
-                    level2State: this.level2State,
-                    level3State: 3,
-                });
-            }, 500);
+            // Transition to ending cut scene if level 3 completed for the first time
+            if (data.level3State != 3) {
+                setTimeout(() => {
+                    this.scene.start("EndCutScene", {
+                        level0State: this.level0State,
+                        level1State: this.level1State,
+                        level2State: this.level2State,
+                        level3State: 3,
+                    });
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: this.level0State,
+                        level1State: this.level1State,
+                        level2State: this.level2State,
+                        level3State: 3,
+                    });
+                }, 500);
+            }
         });
 
         completeNextButton.on("pointerup", () => {
