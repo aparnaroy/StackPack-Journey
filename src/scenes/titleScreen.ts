@@ -32,8 +32,8 @@ export default class TitleScreen extends Phaser.Scene {
     create() {
         // Creating Gal
         this.player = this.physics.add
-            .sprite(370, 485, "gal_idle_right")
-            .setScale(1.5, 1.5)
+            .sprite(360, 485, "gal_idle_right")
+            .setScale(1.3, 1.3)
             .setDepth(35);
         this.player.setCollideWorldBounds(true);
 
@@ -50,8 +50,8 @@ export default class TitleScreen extends Phaser.Scene {
 
         // Creating Guy
         this.dude = this.physics.add
-            .sprite(this.cameras.main.width - 370, 485, "dude_idle_left")
-            .setScale(1.5, 1.5)
+            .sprite(this.cameras.main.width - 360, 485, "dude_idle_left")
+            .setScale(1.3, 1.3)
             .setDepth(35);
         this.dude.setCollideWorldBounds(true);
 
@@ -101,6 +101,9 @@ export default class TitleScreen extends Phaser.Scene {
         const originalScale = playButton.scaleX;
         const hoverScale = originalScale * 1.09;
 
+        const originalPlayerPosition = { x: this.player.x, y: this.player.y };
+        const originalDudePosition = { x: this.dude.x, y: this.dude.y };
+
         // Change scale on hover
         playButton.on("pointerover", () => {
             this.tweens.add({
@@ -109,6 +112,22 @@ export default class TitleScreen extends Phaser.Scene {
                 scaleY: hoverScale,
                 duration: 115, // Duration of the tween in milliseconds
                 ease: "Linear", // Easing function for the tween
+            });
+
+            // Tween animation for moving player towards playButton
+            this.tweens.add({
+                targets: this.player,
+                x: playButton.x - 190,
+                duration: 1000, // Duration of the tween in milliseconds
+                ease: "Sine", // Easing function for the tween
+            });
+
+            // Tween animation for moving dude towards playButton
+            this.tweens.add({
+                targets: this.dude,
+                x: playButton.x + 190,
+                duration: 1000, // Duration of the tween in milliseconds
+                ease: "Sine", // Easing function for the tween
             });
         });
 
@@ -119,6 +138,24 @@ export default class TitleScreen extends Phaser.Scene {
                 scaleX: originalScale,
                 scaleY: originalScale,
                 duration: 115, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+
+            // Tween animation for moving player back to original position
+            this.tweens.add({
+                targets: this.player,
+                x: originalPlayerPosition.x,
+                y: originalPlayerPosition.y,
+                duration: 1000, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+
+            // Tween animation for moving dude back to original position
+            this.tweens.add({
+                targets: this.dude,
+                x: originalDudePosition.x,
+                y: originalDudePosition.y,
+                duration: 1000, // Duration of the tween in milliseconds
                 ease: "Linear", // Easing function for the tween
             });
         });

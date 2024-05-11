@@ -5,6 +5,10 @@ interface GameMapData {
     level1State: number;
     level2State: number;
     level3State: number;
+    level0Stars: number;
+    level1Stars: number;
+    level2Stars: number;
+    level3Stars: number;
 }
 
 export default class LevelTwo extends Phaser.Scene {
@@ -73,6 +77,10 @@ export default class LevelTwo extends Phaser.Scene {
     private level1State: number;
     private level2State: number;
     private level3State: number;
+    private level0Stars: number;
+    private level1Stars: number;
+    private level2Stars: number;
+    private level3Stars: number;
 
     private timerText: Phaser.GameObjects.Text;
     private startTime: number;
@@ -160,8 +168,8 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         this.load.spritesheet("plant", "assets/level2/plant.png", {
-            frameWidth: 1872 / 18,
-            frameHeight: 104,
+            frameWidth: 7488 / 18,
+            frameHeight: 416,
         });
 
         this.load.image("cloud-platform", "assets/level2/cloud-platform.png");
@@ -184,6 +192,10 @@ export default class LevelTwo extends Phaser.Scene {
         this.level1State = data.level1State;
         this.level2State = data.level2State;
         this.level3State = data.level3State;
+        this.level0Stars = data.level0Stars;
+        this.level1Stars = data.level1Stars;
+        this.level2Stars = data.level2Stars;
+        this.level3Stars = data.level3Stars;
 
         this.resetScene();
         // Resume all animations and tweens
@@ -631,6 +643,10 @@ export default class LevelTwo extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
@@ -651,13 +667,16 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
-            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level2", {
                 level0State: this.level0State,
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
@@ -785,7 +804,6 @@ export default class LevelTwo extends Phaser.Scene {
         });
         this.startTime = this.time.now;
         this.pausedTime = 0;
-        this.isPaused = false;
 
         // Level complete popup - still working
         const completeExitButton = this.add.circle(790, 185, 35).setDepth(10);
@@ -862,18 +880,20 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
-            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level2", {
                 level0State: this.level0State,
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
         completeMenuButton.on("pointerup", () => {
-            this.isPaused = false;
             if (this.level3State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
@@ -881,6 +901,10 @@ export default class LevelTwo extends Phaser.Scene {
                         level1State: this.level1State,
                         level2State: 3,
                         level3State: 1,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
                     });
                 }, 500);
             } else {
@@ -890,13 +914,16 @@ export default class LevelTwo extends Phaser.Scene {
                         level1State: this.level1State,
                         level2State: 3,
                         level3State: this.level3State,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
                     });
                 }, 1000);
             }
         });
 
         completeNextButton.on("pointerup", () => {
-            this.isPaused = false;
             if (this.level3State == 0) {
                 // If level 3 was locked before, set it to current level status
                 this.scene.start("Level3", {
@@ -904,6 +931,10 @@ export default class LevelTwo extends Phaser.Scene {
                     level1State: this.level1State,
                     level2State: 3,
                     level3State: 2,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             } else {
                 this.scene.start("Level3", {
@@ -911,6 +942,10 @@ export default class LevelTwo extends Phaser.Scene {
                     level1State: this.level1State,
                     level2State: 3,
                     level3State: this.level3State,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             }
         });
@@ -1145,8 +1180,11 @@ export default class LevelTwo extends Phaser.Scene {
                         this.potHighlightArea.setVisible(false);
                         this.plant = this.physics.add
                             .sprite(1050, 100, "plant")
-                            .setScale(1.4, 5.5)
+                            .setScale(0.5, 1.5)
                             .setVisible(false);
+                        this.plant
+                            .setSize(this.plant.width, this.plant.height - 50)
+                            .setOffset(0, 30);
                         this.plant.setCollideWorldBounds(true);
                         this.plant.setImmovable(true);
                         this.physics.world.enable(this.plant);
@@ -1287,6 +1325,7 @@ export default class LevelTwo extends Phaser.Scene {
                                         this.threeStarsPopup
                                             .setVisible(true)
                                             .setDepth(10);
+                                        this.level2Stars = 3;
                                     }
                                     if (
                                         this.elapsedTime > 30000 &&
@@ -1294,12 +1333,24 @@ export default class LevelTwo extends Phaser.Scene {
                                     ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
-                                        this.twoStarsPopup.setVisible(true);
+                                        this.twoStarsPopup
+                                            .setVisible(true)
+                                            .setDepth(10);
+                                        // Update stars if its better than previous time
+                                        if (this.level2Stars < 2) {
+                                            this.level2Stars = 2;
+                                        }
                                     }
                                     if (this.elapsedTime > 60000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
-                                        this.oneStarPopup.setVisible(true);
+                                        this.oneStarPopup
+                                            .setVisible(true)
+                                            .setDepth(10);
+                                        // Update stars if its better than previous time
+                                        if (this.level2Stars < 1) {
+                                            this.level2Stars = 1;
+                                        }
                                     }
                                     // Animate level complete text
                                     this.tweens.add({
@@ -1568,6 +1619,10 @@ export default class LevelTwo extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
             this.player?.clearTint();
 
@@ -2063,7 +2118,7 @@ export default class LevelTwo extends Phaser.Scene {
         if (this.player && this.plant && this.cursors) {
             // Max distance player can be from plant to climb it
             const xTolerance = 30; // Tolerance for X position
-            const yTolerance = 250; // Tolerance for Y position
+            const yTolerance = 270; // Tolerance for Y position
             // Calculate horizontal and vertical distances between player and ladder
             const deltaX = Math.abs(this.player.x - this.plant.x);
             const deltaY = Math.abs(this.player.y - this.plant.y);
