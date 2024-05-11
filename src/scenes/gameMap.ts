@@ -94,6 +94,8 @@ export default class GameMap extends Phaser.Scene {
         this.level2Stars = data.level2Stars | 0;
         this.level3Stars = data.level3Stars | 0;
 
+        console.log(this.level0Stars, data.level0Stars);
+
         const backgroundImage = this.add
             .image(0, 0, "game-map")
             .setOrigin(0, 0);
@@ -112,12 +114,12 @@ export default class GameMap extends Phaser.Scene {
             .setDepth(2);
 
         const level1Stars = this.add
-            .image(447, 448, "0starsDown")
+            .image(447, 446, "0starsDown")
             .setScale(0.21)
             .setDepth(2);
 
         const level2Stars = this.add
-            .image(768, 537, "0starsDown")
+            .image(768, 535, "0starsDown")
             .setScale(0.21)
             .setDepth(2);
 
@@ -278,6 +280,10 @@ export default class GameMap extends Phaser.Scene {
                     level1State: this.level1State,
                     level2State: this.level2State,
                     level3State: this.level3State,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             });
 
@@ -364,6 +370,10 @@ export default class GameMap extends Phaser.Scene {
                     level1State: this.level1State,
                     level2State: this.level2State,
                     level3State: this.level3State,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             });
 
@@ -451,6 +461,10 @@ export default class GameMap extends Phaser.Scene {
                     level1State: this.level1State,
                     level2State: this.level2State,
                     level3State: this.level3State,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             });
 

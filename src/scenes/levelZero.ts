@@ -1147,7 +1147,7 @@ export default class LevelZero extends Phaser.Scene {
                                             this.level0Stars = 1;
                                         }
                                     }
-                                    // Animate level complete text
+                                    // Animate level complete popup
                                     this.tweens.add({
                                         targets: this.starsPopup,
                                         alpha: 1,
@@ -1414,6 +1414,10 @@ export default class LevelZero extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
             this.player?.clearTint();
 

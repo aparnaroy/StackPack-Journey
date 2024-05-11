@@ -6,6 +6,10 @@ interface YouDied3Data {
     level1State: number;
     level2State: number;
     level3State: number;
+    level0Stars: number;
+    level1Stars: number;
+    level2Stars: number;
+    level3Stars: number;
 }
 
 export default class youDiedScene3 extends Phaser.Scene {
@@ -53,6 +57,10 @@ export default class youDiedScene3 extends Phaser.Scene {
                         level1State: data.level1State,
                         level2State: data.level2State,
                         level3State: data.level3State,
+                        level0Stars: data.level0Stars,
+                        level1Stars: data.level1Stars,
+                        level2Stars: data.level2Stars,
+                        level3Stars: data.level3Stars,
                     });
                 });
             },
