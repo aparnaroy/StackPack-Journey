@@ -1124,7 +1124,7 @@ export default class LevelZero extends Phaser.Scene {
                                     }
                                     if (
                                         this.elapsedTime > 30000 &&
-                                        this.elapsedTime <= 40000
+                                        this.elapsedTime <= 60000
                                     ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
@@ -1136,7 +1136,7 @@ export default class LevelZero extends Phaser.Scene {
                                             this.level0Stars = 2;
                                         }
                                     }
-                                    if (this.elapsedTime > 40000) {
+                                    if (this.elapsedTime > 60000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
                                         this.oneStarPopup

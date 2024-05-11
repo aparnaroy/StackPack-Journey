@@ -1319,7 +1319,7 @@ export default class LevelTwo extends Phaser.Scene {
                                         .setDepth(11)
                                         .setVisible(false);
                                     // Level popup depends on time it takes to complete
-                                    if (this.elapsedTime <= 30000) {
+                                    if (this.elapsedTime <= 40000) {
                                         this.starsPopup = this.threeStarsPopup;
                                         this.threeStarsPopup.add(completedTime);
                                         this.threeStarsPopup
@@ -1328,8 +1328,8 @@ export default class LevelTwo extends Phaser.Scene {
                                         this.level2Stars = 3;
                                     }
                                     if (
-                                        this.elapsedTime > 30000 &&
-                                        this.elapsedTime <= 60000
+                                        this.elapsedTime > 40000 &&
+                                        this.elapsedTime <= 70000
                                     ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
@@ -1341,7 +1341,7 @@ export default class LevelTwo extends Phaser.Scene {
                                             this.level2Stars = 2;
                                         }
                                     }
-                                    if (this.elapsedTime > 60000) {
+                                    if (this.elapsedTime > 70000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
                                         this.oneStarPopup
