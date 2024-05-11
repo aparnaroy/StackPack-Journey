@@ -33,7 +33,7 @@ export default class TitleScreen extends Phaser.Scene {
         // Creating Gal
         this.player = this.physics.add
             .sprite(370, 485, "gal_idle_right")
-            .setScale(1.5, 1.5)
+            .setScale(1.3, 1.3)
             .setDepth(35);
         this.player.setCollideWorldBounds(true);
 
@@ -51,7 +51,7 @@ export default class TitleScreen extends Phaser.Scene {
         // Creating Guy
         this.dude = this.physics.add
             .sprite(this.cameras.main.width - 370, 485, "dude_idle_left")
-            .setScale(1.5, 1.5)
+            .setScale(1.3, 1.3)
             .setDepth(35);
         this.dude.setCollideWorldBounds(true);
 

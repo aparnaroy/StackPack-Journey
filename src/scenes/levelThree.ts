@@ -992,7 +992,6 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
-            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level3", {
                 level0State: this.level0State,
@@ -1126,7 +1125,6 @@ export default class LevelThree extends Phaser.Scene {
         });
         this.startTime = this.time.now;
         this.pausedTime = 0;
-        this.isPaused = false;
 
         // Level complete popup - still working
         const completeExitButton = this.add.circle(790, 185, 35).setDepth(20);
@@ -1203,7 +1201,6 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
-            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level3", {
                 level0State: this.level0State,
@@ -1214,8 +1211,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
-            this.isPaused = false;
-            // TODO: Transition to ending cut scene
+            // Transition to ending cut scene
             setTimeout(() => {
                 this.scene.start("EndCutScene", {
                     level0State: this.level0State,
@@ -1227,8 +1223,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
-            this.isPaused = false;
-            // TODO: Transition to ending cut scene
+            // Transition to ending cut scene
             setTimeout(() => {
                 this.scene.start("EndCutScene", {
                     level0State: this.level0State,
@@ -1912,6 +1907,7 @@ export default class LevelThree extends Phaser.Scene {
         this.lives = 3;
         this.createHearts();
         this.freePopsLeft = 4;
+        this.isPaused = false;
     }
 
     private formatTime(milliseconds: number) {

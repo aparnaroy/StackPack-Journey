@@ -699,7 +699,6 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
-            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level1", {
                 level0State: this.level0State,
@@ -833,7 +832,6 @@ export default class LevelOne extends Phaser.Scene {
         });
         this.startTime = this.time.now;
         this.pausedTime = 0;
-        this.isPaused = false;
 
         // Level complete popup - still working
         const completeExitButton = this.add.circle(790, 185, 35).setDepth(10);
@@ -897,6 +895,7 @@ export default class LevelOne extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.isPaused = false;
             if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
             }
@@ -909,7 +908,6 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
-            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level1", {
                 level0State: this.level0State,
@@ -920,7 +918,6 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
-            this.isPaused = false;
             if (this.level2State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
@@ -943,7 +940,6 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
-            this.isPaused = false;
             if (this.level2State == 0) {
                 // If level 2 was locked before, set it to current level status
                 this.scene.start("Level2", {

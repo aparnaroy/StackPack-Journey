@@ -160,8 +160,8 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         this.load.spritesheet("plant", "assets/level2/plant.png", {
-            frameWidth: 1872 / 18,
-            frameHeight: 104,
+            frameWidth: 7488 / 18,
+            frameHeight: 416,
         });
 
         this.load.image("cloud-platform", "assets/level2/cloud-platform.png");
@@ -651,7 +651,6 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
-            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level2", {
                 level0State: this.level0State,
@@ -785,7 +784,6 @@ export default class LevelTwo extends Phaser.Scene {
         });
         this.startTime = this.time.now;
         this.pausedTime = 0;
-        this.isPaused = false;
 
         // Level complete popup - still working
         const completeExitButton = this.add.circle(790, 185, 35).setDepth(10);
@@ -862,7 +860,6 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
-            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level2", {
                 level0State: this.level0State,
@@ -873,7 +870,6 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
-            this.isPaused = false;
             if (this.level3State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
@@ -896,7 +892,6 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
-            this.isPaused = false;
             if (this.level3State == 0) {
                 // If level 3 was locked before, set it to current level status
                 this.scene.start("Level3", {
@@ -1145,8 +1140,11 @@ export default class LevelTwo extends Phaser.Scene {
                         this.potHighlightArea.setVisible(false);
                         this.plant = this.physics.add
                             .sprite(1050, 100, "plant")
-                            .setScale(1.4, 5.5)
+                            .setScale(0.5, 1.5)
                             .setVisible(false);
+                        this.plant
+                            .setSize(this.plant.width, this.plant.height - 50)
+                            .setOffset(0, 30);
                         this.plant.setCollideWorldBounds(true);
                         this.plant.setImmovable(true);
                         this.physics.world.enable(this.plant);
@@ -2063,7 +2061,7 @@ export default class LevelTwo extends Phaser.Scene {
         if (this.player && this.plant && this.cursors) {
             // Max distance player can be from plant to climb it
             const xTolerance = 30; // Tolerance for X position
-            const yTolerance = 250; // Tolerance for Y position
+            const yTolerance = 270; // Tolerance for Y position
             // Calculate horizontal and vertical distances between player and ladder
             const deltaX = Math.abs(this.player.x - this.plant.x);
             const deltaY = Math.abs(this.player.y - this.plant.y);

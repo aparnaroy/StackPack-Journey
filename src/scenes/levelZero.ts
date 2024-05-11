@@ -489,7 +489,6 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
-            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level0", {
                 level0State: this.level0State,
@@ -697,7 +696,6 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
-            this.isPaused = false;
             this.resetScene();
             this.scene.start("Level0", {
                 level0State: this.level0State,
@@ -708,7 +706,6 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
-            this.isPaused = false;
             if (this.level1State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
@@ -731,7 +728,6 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
-            this.isPaused = false;
             if (this.level1State == 0) {
                 // If level 1 was locked before, set it to current level status
                 this.scene.start("Level1", {
