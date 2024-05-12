@@ -30,7 +30,6 @@ export default class LevelTwo extends Phaser.Scene {
     private smog5?: Phaser.Physics.Arcade.Sprite;
     private troll?: Phaser.Physics.Arcade.Sprite;
     private trollDirection: number = 1; // 1 for right, -1 for left
-    private trollSpeed: number = 2;
     private trollDead?: boolean = false;
     private usedClub?: boolean = false;
     private plant?: Phaser.Physics.Arcade.Sprite;
@@ -994,7 +993,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Detection area for seeds
-        this.seedsDetectionArea = this.add.rectangle(950, 700, 100, 250);
+        this.seedsDetectionArea = this.add.rectangle(935, 700, 100, 250);
 
         // Highlight area for seeds
         this.seedsHighlightArea = this.add
@@ -1003,7 +1002,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Detection area for can
-        this.canDetectionArea = this.add.rectangle(950, 700, 100, 250);
+        this.canDetectionArea = this.add.rectangle(935, 700, 100, 250);
 
         // Highlight area for can
         this.canHighlightArea = this.add
@@ -1853,7 +1852,7 @@ export default class LevelTwo extends Phaser.Scene {
                     this.seedsDetectionArea.getBounds()
                 ) &&
                 this.seeds &&
-                !this.usedItems.includes(this.seeds)
+                !this.usedItems.includes(this.seeds) && !this.potHighlightArea.visible
             ) {
                 // If player overlaps with seeds detection area, show the highlight box
                 this.seedsHighlightArea.setVisible(true);
@@ -1884,7 +1883,7 @@ export default class LevelTwo extends Phaser.Scene {
                     this.canDetectionArea.getBounds()
                 ) &&
                 this.wateringCan &&
-                !this.usedItems.includes(this.wateringCan)
+                !this.usedItems.includes(this.wateringCan) && !this.potHighlightArea.visible
             ) {
                 // If player overlaps with wateringCan detection area, show the highlight box
                 this.canHighlightArea.setVisible(true);
@@ -1970,94 +1969,6 @@ export default class LevelTwo extends Phaser.Scene {
                 this.keyHighlightArea.setVisible(false);
             }
         }
-
-        /*if (this.player && this.stack.length > 0) {
-            if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.wandDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "wand"
-            ) {
-                // If player overlaps with ladder detection area, show the highlight box
-                this.wandHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.clubDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "club"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.clubHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.seedsDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "seeds"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.seedsHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.canDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "can"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.canHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.potDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "pot"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.potHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.keyDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "key"
-            ) {
-                // If player overlaps with key detection area, open door
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else {
-                // Otherwise, hide the highlight box
-                this.wandHighlightArea.setVisible(false);
-                this.clubHighlightArea.setVisible(false);
-                this.seedsHighlightArea.setVisible(false);
-                this.potHighlightArea.setVisible(false);
-                this.canDetectionArea.setVisible(false);
-            }
-        }*/
 
         // Climbing the plant
         if (this.player && this.plant && this.cursors) {
@@ -2162,65 +2073,6 @@ export default class LevelTwo extends Phaser.Scene {
                 }
             }
         }
-        /*const chaseThreshold = 400;
-        const attackThreshold = 70;
-        if (!this.isPaused && !this.usedClub) {
-            if (this.troll && this.player) {
-                // Calculate distance between troll and player
-                const distanceX = Math.abs(this.player.x - this.troll.x);
-                const distanceY = Math.abs(this.player.y - this.troll.y);
-
-                // If player is close-ish, move toward player
-                if (
-                    distanceX < chaseThreshold &&
-                    distanceX > attackThreshold &&
-                    distanceY < 40
-                ) {
-                    if (this.troll.x < this.player.x) {
-                        this.troll.x += 4.3; // Move right
-                        this.troll.flipX = false;
-                    } else if (this.troll.x > this.player.x) {
-                        this.troll.x -= 4.3; // Move left
-                        this.troll.flipX = true;
-                    }
-                    this.troll.anims.play("troll_right", true);
-                }
-                // If player is close to troll, troll attacks
-                else if (distanceX <= attackThreshold && distanceY < 100) {
-                    this.troll.anims.play("troll_attack", true); // Attack right
-                    if (this.troll.x < this.player.x) {
-                        this.troll.flipX = false;
-                    } else if (this.troll.x > this.player.x) {
-                        this.troll.flipX = true;
-                    }
-                    if (!this.collidingWithSmog) {
-                        this.time.delayedCall(
-                            500,
-                            () => {
-                                this.collidingWithSmog = true;
-                                this.loseLife();
-                            },
-                            [],
-                            this
-                        );
-                    }
-                } else {
-                    if (this.trollDirection === 1) {
-                        this.troll.x += this.trollSpeed; // Move right
-                    } else {
-                        this.troll.x -= this.trollSpeed; // Move left
-                    }
-                    this.troll.flipX = this.trollDirection === -1; // Flip troll if moving left
-                    this.troll.anims.play("troll_right", true);
-
-                    // Check if the troll reaches the screen edges
-                    if (this.troll.x <= 150 || this.troll.x >= 525) {
-                        // Change direction
-                        this.trollDirection *= -1;
-                    }
-                }
-            }
-        }*/
 
         // Club on top of bird
         if (this.club && this.bird && !this.clubCollected) {
