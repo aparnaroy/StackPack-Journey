@@ -1962,7 +1962,7 @@ export default class LevelTwo extends Phaser.Scene {
         }
 
         // Climbing the plant
-        if (this.player && this.plant && this.cursors) {
+        if (this.player && this.plant && this.cursors && this.plant.visible && +this.plant.frame.name > 0) {
             // Max distance player can be from plant to climb it
             const xTolerance = 30; // Tolerance for X position
             const yTolerance = 250; // Tolerance for Y position
