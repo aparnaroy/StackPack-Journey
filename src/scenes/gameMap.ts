@@ -152,22 +152,21 @@ export default class GameMap extends Phaser.Scene {
             .setScale(0.21)
             .setDepth(2);
 
+        // If player hasn't played level yet, don't show stars, else, show the number of stars they earned
         // Level 0 Stars
         if (this.level0Stars == 0) {
-            level0Stars.setTexture("0starsUp");
+            level0Stars.setVisible(false);
         } else if (this.level0Stars == 1) {
             level0Stars.setTexture("1starsUp");
         } else if (this.level0Stars == 2) {
-            level3Stars.setVisible(true);
             level0Stars.setTexture("2starsUp");
         } else if (this.level0Stars == 3) {
-            level3Stars.setVisible(true);
             level0Stars.setTexture("3starsUp");
         }
 
         // Level 1 Stars
         if (this.level1Stars == 0) {
-            level1Stars.setTexture("0starsDown");
+            level1Stars.setVisible(false);
         } else if (this.level1Stars == 1) {
             level1Stars.setTexture("1starsDown");
         } else if (this.level1Stars == 2) {
@@ -178,7 +177,7 @@ export default class GameMap extends Phaser.Scene {
 
         // Level 2 Stars
         if (this.level2Stars == 0) {
-            level2Stars.setTexture("0starsDown");
+            level2Stars.setVisible(false);
         } else if (this.level2Stars == 1) {
             level2Stars.setTexture("1starsDown");
         } else if (this.level2Stars == 2) {
@@ -189,7 +188,7 @@ export default class GameMap extends Phaser.Scene {
 
         // Level 3 Stars
         if (this.level3Stars == 0) {
-            level3Stars.setTexture("0starsUp");
+            level3Stars.setVisible(false);
         } else if (this.level3Stars == 1) {
             level3Stars.setTexture("1starsUp");
         } else if (this.level3Stars == 2) {
