@@ -101,6 +101,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.load.image("watering-can", "assets/level2/watering-can.png");
         this.load.image("smog", "assets/level2/smog.png");
         this.load.image("sign", "assets/level2/toxic-gas.png");
+        this.load.image("garden-sign", "assets/level2/garden-sign.png");
 
         this.load.image("EF-keys-black", "assets/EF-keys-black.png");
 
@@ -495,6 +496,8 @@ export default class LevelTwo extends Phaser.Scene {
         this.seeds = this.add.sprite(70, 680, "seeds").setScale(0.6);
         this.seeds.setName("seeds");
 
+        this.add.image(1050, 670, "garden-sign").setScale(0.06);
+
         this.wateringCan = this.add
             .sprite(650, 660, "watering-can")
             .setScale(0.75);
@@ -541,18 +544,6 @@ export default class LevelTwo extends Phaser.Scene {
         this.smog4 = this.smogGroup.create(700, 425, "smog").setScale(0.5);
         this.smog5 = this.smogGroup.create(850, 425, "smog").setScale(0.5);
 
-        /*
-        const graphics = this.add.graphics();
-        //Draw the collision bounds of the pot sprite
-        if(this.invisiblePot){
-        const bounds = this.invisiblePot.getBounds();
-        graphics.lineStyle(2, 0xff0000);
-        graphics.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
-        }
-        */
-
-        //this.physics.add.collider(this.flyingBird, this.smogGroup);
-        //this.physics.add.collider(this.bird, this.smogGroup);
         this.physics.add.collider(this.flyingBird, birdGround);
         this.physics.add.collider(this.bird, birdGround);
 
@@ -786,7 +777,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.pausedTime = 0;
         this.isPaused = false;
 
-        // Level complete popup - still working
+        // Level complete popup 
         const completeExitButton = this.add.circle(790, 185, 35).setDepth(10);
         completeExitButton.setInteractive();
         completeExitButton.on("pointerover", () => {
@@ -984,7 +975,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Detection area for pot
-        this.potDetectionArea = this.add.rectangle(1050, 700, 100, 250);
+        this.potDetectionArea = this.add.rectangle(935, 700, 100, 250);
 
         // Highlight area for pot
         this.potHighlightArea = this.add
@@ -993,7 +984,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Detection area for seeds
-        this.seedsDetectionArea = this.add.rectangle(935, 700, 100, 250);
+        this.seedsDetectionArea = this.add.rectangle(1050, 700, 100, 250);
 
         // Highlight area for seeds
         this.seedsHighlightArea = this.add
@@ -1002,7 +993,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Detection area for can
-        this.canDetectionArea = this.add.rectangle(935, 700, 100, 250);
+        this.canDetectionArea = this.add.rectangle(1050, 700, 100, 250);
 
         // Highlight area for can
         this.canHighlightArea = this.add
