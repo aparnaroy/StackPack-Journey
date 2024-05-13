@@ -13,7 +13,6 @@ export default class LevelTwo extends Phaser.Scene {
     private key?: Phaser.GameObjects.Sprite;
     private clouds?: Phaser.Physics.Arcade.StaticGroup;
     private invisiblePot?: Phaser.Physics.Arcade.Image;
-    private invisiblePlant?: Phaser.Physics.Arcade.Image;
     private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
     private wand?: Phaser.GameObjects.Sprite;
@@ -33,7 +32,7 @@ export default class LevelTwo extends Phaser.Scene {
     private trollDead?: boolean = false;
     private usedClub?: boolean = false;
     private plant?: Phaser.Physics.Arcade.Sprite;
-    private gasSign?: Phaser.GameObjects.Image;
+    private bush?: Phaser.Physics.Arcade.Sprite;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -102,6 +101,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.load.image("smog", "assets/level2/smog.png");
         this.load.image("sign", "assets/level2/toxic-gas.png");
         this.load.image("garden-sign", "assets/level2/garden-sign.png");
+        this.load.image("bush", "assets/level2/bushes_png.png");
 
         this.load.image("EF-keys-black", "assets/EF-keys-black.png");
 
@@ -463,18 +463,10 @@ export default class LevelTwo extends Phaser.Scene {
         this.invisiblePot.disableBody(true, true);
         this.invisiblePot.setVisible(false);
 
-        this.invisiblePlant = this.clouds
-            .create(1150, 660, "pot")
-            .setScale(0.065, 0.5) as Phaser.Physics.Arcade.Image;
-        this.invisiblePlant.setSize(115, 600).setOffset(790, 800);
-        this.physics.add.collider(this.player, this.invisiblePlant);
-        this.invisiblePlant.disableBody(true, true);
-        this.invisiblePlant.setVisible(false);
-
         this.physics.add.collider(this.player, this.clouds);
 
         // Create objects: key, door, wand, club, pot, seeds, watering can
-        this.key = this.add.sprite(1200, 650, "key").setScale(2.5, 2.5);
+        this.key = this.add.sprite(1200, 670, "key").setScale(2.5, 2.5);
         this.key.setName("key");
         this.physics.add.collider(this.key, this.clouds);
 
@@ -536,7 +528,7 @@ export default class LevelTwo extends Phaser.Scene {
         );
 
         // Creating smog
-        this.gasSign = this.add.image(125, 425, "sign").setScale(0.2);
+        this.add.image(125, 425, "sign").setScale(0.2);
         this.smogGroup = this.physics.add.staticGroup();
         const smog1 = this.smogGroup.create(250, 425, "smog").setScale(0.5);
         const smog2 = this.smogGroup.create(400, 425, "smog").setScale(0.5);
@@ -546,6 +538,11 @@ export default class LevelTwo extends Phaser.Scene {
 
         this.physics.add.collider(this.flyingBird, birdGround);
         this.physics.add.collider(this.bird, birdGround);
+
+        // Creating bush 
+        this.bush = this.physics.add.sprite(1200, 670, "bush").setScale(2, 2.7).setVisible(false);
+        this.bush.setCollideWorldBounds(true);
+        this.physics.add.collider(this.bush, this.ground);
 
         // Creating lives
         this.createHearts();
@@ -1141,8 +1138,6 @@ export default class LevelTwo extends Phaser.Scene {
                         this.plant.setImmovable(true);
                         this.physics.world.enable(this.plant);
                         if (this.pot && this.ground) {
-                            //this.physics.world.enable(this.pot);
-                            //this.physics.add.collider(this.pot, this.ground);
                             const rect = this.add.rectangle(1050, 675, 100, 75);
                             this.physics.world.enable(rect);
                             this.physics.add.collider(rect, this.ground);
@@ -1160,7 +1155,11 @@ export default class LevelTwo extends Phaser.Scene {
                     if (poppedItem.name === "seeds") {
                         poppedItem.setVisible(false);
                         this.plant?.setVisible(true).setFrame(0);
-                        this.invisiblePlant?.enableBody(true);
+                        if(this.bush && this.player){
+                            this.bush.setVisible(true);
+                            this.physics.add.collider(this.player, this.bush);
+
+                        }
                         this.seedsHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "club") {
