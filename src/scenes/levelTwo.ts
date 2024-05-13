@@ -251,7 +251,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
         this.bird = this.birdPlatform.create(
             230,
-            330,
+            345,
             "bird_right"
         ) as Phaser.Physics.Arcade.Image;
         this.bird.setScale(1).refreshBody();
@@ -441,7 +441,7 @@ export default class LevelTwo extends Phaser.Scene {
             .create(50, 350, "cloud-platform")
             .setScale(0.5);
         const cloud2 = this.clouds
-            .create(450, 200, "cloud-platform")
+            .create(450, 205, "cloud-platform")
             .setScale(0.75);
         const cloud3 = this.clouds
             .create(900, 220, "cloud-platform")
@@ -528,13 +528,13 @@ export default class LevelTwo extends Phaser.Scene {
         );
 
         // Creating smog
-        this.add.image(125, 425, "sign").setScale(0.2);
+        this.add.image(125, 435, "sign").setScale(0.2);
         this.smogGroup = this.physics.add.staticGroup();
-        const smog1 = this.smogGroup.create(250, 425, "smog").setScale(0.5);
-        const smog2 = this.smogGroup.create(400, 425, "smog").setScale(0.5);
-        const smog3 = this.smogGroup.create(550, 425, "smog").setScale(0.5);
-        this.smog4 = this.smogGroup.create(700, 425, "smog").setScale(0.5);
-        this.smog5 = this.smogGroup.create(850, 425, "smog").setScale(0.5);
+        const smog1 = this.smogGroup.create(250, 450, "smog").setScale(0.5);
+        const smog2 = this.smogGroup.create(400, 450, "smog").setScale(0.5);
+        const smog3 = this.smogGroup.create(550, 450, "smog").setScale(0.5);
+        this.smog4 = this.smogGroup.create(700, 450, "smog").setScale(0.5);
+        this.smog5 = this.smogGroup.create(850, 450, "smog").setScale(0.5);
 
         this.physics.add.collider(this.flyingBird, birdGround);
         this.physics.add.collider(this.bird, birdGround);
@@ -957,11 +957,11 @@ export default class LevelTwo extends Phaser.Scene {
         );
 
         // Creating detection area when using the wand
-        this.wandDetectionArea = this.add.rectangle(700, 280, 200, 100);
+        this.wandDetectionArea = this.add.rectangle(700, 300, 200, 100);
 
         // Highlight area for wand
         this.wandHighlightArea = this.add
-            .rectangle(780, 415, 275, 60, 0xffff00)
+            .rectangle(780, 435, 275, 60, 0xffff00)
             .setAlpha(0.4)
             .setVisible(false);
 
