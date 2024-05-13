@@ -543,7 +543,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.bush = this.physics.add
             .sprite(1200, 670, "bush")
             .setScale(2, 2.7)
-            .setVisible(false);
+            .setAlpha(0);
         this.bush.setCollideWorldBounds(true);
         this.physics.add.collider(this.bush, this.ground);
 
@@ -1117,16 +1117,37 @@ export default class LevelTwo extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "wand") {
-                        // have to add anim for wand
-                        if (this.smog4 && this.smog5 && this.smogGroup) {
-                            this.smogGroup.remove(this.smog4);
-                            this.smogGroup.remove(this.smog5);
-                            this.smog4.setPosition(5000, 5000);
-                            this.smog5.setPosition(5000, 5000);
-                            this.smog4.setVisible(false);
-                            this.smog5.setVisible(false);
+                        // Wand waving
+                        if (this.wand) {
+                            this.tweens.add({
+                                targets: poppedItem,
+                                duration: 1000, // Adjust the duration of the tween as needed
+                                x: "+=50", // Move the wand to the right
+                                y: "-=50", // Move the wand upward
+                                ease: "Sine.easeInOut", // Use a smooth, sinusoidal ease for a natural waving motion
+                                yoyo: true, // Play the tween in reverse after completing
+                                repeat: 0, // Repeat the tween once (total of two waves)
+                                onStart: () => {
+                                    poppedItem.setDepth(3);
+                                    poppedItem.setPosition(750, 350);
+                                },
+                                onComplete: () => {
+                                    if (
+                                        this.smog4 &&
+                                        this.smog5 &&
+                                        this.smogGroup
+                                    ) {
+                                        this.smogGroup.remove(this.smog4);
+                                        this.smogGroup.remove(this.smog5);
+                                        this.smog4.setPosition(5000, 5000);
+                                        this.smog5.setPosition(5000, 5000);
+                                        this.smog4.setVisible(false);
+                                        this.smog5.setVisible(false);
+                                    }
+                                    poppedItem.setVisible(false);
+                                },
+                            });
                         }
-                        poppedItem.setVisible(false);
                         this.wandHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "pot") {
@@ -1148,19 +1169,63 @@ export default class LevelTwo extends Phaser.Scene {
                         }
                     }
                     if (poppedItem.name === "can") {
-                        poppedItem.setVisible(false);
+                        this.tweens.add({
+                            targets: poppedItem,
+                            angle: 75, // Tilt the water to the side
+                            duration: 500, // Duration of the tilt animation
+                            yoyo: true, // Play the animation in reverse
+                            repeat: 0, // No repeat
+                            onStart: () => {
+                                poppedItem.setPosition(935, 560);
+                            },
+                            onComplete: () => {
+                                poppedItem.setVisible(false);
+                                if (this.bush && this.player) {
+                                    this.tweens.add({
+                                        targets: this.bush,
+                                        alpha: 1, // Fade in to fully visible
+                                        duration: 3000, 
+                                        ease: "Power1", 
+                                    });
+                                }
+                            },
+                        });
                         this.plant?.play("growing");
                         if (this.player && this.plant && this.pot) {
                             this.physics.add.collider(this.player, this.pot);
                         }
+                        if (this.bush && this.player) {
+                            this.physics.add.collider(this.player, this.bush);
+                        }
                         this.canHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "seeds") {
-                        poppedItem.setVisible(false);
-                        this.plant?.setVisible(true).setFrame(0);
-                        if (this.bush && this.player) {
-                            this.bush.setVisible(true);
-                            this.physics.add.collider(this.player, this.bush);
+                        if (this.player) {
+                            this.tweens.add({
+                                targets: poppedItem,
+                                x: this.player.x + 85, 
+                                y: this.player.y - 100, 
+                                duration: 1000, 
+                                ease: "Power1", 
+                                onComplete: () => {
+                                    // Remove the seeds sprite after the throwing animation completes
+                                    poppedItem.setVisible(false);
+                                    this.tweens.add({
+                                        targets: this.plant,
+                                        duration: 1000, 
+                                        alpha: 1, // Fade in to fully visible
+                                        onStart: () => {
+                                            // Set the initial alpha to 0 before starting the fade-in
+                                            this.plant?.setVisible(true);
+                                            this.plant?.setAlpha(0);
+                                        },
+                                        onComplete: () => {
+                                            // Set the frame of the plant sprite
+                                            this.plant?.setFrame(0);
+                                        },
+                                    });
+                                },
+                            });
                         }
                         this.seedsHighlightArea.setVisible(false);
                     }
@@ -1189,7 +1254,7 @@ export default class LevelTwo extends Phaser.Scene {
                                 targets: this.club,
                                 x: this.troll.x + 100,
                                 y: this.troll.y,
-                                duration: 300, // Adjust duration as needed
+                                duration: 300, 
                                 onComplete: () => {
                                     if (this.club) {
                                         this.tweens.add({
@@ -1652,7 +1717,7 @@ export default class LevelTwo extends Phaser.Scene {
         }
     }
 
-    private clubOnBird(){
+    private clubOnBird() {
         if (this.club && this.bird && !this.clubCollected) {
             this.club.x = this.bird.x;
             this.club.y = this.bird.y - this.bird.displayHeight / 2;
@@ -2100,7 +2165,7 @@ export default class LevelTwo extends Phaser.Scene {
             this.club.y = this.bird.y - this.bird.displayHeight / 2;
         }
         */
-       this.clubOnBird();
+        this.clubOnBird();
 
         if (
             this.player &&
