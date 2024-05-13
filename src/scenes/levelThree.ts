@@ -738,6 +738,7 @@ export default class LevelThree extends Phaser.Scene {
         this.lava.setDepth(1);
         this.fireball1.setDepth(0);
         this.fireball2.setDepth(0);
+        this.door.setDepth(1);
 
         // Resize collision boxes of player and everything that can be collided with
         this.player
@@ -1650,6 +1651,8 @@ export default class LevelThree extends Phaser.Scene {
                                         ease: "Linear",
                                         delay: 1000, // Delay the animation slightly
                                     });
+
+                                    this.level3State = 3;
                                 },
                             });
                         }

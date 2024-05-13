@@ -138,6 +138,7 @@ export default class EndCutScene extends Phaser.Scene {
         this.load.image("level0-platform", "assets/level0/platform.png");
 
         //this.load.image("red-opendoor", "assets/level3/red-door-open.png");
+        this.load.image("star", "assets/star.png");
     }
 
     create(data: GameMapData) {
@@ -459,7 +460,7 @@ export default class EndCutScene extends Phaser.Scene {
 
         const thankYouText = this.add.text(
             this.cameras.main.centerX,
-            this.cameras.main.centerY - 210,
+            this.cameras.main.centerY - 230,
             "Thank you for Playing",
             {
                 fontFamily: "Comic Sans MS",
@@ -472,23 +473,43 @@ export default class EndCutScene extends Phaser.Scene {
         thankYouText.setOrigin(0.5).setDepth(32);
 
         const authorText = this.add.text(
-            this.cameras.main.centerX + 50,
-            this.cameras.main.centerY + 110,
+            this.cameras.main.centerX + 55,
+            this.cameras.main.centerY + 265,
             "A game by Aparna Roy, Sam Glover & Emilie Barniak",
             {
                 fontFamily: "Comic Sans MS",
-                fontSize: "35px",
+                fontSize: "34px",
                 color: "#253347",
                 align: "center",
             }
         );
         authorText.setOrigin(0.5).setDepth(32);
 
+        const totalStarsCollected =
+            this.level0Stars +
+            this.level1Stars +
+            this.level2Stars +
+            this.level3Stars;
+        const starsCollectedText = this.add.text(
+            557,
+            222,
+            `Earned: ${totalStarsCollected} / 12`,
+            {
+                fontFamily: "Comic Sans MS",
+                fontSize: "32px",
+                color: "#253347",
+                align: "center",
+            }
+        );
+        starsCollectedText.setOrigin(0, 0.5).setDepth(32);
+        const star = this.add.image(517, 220, "star");
+        star.setScale(0.13).setDepth(32);
+
         this.stackpack
             ?.setVisible(true)
             .setScale(0.06)
             .setDepth(35)
-            .setPosition(220, 500);
+            .setPosition(230, 655);
 
         this.galMove = "";
         this.dudeMove = "";
@@ -497,15 +518,15 @@ export default class EndCutScene extends Phaser.Scene {
         this.player?.setVelocityX(0);
         this.dude?.setVelocityX(0);
         this.player?.setDepth(31);
-        this.player?.setPosition(this.cameras.main.centerX - 80, 315);
+        this.player?.setPosition(this.cameras.main.centerX - 80, 345);
         this.dude?.setDepth(31);
-        this.dude?.setPosition(this.cameras.main.centerX + 80, 315);
-        this.ground?.setPosition(650, 500).refreshBody();
+        this.dude?.setPosition(this.cameras.main.centerX + 80, 345);
+        this.ground?.setPosition(650, 530).refreshBody();
 
         const playAgainButton = this.add
             .image(
                 this.cameras.main.centerX - 180,
-                this.cameras.main.centerY + 235,
+                this.cameras.main.centerY + 165,
                 "play-again-button"
             )
             .setDepth(30);
@@ -515,7 +536,7 @@ export default class EndCutScene extends Phaser.Scene {
         const worldMapButton = this.add
             .image(
                 this.cameras.main.centerX + 180,
-                this.cameras.main.centerY + 235,
+                this.cameras.main.centerY + 165,
                 "world-map-button"
             )
             .setDepth(30);

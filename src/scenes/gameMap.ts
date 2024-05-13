@@ -82,6 +82,8 @@ export default class GameMap extends Phaser.Scene {
         this.load.image("2starsUp", "assets/gameMap/stars/2starsUp.png");
         this.load.image("3starsDown", "assets/gameMap/stars/3starsDown.png");
         this.load.image("3starsUp", "assets/gameMap/stars/3starsUp.png");
+
+        this.load.image("star", "assets/star.png");
     }
 
     create(data: GameMapData) {
@@ -104,10 +106,32 @@ export default class GameMap extends Phaser.Scene {
             this.cameras.main.height / backgroundImage.height
         );
 
+        const totalStarsCollected =
+            this.level0Stars +
+            this.level1Stars +
+            this.level2Stars +
+            this.level3Stars;
+
+        const starsCollectedText = this.add.text(
+            135,
+            91,
+            `${totalStarsCollected} / 12`,
+            {
+                fontFamily: "Comic Sans MS",
+                fontSize: "32px",
+                color: "#ffffff",
+                align: "center",
+            }
+        );
+        starsCollectedText.setOrigin(0, 0.5).setDepth(32);
+
+        const star = this.add.image(85, 89, "star");
+        star.setScale(0.14);
+
         const originalScale = 0.43;
         const hoverScale = 0.46;
 
-        // Creating Stars
+        // Creating Level Stars
         const level0Stars = this.add
             .image(180, 485, "0starsUp")
             .setScale(0.21)
@@ -135,10 +159,8 @@ export default class GameMap extends Phaser.Scene {
         } else if (this.level0Stars == 1) {
             level0Stars.setTexture("1starsUp");
         } else if (this.level0Stars == 2) {
-            level3Stars.setVisible(true);
             level0Stars.setTexture("2starsUp");
         } else if (this.level0Stars == 3) {
-            level3Stars.setVisible(true);
             level0Stars.setTexture("3starsUp");
         }
 
