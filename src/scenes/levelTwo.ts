@@ -17,7 +17,6 @@ export default class LevelTwo extends Phaser.Scene {
     private key?: Phaser.GameObjects.Sprite;
     private clouds?: Phaser.Physics.Arcade.StaticGroup;
     private invisiblePot?: Phaser.Physics.Arcade.Image;
-    private invisiblePlant?: Phaser.Physics.Arcade.Image;
     private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
     private wand?: Phaser.GameObjects.Sprite;
@@ -34,11 +33,10 @@ export default class LevelTwo extends Phaser.Scene {
     private smog5?: Phaser.Physics.Arcade.Sprite;
     private troll?: Phaser.Physics.Arcade.Sprite;
     private trollDirection: number = 1; // 1 for right, -1 for left
-    private trollSpeed: number = 2;
     private trollDead?: boolean = false;
     private usedClub?: boolean = false;
     private plant?: Phaser.Physics.Arcade.Sprite;
-    private gasSign?: Phaser.GameObjects.Image;
+    private bush?: Phaser.Physics.Arcade.Sprite;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -110,6 +108,8 @@ export default class LevelTwo extends Phaser.Scene {
         this.load.image("watering-can", "assets/level2/watering-can.png");
         this.load.image("smog", "assets/level2/smog.png");
         this.load.image("sign", "assets/level2/toxic-gas.png");
+        this.load.image("garden-sign", "assets/level2/garden-sign.png");
+        this.load.image("bush", "assets/level2/bushes_png.png");
 
         this.load.image("EF-keys-black", "assets/EF-keys-black.png");
 
@@ -263,7 +263,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
         this.bird = this.birdPlatform.create(
             230,
-            330,
+            345,
             "bird_right"
         ) as Phaser.Physics.Arcade.Image;
         this.bird.setScale(1).refreshBody();
@@ -453,7 +453,7 @@ export default class LevelTwo extends Phaser.Scene {
             .create(50, 350, "cloud-platform")
             .setScale(0.5);
         const cloud2 = this.clouds
-            .create(450, 200, "cloud-platform")
+            .create(450, 205, "cloud-platform")
             .setScale(0.75);
         const cloud3 = this.clouds
             .create(900, 220, "cloud-platform")
@@ -475,18 +475,10 @@ export default class LevelTwo extends Phaser.Scene {
         this.invisiblePot.disableBody(true, true);
         this.invisiblePot.setVisible(false);
 
-        this.invisiblePlant = this.clouds
-            .create(1150, 660, "pot")
-            .setScale(0.065, 0.5) as Phaser.Physics.Arcade.Image;
-        this.invisiblePlant.setSize(115, 600).setOffset(790, 800);
-        this.physics.add.collider(this.player, this.invisiblePlant);
-        this.invisiblePlant.disableBody(true, true);
-        this.invisiblePlant.setVisible(false);
-
         this.physics.add.collider(this.player, this.clouds);
 
         // Create objects: key, door, wand, club, pot, seeds, watering can
-        this.key = this.add.sprite(1200, 650, "key").setScale(2.5, 2.5);
+        this.key = this.add.sprite(1200, 670, "key").setScale(2.5, 2.5);
         this.key.setName("key");
         this.physics.add.collider(this.key, this.clouds);
 
@@ -507,6 +499,8 @@ export default class LevelTwo extends Phaser.Scene {
 
         this.seeds = this.add.sprite(70, 680, "seeds").setScale(0.6);
         this.seeds.setName("seeds");
+
+        this.add.image(1050, 670, "garden-sign").setScale(0.06);
 
         this.wateringCan = this.add
             .sprite(650, 660, "watering-can")
@@ -546,28 +540,24 @@ export default class LevelTwo extends Phaser.Scene {
         );
 
         // Creating smog
-        this.gasSign = this.add.image(125, 425, "sign").setScale(0.2);
+        this.add.image(125, 435, "sign").setScale(0.2);
         this.smogGroup = this.physics.add.staticGroup();
-        const smog1 = this.smogGroup.create(250, 425, "smog").setScale(0.5);
-        const smog2 = this.smogGroup.create(400, 425, "smog").setScale(0.5);
-        const smog3 = this.smogGroup.create(550, 425, "smog").setScale(0.5);
-        this.smog4 = this.smogGroup.create(700, 425, "smog").setScale(0.5);
-        this.smog5 = this.smogGroup.create(850, 425, "smog").setScale(0.5);
+        const smog1 = this.smogGroup.create(250, 450, "smog").setScale(0.5);
+        const smog2 = this.smogGroup.create(400, 450, "smog").setScale(0.5);
+        const smog3 = this.smogGroup.create(550, 450, "smog").setScale(0.5);
+        this.smog4 = this.smogGroup.create(700, 450, "smog").setScale(0.5);
+        this.smog5 = this.smogGroup.create(850, 450, "smog").setScale(0.5);
 
-        /*
-        const graphics = this.add.graphics();
-        //Draw the collision bounds of the pot sprite
-        if(this.invisiblePot){
-        const bounds = this.invisiblePot.getBounds();
-        graphics.lineStyle(2, 0xff0000);
-        graphics.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
-        }
-        */
-
-        //this.physics.add.collider(this.flyingBird, this.smogGroup);
-        //this.physics.add.collider(this.bird, this.smogGroup);
         this.physics.add.collider(this.flyingBird, birdGround);
         this.physics.add.collider(this.bird, birdGround);
+
+        // Creating bush
+        this.bush = this.physics.add
+            .sprite(1200, 670, "bush")
+            .setScale(2, 2.7)
+            .setAlpha(0);
+        this.bush.setCollideWorldBounds(true);
+        this.physics.add.collider(this.bush, this.ground);
 
         // Creating lives
         this.createHearts();
@@ -805,7 +795,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.startTime = this.time.now;
         this.pausedTime = 0;
 
-        // Level complete popup - still working
+        // Level complete popup
         const completeExitButton = this.add.circle(790, 185, 35).setDepth(10);
         completeExitButton.setInteractive();
         completeExitButton.on("pointerover", () => {
@@ -1002,11 +992,11 @@ export default class LevelTwo extends Phaser.Scene {
         );
 
         // Creating detection area when using the wand
-        this.wandDetectionArea = this.add.rectangle(700, 280, 200, 200);
+        this.wandDetectionArea = this.add.rectangle(700, 300, 200, 100);
 
         // Highlight area for wand
         this.wandHighlightArea = this.add
-            .rectangle(780, 450, 275, 60, 0xffff00)
+            .rectangle(780, 435, 275, 60, 0xffff00)
             .setAlpha(0.4)
             .setVisible(false);
 
@@ -1020,7 +1010,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Detection area for pot
-        this.potDetectionArea = this.add.rectangle(1050, 700, 100, 250);
+        this.potDetectionArea = this.add.rectangle(935, 700, 100, 250);
 
         // Highlight area for pot
         this.potHighlightArea = this.add
@@ -1029,7 +1019,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Detection area for seeds
-        this.seedsDetectionArea = this.add.rectangle(950, 700, 100, 250);
+        this.seedsDetectionArea = this.add.rectangle(1050, 700, 100, 250);
 
         // Highlight area for seeds
         this.seedsHighlightArea = this.add
@@ -1038,7 +1028,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Detection area for can
-        this.canDetectionArea = this.add.rectangle(950, 700, 100, 250);
+        this.canDetectionArea = this.add.rectangle(1050, 700, 100, 250);
 
         // Highlight area for can
         this.canHighlightArea = this.add
@@ -1162,16 +1152,37 @@ export default class LevelTwo extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "wand") {
-                        // have to add anim for wand
-                        if (this.smog4 && this.smog5 && this.smogGroup) {
-                            this.smogGroup.remove(this.smog4);
-                            this.smogGroup.remove(this.smog5);
-                            this.smog4.setPosition(5000, 5000);
-                            this.smog5.setPosition(5000, 5000);
-                            this.smog4.setVisible(false);
-                            this.smog5.setVisible(false);
+                        // Wand waving
+                        if (this.wand) {
+                            this.tweens.add({
+                                targets: poppedItem,
+                                duration: 1000, // Adjust the duration of the tween as needed
+                                x: "+=50", // Move the wand to the right
+                                y: "-=50", // Move the wand upward
+                                ease: "Sine.easeInOut", // Use a smooth, sinusoidal ease for a natural waving motion
+                                yoyo: true, // Play the tween in reverse after completing
+                                repeat: 0, // Repeat the tween once (total of two waves)
+                                onStart: () => {
+                                    poppedItem.setDepth(3);
+                                    poppedItem.setPosition(750, 350);
+                                },
+                                onComplete: () => {
+                                    if (
+                                        this.smog4 &&
+                                        this.smog5 &&
+                                        this.smogGroup
+                                    ) {
+                                        this.smogGroup.remove(this.smog4);
+                                        this.smogGroup.remove(this.smog5);
+                                        this.smog4.setPosition(5000, 5000);
+                                        this.smog5.setPosition(5000, 5000);
+                                        this.smog4.setVisible(false);
+                                        this.smog5.setVisible(false);
+                                    }
+                                    poppedItem.setVisible(false);
+                                },
+                            });
                         }
-                        poppedItem.setVisible(false);
                         this.wandHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "pot") {
@@ -1189,8 +1200,6 @@ export default class LevelTwo extends Phaser.Scene {
                         this.plant.setImmovable(true);
                         this.physics.world.enable(this.plant);
                         if (this.pot && this.ground) {
-                            //this.physics.world.enable(this.pot);
-                            //this.physics.add.collider(this.pot, this.ground);
                             const rect = this.add.rectangle(1050, 675, 100, 75);
                             this.physics.world.enable(rect);
                             this.physics.add.collider(rect, this.ground);
@@ -1198,17 +1207,64 @@ export default class LevelTwo extends Phaser.Scene {
                         }
                     }
                     if (poppedItem.name === "can") {
-                        poppedItem.setVisible(false);
+                        this.tweens.add({
+                            targets: poppedItem,
+                            angle: 75, // Tilt the water to the side
+                            duration: 500, // Duration of the tilt animation
+                            yoyo: true, // Play the animation in reverse
+                            repeat: 0, // No repeat
+                            onStart: () => {
+                                poppedItem.setPosition(935, 560);
+                            },
+                            onComplete: () => {
+                                poppedItem.setVisible(false);
+                                if (this.bush && this.player) {
+                                    this.tweens.add({
+                                        targets: this.bush,
+                                        alpha: 1, // Fade in to fully visible
+                                        duration: 3000, 
+                                        ease: "Power1", 
+                                    });
+                                }
+                            },
+                        });
                         this.plant?.play("growing");
                         if (this.player && this.plant && this.pot) {
                             this.physics.add.collider(this.player, this.pot);
                         }
+                        if (this.bush && this.player) {
+                            this.physics.add.collider(this.player, this.bush);
+                        }
                         this.canHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "seeds") {
-                        poppedItem.setVisible(false);
-                        this.plant?.setVisible(true).setFrame(0);
-                        this.invisiblePlant?.enableBody(true);
+                        if (this.player) {
+                            this.tweens.add({
+                                targets: poppedItem,
+                                x: this.player.x + 85, 
+                                y: this.player.y - 100, 
+                                duration: 1000, 
+                                ease: "Power1", 
+                                onComplete: () => {
+                                    // Remove the seeds sprite after the throwing animation completes
+                                    poppedItem.setVisible(false);
+                                    this.tweens.add({
+                                        targets: this.plant,
+                                        duration: 1000, 
+                                        alpha: 1, // Fade in to fully visible
+                                        onStart: () => {
+                                            // Set the initial alpha to 0 before starting the fade-in
+                                            this.plant?.setVisible(true);
+                                            this.plant?.setAlpha(0);
+                                        },
+                                        onComplete: () => {
+                                            // Set the frame of the plant sprite
+                                            this.plant?.setFrame(0);
+                                        },
+                                    });
+                                },
+                            });
+                        }
                         this.seedsHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "club") {
@@ -1236,7 +1292,7 @@ export default class LevelTwo extends Phaser.Scene {
                                 targets: this.club,
                                 x: this.troll.x + 100,
                                 y: this.troll.y,
-                                duration: 300, // Adjust duration as needed
+                                duration: 300, 
                                 onComplete: () => {
                                     if (this.club) {
                                         this.tweens.add({
@@ -1319,7 +1375,7 @@ export default class LevelTwo extends Phaser.Scene {
                                         .setDepth(11)
                                         .setVisible(false);
                                     // Level popup depends on time it takes to complete
-                                    if (this.elapsedTime <= 30000) {
+                                    if (this.elapsedTime <= 60000) {
                                         this.starsPopup = this.threeStarsPopup;
                                         this.threeStarsPopup.add(completedTime);
                                         this.threeStarsPopup
@@ -1328,8 +1384,8 @@ export default class LevelTwo extends Phaser.Scene {
                                         this.level2Stars = 3;
                                     }
                                     if (
-                                        this.elapsedTime > 30000 &&
-                                        this.elapsedTime <= 60000
+                                        this.elapsedTime > 60000 &&
+                                        this.elapsedTime <= 90000
                                     ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
@@ -1341,7 +1397,7 @@ export default class LevelTwo extends Phaser.Scene {
                                             this.level2Stars = 2;
                                         }
                                     }
-                                    if (this.elapsedTime > 60000) {
+                                    if (this.elapsedTime > 90000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
                                         this.oneStarPopup
@@ -1407,18 +1463,34 @@ export default class LevelTwo extends Phaser.Scene {
                     let originalScaleX = 0;
                     let originalScaleY = 0;
                     // Move popped item to its original location
-                    if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "wand") {
+                        poppedItem.setPosition(425, 115);
+                        originalScaleX = 0.06;
+                        originalScaleY = 0.06;
                     }
-                    if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(350, 530);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "club") {
+                        this.clubCollected = false;
+                        this.clubOnBird();
+                        originalScaleX = 0.4;
+                        originalScaleY = 0.4;
+                    }
+                    if (poppedItem.name === "pot") {
+                        poppedItem.setPosition(900, 660);
+                        originalScaleX = 0.065;
+                        originalScaleY = 0.065;
+                    }
+                    if (poppedItem.name === "seeds") {
+                        poppedItem.setPosition(70, 680);
+                        originalScaleX = 0.6;
+                        originalScaleY = 0.6;
+                    }
+                    if (poppedItem.name === "can") {
+                        poppedItem.setPosition(650, 660);
+                        originalScaleX = 0.75;
+                        originalScaleY = 0.75;
                     }
                     if (poppedItem.name === "key") {
-                        poppedItem.setPosition(1200, 650);
+                        poppedItem.setPosition(1200, 670);
                         originalScaleX = 2.5;
                         originalScaleY = 2.5;
                     }
@@ -1431,22 +1503,12 @@ export default class LevelTwo extends Phaser.Scene {
                         duration: 300,
                         onComplete: () => {
                             this.updateStackView();
-                            if (poppedItem.name === "ladder") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.1,
-                                    1000
-                                );
-                            }
-                            if (poppedItem.name === "plank") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.15,
-                                    1000
-                                );
-                            }
+                            this.createPulsateEffect(
+                                this,
+                                poppedItem,
+                                1.15,
+                                1000
+                            );
                         },
                     });
                 },
@@ -1502,18 +1564,34 @@ export default class LevelTwo extends Phaser.Scene {
                     let originalScaleX = 0;
                     let originalScaleY = 0;
                     // Move popped item to its original location
-                    if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "wand") {
+                        poppedItem.setPosition(425, 115);
+                        originalScaleX = 0.06;
+                        originalScaleY = 0.06;
                     }
-                    if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(350, 530);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "club") {
+                        this.clubCollected = false;
+                        this.clubOnBird();
+                        originalScaleX = 0.4;
+                        originalScaleY = 0.4;
+                    }
+                    if (poppedItem.name === "pot") {
+                        poppedItem.setPosition(900, 660);
+                        originalScaleX = 0.065;
+                        originalScaleY = 0.065;
+                    }
+                    if (poppedItem.name === "seeds") {
+                        poppedItem.setPosition(70, 680);
+                        originalScaleX = 0.6;
+                        originalScaleY = 0.6;
+                    }
+                    if (poppedItem.name === "can") {
+                        poppedItem.setPosition(650, 660);
+                        originalScaleX = 0.75;
+                        originalScaleY = 0.75;
                     }
                     if (poppedItem.name === "key") {
-                        poppedItem.setPosition(1200, 650);
+                        poppedItem.setPosition(1200, 670);
                         originalScaleX = 2.5;
                         originalScaleY = 2.5;
                     }
@@ -1526,22 +1604,12 @@ export default class LevelTwo extends Phaser.Scene {
                         duration: 300,
                         onComplete: () => {
                             this.updateStackView();
-                            if (poppedItem.name === "ladder") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.1,
-                                    1000
-                                );
-                            }
-                            if (poppedItem.name === "plank") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.15,
-                                    1000
-                                );
-                            }
+                            this.createPulsateEffect(
+                                this,
+                                poppedItem,
+                                1.15,
+                                1000
+                            );
                         },
                     });
                 },
@@ -1701,6 +1769,13 @@ export default class LevelTwo extends Phaser.Scene {
             this.pausedTime = this.time.now - this.startTime;
         } else {
             this.startTime = this.time.now - this.pausedTime;
+        }
+    }
+
+    private clubOnBird() {
+        if (this.club && this.bird && !this.clubCollected) {
+            this.club.x = this.bird.x;
+            this.club.y = this.bird.y - this.bird.displayHeight / 2;
         }
     }
 
@@ -1908,7 +1983,8 @@ export default class LevelTwo extends Phaser.Scene {
                     this.seedsDetectionArea.getBounds()
                 ) &&
                 this.seeds &&
-                !this.usedItems.includes(this.seeds)
+                !this.usedItems.includes(this.seeds) &&
+                !this.potHighlightArea.visible
             ) {
                 // If player overlaps with seeds detection area, show the highlight box
                 this.seedsHighlightArea.setVisible(true);
@@ -1939,7 +2015,8 @@ export default class LevelTwo extends Phaser.Scene {
                     this.canDetectionArea.getBounds()
                 ) &&
                 this.wateringCan &&
-                !this.usedItems.includes(this.wateringCan)
+                !this.usedItems.includes(this.wateringCan) &&
+                !this.potHighlightArea.visible
             ) {
                 // If player overlaps with wateringCan detection area, show the highlight box
                 this.canHighlightArea.setVisible(true);
@@ -2026,96 +2103,14 @@ export default class LevelTwo extends Phaser.Scene {
             }
         }
 
-        /*if (this.player && this.stack.length > 0) {
-            if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.wandDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "wand"
-            ) {
-                // If player overlaps with ladder detection area, show the highlight box
-                this.wandHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.clubDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "club"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.clubHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.seedsDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "seeds"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.seedsHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.canDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "can"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.canHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.potDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "pot"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.potHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.keyDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "key"
-            ) {
-                // If player overlaps with key detection area, open door
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else {
-                // Otherwise, hide the highlight box
-                this.wandHighlightArea.setVisible(false);
-                this.clubHighlightArea.setVisible(false);
-                this.seedsHighlightArea.setVisible(false);
-                this.potHighlightArea.setVisible(false);
-                this.canDetectionArea.setVisible(false);
-            }
-        }*/
-
         // Climbing the plant
-        if (this.player && this.plant && this.cursors) {
+        if (
+            this.player &&
+            this.plant &&
+            this.cursors &&
+            this.plant.visible &&
+            +this.plant.frame.name > 0
+        ) {
             // Max distance player can be from plant to climb it
             const xTolerance = 30; // Tolerance for X position
             const yTolerance = 270; // Tolerance for Y position
@@ -2217,71 +2212,15 @@ export default class LevelTwo extends Phaser.Scene {
                 }
             }
         }
-        /*const chaseThreshold = 400;
-        const attackThreshold = 70;
-        if (!this.isPaused && !this.usedClub) {
-            if (this.troll && this.player) {
-                // Calculate distance between troll and player
-                const distanceX = Math.abs(this.player.x - this.troll.x);
-                const distanceY = Math.abs(this.player.y - this.troll.y);
-
-                // If player is close-ish, move toward player
-                if (
-                    distanceX < chaseThreshold &&
-                    distanceX > attackThreshold &&
-                    distanceY < 40
-                ) {
-                    if (this.troll.x < this.player.x) {
-                        this.troll.x += 4.3; // Move right
-                        this.troll.flipX = false;
-                    } else if (this.troll.x > this.player.x) {
-                        this.troll.x -= 4.3; // Move left
-                        this.troll.flipX = true;
-                    }
-                    this.troll.anims.play("troll_right", true);
-                }
-                // If player is close to troll, troll attacks
-                else if (distanceX <= attackThreshold && distanceY < 100) {
-                    this.troll.anims.play("troll_attack", true); // Attack right
-                    if (this.troll.x < this.player.x) {
-                        this.troll.flipX = false;
-                    } else if (this.troll.x > this.player.x) {
-                        this.troll.flipX = true;
-                    }
-                    if (!this.collidingWithSmog) {
-                        this.time.delayedCall(
-                            500,
-                            () => {
-                                this.collidingWithSmog = true;
-                                this.loseLife();
-                            },
-                            [],
-                            this
-                        );
-                    }
-                } else {
-                    if (this.trollDirection === 1) {
-                        this.troll.x += this.trollSpeed; // Move right
-                    } else {
-                        this.troll.x -= this.trollSpeed; // Move left
-                    }
-                    this.troll.flipX = this.trollDirection === -1; // Flip troll if moving left
-                    this.troll.anims.play("troll_right", true);
-
-                    // Check if the troll reaches the screen edges
-                    if (this.troll.x <= 150 || this.troll.x >= 525) {
-                        // Change direction
-                        this.trollDirection *= -1;
-                    }
-                }
-            }
-        }*/
 
         // Club on top of bird
+        /*
         if (this.club && this.bird && !this.clubCollected) {
             this.club.x = this.bird.x;
             this.club.y = this.bird.y - this.bird.displayHeight / 2;
         }
+        */
+        this.clubOnBird();
 
         if (
             this.player &&

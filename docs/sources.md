@@ -44,6 +44,7 @@
 -   Wand: https://pngimg.com/image/104781
 -   Troll: https://free-game-assets.itch.io/2d-trolls-free-sprite
 -   Plant: https://opengameart.org/content/plant-growing-sprite
+-   Gardening Sign: https://www.vecteezy.com/png/16548364-watercolor-garden-sign
 
 ### Level 3 Scene:
 
