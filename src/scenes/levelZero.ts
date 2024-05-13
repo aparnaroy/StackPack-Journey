@@ -731,7 +731,7 @@ export default class LevelZero extends Phaser.Scene {
 
         completeMenuButton.on("pointerup", () => {
             console.log(this.level0Stars);
-            if (this.level1State == 0) {
+            if (data.level1State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
                         level0State: 3,
@@ -761,7 +761,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
-            if (this.level1State == 0) {
+            if (data.level1State == 0) {
                 // If level 1 was locked before, set it to current level status
                 this.scene.start("Level1", {
                     level0State: 3,
@@ -1155,6 +1155,13 @@ export default class LevelZero extends Phaser.Scene {
                                         ease: "Linear",
                                         delay: 1000, // Delay the animation slightly
                                     });
+
+                                    if (this.level1State == 0) {
+                                        this.level0State = 3;
+                                        this.level1State = 1;
+                                    } else {
+                                        this.level0State = 3;
+                                    }
                                 },
                             });
                         }

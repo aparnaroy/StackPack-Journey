@@ -52,6 +52,7 @@ export default class LevelTwo extends Phaser.Scene {
     private freePopsLeft: number = 3;
     private freePopsLeftText: Phaser.GameObjects.Text;
     private flashingRed: boolean = false;
+    private usingWand: boolean = false;
 
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
     private wandDetectionArea: Phaser.GameObjects.Rectangle;
@@ -256,6 +257,9 @@ export default class LevelTwo extends Phaser.Scene {
             .setDepth(1)
             .refreshBody();
         this.flyingBird.setCollideWorldBounds(true);
+        this.flyingBird
+            .setSize(this.flyingBird.width, this.flyingBird.height - 30)
+            .setOffset(0, 0);
 
         this.birdPlatform = this.physics.add.group({
             immovable: true, // Make immovable by collisions
@@ -263,13 +267,13 @@ export default class LevelTwo extends Phaser.Scene {
         });
         this.bird = this.birdPlatform.create(
             230,
-            345,
+            335,
             "bird_right"
         ) as Phaser.Physics.Arcade.Image;
         this.bird.setScale(1).refreshBody();
         this.bird
-            .setSize(this.bird.width - 44, this.bird.height - 20)
-            .setOffset(22, 47);
+            .setSize(this.bird.width - 34, this.bird.height - 20)
+            .setOffset(17, 37);
         this.bird.setVisible(false);
 
         this.physics.add.collider(this.player, this.birdPlatform);
@@ -277,7 +281,7 @@ export default class LevelTwo extends Phaser.Scene {
         // Making bird move back and forth
         this.tweens.add({
             targets: this.birdPlatform.getChildren(),
-            x: "+=480",
+            x: "+=340",
             duration: 4000,
             yoyo: true,
             repeat: -1,
@@ -285,7 +289,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
         this.tweens.add({
             targets: this.flyingBird,
-            x: "+=480",
+            x: "+=340",
             duration: 4000,
             yoyo: true,
             repeat: -1,
@@ -450,18 +454,18 @@ export default class LevelTwo extends Phaser.Scene {
         this.ground.setAlpha(0); // Hide the ground platform
 
         const cloud1 = this.clouds
-            .create(50, 350, "cloud-platform")
+            .create(50, 340, "cloud-platform")
             .setScale(0.5);
         const cloud2 = this.clouds
-            .create(450, 205, "cloud-platform")
+            .create(430, 195, "cloud-platform")
             .setScale(0.75);
         const cloud3 = this.clouds
-            .create(900, 220, "cloud-platform")
+            .create(910, 220, "cloud-platform")
             .setScale(0.5);
 
         const birdGroundPlatform = this.physics.add.staticGroup();
         const birdGround = birdGroundPlatform
-            .create(520, 410, "cloud-platform")
+            .create(520, 380, "cloud-platform")
             .setScale(1.9, 0.5)
             .setVisible(false)
             .refreshBody();
@@ -482,7 +486,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.key.setName("key");
         this.physics.add.collider(this.key, this.clouds);
 
-        this.door = this.physics.add.image(910, 50, "pinkdoor").setScale(0.4);
+        this.door = this.physics.add.image(920, 50, "pinkdoor").setScale(0.4);
         this.physics.add.collider(this.door, this.clouds);
 
         this.wand = this.add.sprite(425, 115, "wand").setScale(0.06);
@@ -493,18 +497,19 @@ export default class LevelTwo extends Phaser.Scene {
         this.physics.add.collider(this.club, this.clouds);
         this.club.setName("club");
 
-        this.pot = this.add.sprite(900, 660, "pot").setScale(0.065);
+        this.pot = this.add.sprite(900, 650, "pot").setScale(0.065);
         this.physics.add.collider(this.pot, this.ground);
         this.pot.setName("pot");
 
-        this.seeds = this.add.sprite(70, 680, "seeds").setScale(0.6);
+        this.seeds = this.add.sprite(80, 680, "seeds").setScale(0.6);
         this.seeds.setName("seeds");
 
-        this.add.image(1050, 670, "garden-sign").setScale(0.06);
+        this.add.image(1050, 670, "garden-sign").setScale(0.07, 0.06);
 
         this.wateringCan = this.add
-            .sprite(650, 660, "watering-can")
-            .setScale(0.75);
+            .sprite(650, 655, "watering-can")
+            .setScale(0.75)
+            .setDepth(1);
         this.wateringCan.setName("can");
 
         // Make collectable items continuously pulsate
@@ -542,11 +547,11 @@ export default class LevelTwo extends Phaser.Scene {
         // Creating smog
         this.add.image(125, 435, "sign").setScale(0.2);
         this.smogGroup = this.physics.add.staticGroup();
-        const smog1 = this.smogGroup.create(250, 450, "smog").setScale(0.5);
-        const smog2 = this.smogGroup.create(400, 450, "smog").setScale(0.5);
-        const smog3 = this.smogGroup.create(550, 450, "smog").setScale(0.5);
-        this.smog4 = this.smogGroup.create(700, 450, "smog").setScale(0.5);
-        this.smog5 = this.smogGroup.create(850, 450, "smog").setScale(0.5);
+        const smog1 = this.smogGroup.create(250, 430, "smog").setScale(0.5);
+        const smog2 = this.smogGroup.create(400, 430, "smog").setScale(0.5);
+        const smog3 = this.smogGroup.create(550, 430, "smog").setScale(0.5);
+        this.smog4 = this.smogGroup.create(700, 430, "smog").setScale(0.5);
+        this.smog5 = this.smogGroup.create(850, 430, "smog").setScale(0.5);
 
         this.physics.add.collider(this.flyingBird, birdGround);
         this.physics.add.collider(this.bird, birdGround);
@@ -554,10 +559,14 @@ export default class LevelTwo extends Phaser.Scene {
         // Creating bush
         this.bush = this.physics.add
             .sprite(1200, 670, "bush")
-            .setScale(2, 2.7)
+            .setScale(2, 2.8)
             .setAlpha(0);
         this.bush.setCollideWorldBounds(true);
         this.physics.add.collider(this.bush, this.ground);
+
+        this.bush
+            .setSize(this.bush.width, this.bush.height - 15)
+            .setOffset(0, 15);
 
         // Creating lives
         this.createHearts();
@@ -884,7 +893,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
-            if (this.level3State == 0) {
+            if (data.level3State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
                         level0State: this.level0State,
@@ -914,7 +923,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
-            if (this.level3State == 0) {
+            if (data.level3State == 0) {
                 // If level 3 was locked before, set it to current level status
                 this.scene.start("Level3", {
                     level0State: this.level0State,
@@ -945,8 +954,9 @@ export default class LevelTwo extends Phaser.Scene {
         this.oneStarPopup.setVisible(false);
 
         // Set the depth of the character/player sprite to a high value
-        this.player.setDepth(2);
+        this.player.setDepth(3);
         this.bird.setDepth(2);
+        this.troll.setDepth(2);
 
         // Set the depth of other game objects to lower values
         this.key.setDepth(0);
@@ -959,7 +969,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setSize(this.player.width - 64, this.player.height)
             .setOffset(32, 0);
 
-        cloud1.setSize(cloud1.width - 110, cloud1.height - 50).setOffset(0, 45);
+        cloud1.setSize(cloud1.width - 110, cloud1.height - 50).setOffset(0, 35);
         cloud2
             .setSize(cloud2.width - 140, cloud2.height - 30)
             .setOffset(70, 38);
@@ -971,15 +981,15 @@ export default class LevelTwo extends Phaser.Scene {
             .setSize(this.door.width, this.door.height - 60)
             .setOffset(0, 30);
 
-        smog1.setSize(smog1.width - 200, smog1.height - 140).setOffset(100, 70);
-        smog2.setSize(smog1.width - 200, smog1.height - 140).setOffset(100, 70);
-        smog3.setSize(smog1.width - 200, smog1.height - 140).setOffset(100, 70);
+        smog1.setSize(smog1.width - 200, smog1.height - 170).setOffset(100, 70);
+        smog2.setSize(smog1.width - 200, smog1.height - 170).setOffset(100, 70);
+        smog3.setSize(smog1.width - 200, smog1.height - 170).setOffset(100, 70);
         if (this.smog4 && this.smog5) {
             this.smog4
-                .setSize(smog1.width - 200, smog1.height - 140)
+                .setSize(smog1.width - 200, smog1.height - 170)
                 .setOffset(100, 70);
             this.smog5
-                .setSize(smog1.width - 200, smog1.height - 140)
+                .setSize(smog1.width - 200, smog1.height - 170)
                 .setOffset(100, 70);
         }
 
@@ -992,7 +1002,7 @@ export default class LevelTwo extends Phaser.Scene {
         );
 
         // Creating detection area when using the wand
-        this.wandDetectionArea = this.add.rectangle(700, 300, 200, 100);
+        this.wandDetectionArea = this.add.rectangle(700, 300, 350, 100);
 
         // Highlight area for wand
         this.wandHighlightArea = this.add
@@ -1041,7 +1051,7 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Highlight area for key
         this.keyHighlightArea = this.add
-            .rectangle(900, 113, 170, 200, 0xffff00)
+            .rectangle(910, 113, 170, 200, 0xffff00)
             .setAlpha(0.4)
             .setVisible(false);
     }
@@ -1077,6 +1087,9 @@ export default class LevelTwo extends Phaser.Scene {
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
         if (this.collectedItems.includes(item)) {
+            return;
+        }
+        if (this.usingWand) {
             return;
         }
 
@@ -1156,15 +1169,15 @@ export default class LevelTwo extends Phaser.Scene {
                         if (this.wand) {
                             this.tweens.add({
                                 targets: poppedItem,
-                                duration: 1000, // Adjust the duration of the tween as needed
+                                duration: 600, // Adjust the duration of the tween as needed
                                 x: "+=50", // Move the wand to the right
                                 y: "-=50", // Move the wand upward
                                 ease: "Sine.easeInOut", // Use a smooth, sinusoidal ease for a natural waving motion
                                 yoyo: true, // Play the tween in reverse after completing
-                                repeat: 0, // Repeat the tween once (total of two waves)
                                 onStart: () => {
                                     poppedItem.setDepth(3);
                                     poppedItem.setPosition(750, 350);
+                                    this.usingWand = true;
                                 },
                                 onComplete: () => {
                                     if (
@@ -1180,6 +1193,7 @@ export default class LevelTwo extends Phaser.Scene {
                                         this.smog5.setVisible(false);
                                     }
                                     poppedItem.setVisible(false);
+                                    this.usingWand = false;
                                 },
                             });
                         }
@@ -1190,11 +1204,14 @@ export default class LevelTwo extends Phaser.Scene {
                         this.invisiblePot?.enableBody(true);
                         this.potHighlightArea.setVisible(false);
                         this.plant = this.physics.add
-                            .sprite(1050, 100, "plant")
-                            .setScale(0.5, 1.5)
+                            .sprite(1045, 100, "plant")
+                            .setScale(-0.5, 1.5)
                             .setVisible(false);
                         this.plant
-                            .setSize(this.plant.width, this.plant.height - 50)
+                            .setSize(
+                                this.plant.width * -1,
+                                this.plant.height - 0
+                            )
                             .setOffset(0, 30);
                         this.plant.setCollideWorldBounds(true);
                         this.plant.setImmovable(true);
@@ -1214,7 +1231,7 @@ export default class LevelTwo extends Phaser.Scene {
                             yoyo: true, // Play the animation in reverse
                             repeat: 0, // No repeat
                             onStart: () => {
-                                poppedItem.setPosition(935, 560);
+                                poppedItem.setPosition(935, 520);
                             },
                             onComplete: () => {
                                 poppedItem.setVisible(false);
@@ -1416,6 +1433,13 @@ export default class LevelTwo extends Phaser.Scene {
                                         ease: "Linear",
                                         delay: 1000, // Delay the animation slightly
                                     });
+
+                                    if (this.level3State == 0) {
+                                        this.level2State = 3;
+                                        this.level3State = 1;
+                                    } else {
+                                        this.level2State = 3;
+                                    }
                                 },
                             });
                         }
@@ -1475,17 +1499,17 @@ export default class LevelTwo extends Phaser.Scene {
                         originalScaleY = 0.4;
                     }
                     if (poppedItem.name === "pot") {
-                        poppedItem.setPosition(900, 660);
+                        poppedItem.setPosition(900, 650);
                         originalScaleX = 0.065;
                         originalScaleY = 0.065;
                     }
                     if (poppedItem.name === "seeds") {
-                        poppedItem.setPosition(70, 680);
+                        poppedItem.setPosition(80, 680);
                         originalScaleX = 0.6;
                         originalScaleY = 0.6;
                     }
                     if (poppedItem.name === "can") {
-                        poppedItem.setPosition(650, 660);
+                        poppedItem.setPosition(650, 655);
                         originalScaleX = 0.75;
                         originalScaleY = 0.75;
                     }
@@ -1576,17 +1600,17 @@ export default class LevelTwo extends Phaser.Scene {
                         originalScaleY = 0.4;
                     }
                     if (poppedItem.name === "pot") {
-                        poppedItem.setPosition(900, 660);
+                        poppedItem.setPosition(900, 650);
                         originalScaleX = 0.065;
                         originalScaleY = 0.065;
                     }
                     if (poppedItem.name === "seeds") {
-                        poppedItem.setPosition(70, 680);
+                        poppedItem.setPosition(80, 680);
                         originalScaleX = 0.6;
                         originalScaleY = 0.6;
                     }
                     if (poppedItem.name === "can") {
-                        poppedItem.setPosition(650, 660);
+                        poppedItem.setPosition(650, 655);
                         originalScaleX = 0.75;
                         originalScaleY = 0.75;
                     }
@@ -1704,6 +1728,7 @@ export default class LevelTwo extends Phaser.Scene {
             this.freePopsLeft = 3;
             this.clubCollected = false;
             this.usedClub = false;
+            this.usingWand = false;
         });
     }
 
@@ -1721,6 +1746,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.isPaused = false;
         this.clubCollected = false;
         this.usedClub = false;
+        this.usingWand = false;
     }
 
     private createPulsateEffect(
@@ -1826,7 +1852,12 @@ export default class LevelTwo extends Phaser.Scene {
         }
 
         // Collect item if 'E' key is pressed
-        if (this.player && this.keyE?.isDown && !this.keyEPressed) {
+        if (
+            this.player &&
+            this.keyE?.isDown &&
+            !this.keyEPressed &&
+            !this.usingWand
+        ) {
             this.keyEPressed = true; // Set the flag for the E key being pressed to true
 
             // Check if the player is close enough to the key, wand, club, gardening stuff, and if so, collect it
@@ -2119,7 +2150,7 @@ export default class LevelTwo extends Phaser.Scene {
             const deltaY = Math.abs(this.player.y - this.plant.y);
 
             if (
-                this.plant.x === 1050 &&
+                this.plant.x === 1045 &&
                 deltaX < xTolerance &&
                 deltaY < yTolerance &&
                 this.cursors.up.isDown

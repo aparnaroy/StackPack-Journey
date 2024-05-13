@@ -1651,6 +1651,8 @@ export default class LevelThree extends Phaser.Scene {
                                         ease: "Linear",
                                         delay: 1000, // Delay the animation slightly
                                     });
+
+                                    this.level3State = 3;
                                 },
                             });
                         }
