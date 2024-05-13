@@ -957,11 +957,11 @@ export default class LevelTwo extends Phaser.Scene {
         );
 
         // Creating detection area when using the wand
-        this.wandDetectionArea = this.add.rectangle(700, 280, 200, 200);
+        this.wandDetectionArea = this.add.rectangle(700, 280, 200, 100);
 
         // Highlight area for wand
         this.wandHighlightArea = this.add
-            .rectangle(780, 450, 275, 60, 0xffff00)
+            .rectangle(780, 415, 275, 60, 0xffff00)
             .setAlpha(0.4)
             .setVisible(false);
 
@@ -1368,6 +1368,11 @@ export default class LevelTwo extends Phaser.Scene {
                         originalScaleX = 0.6;
                         originalScaleY = 0.6;
                     }
+                    if (poppedItem.name === "can") {
+                        poppedItem.setPosition(650, 660);
+                        originalScaleX = 0.75;
+                        originalScaleY = 0.75;
+                    }
                     if (poppedItem.name === "key") {
                         poppedItem.setPosition(1200, 670);
                         originalScaleX = 2.5;
@@ -1443,18 +1448,34 @@ export default class LevelTwo extends Phaser.Scene {
                     let originalScaleX = 0;
                     let originalScaleY = 0;
                     // Move popped item to its original location
-                    if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "wand") {
+                        poppedItem.setPosition(425, 115);
+                        originalScaleX = 0.06;
+                        originalScaleY = 0.06;
                     }
-                    if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(350, 530);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "club") {
+                        this.clubCollected = false;
+                        this.clubOnBird();
+                        originalScaleX = 0.4;
+                        originalScaleY = 0.4;
+                    }
+                    if (poppedItem.name === "pot") {
+                        poppedItem.setPosition(900, 660);
+                        originalScaleX = 0.065;
+                        originalScaleY = 0.065;
+                    }
+                    if (poppedItem.name === "seeds") {
+                        poppedItem.setPosition(70, 680);
+                        originalScaleX = 0.6;
+                        originalScaleY = 0.6;
+                    }
+                    if (poppedItem.name === "can") {
+                        poppedItem.setPosition(650, 660);
+                        originalScaleX = 0.75;
+                        originalScaleY = 0.75;
                     }
                     if (poppedItem.name === "key") {
-                        poppedItem.setPosition(1200, 650);
+                        poppedItem.setPosition(1200, 670);
                         originalScaleX = 2.5;
                         originalScaleY = 2.5;
                     }
@@ -1467,22 +1488,12 @@ export default class LevelTwo extends Phaser.Scene {
                         duration: 300,
                         onComplete: () => {
                             this.updateStackView();
-                            if (poppedItem.name === "ladder") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.1,
-                                    1000
-                                );
-                            }
-                            if (poppedItem.name === "plank") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.15,
-                                    1000
-                                );
-                            }
+                            this.createPulsateEffect(
+                                this,
+                                poppedItem,
+                                1.15,
+                                1000
+                            );
                         },
                     });
                 },
