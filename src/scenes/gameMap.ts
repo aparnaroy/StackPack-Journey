@@ -111,7 +111,7 @@ export default class GameMap extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("map-music");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.5,
+            volume: 0.25,
         });
 
         const totalStarsCollected =

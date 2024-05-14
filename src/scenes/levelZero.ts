@@ -244,7 +244,7 @@ export default class LevelZero extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("tutorial-music");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.5,
+            volume: 0.25,
         });
 
         const stackpack = this.add

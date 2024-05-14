@@ -227,7 +227,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("cloud-music");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.5,
+            volume: 0.25,
         });
 
         this.freePopsLeftText = this.add
