@@ -14,6 +14,7 @@
 ### Title Scene:
 
 -   Background: https://www.vecteezy.com/photo/30493204-fantasy-landscape-with-trees-and-rocks-3d-render-illustration-ai-generated
+-   Background Music: https://opengameart.org/content/titlemenu-screen-bgm
 
 ### Game Map Scene:
 
@@ -26,6 +27,7 @@
 -   Door: https://www.artstation.com/artwork/BmOoPz
 -   Spikes 1: https://opengameart.org/content/spikey-stuff
 -   Spikes 2: https://www.gamedeveloperstudio.com/graphics/viewgraphic.php?page-name=Animated-floor-spikes-game-asset&item=1u5v5h4w8i7s7t806o
+-   Background Music: https://opengameart.org/content/calm-tutorial
 
 ### Level 1 Scene:
 
@@ -33,6 +35,7 @@
 -   Platforms + stone + river: https://dinosdouisen.itch.io/jungle-platformer-game-tileset#google_vignette
 -   Banana, Mushroom, Vine, Monkey, Speech Bubble: Free elements on Canva
 -   Door: https://www.artstation.com/artwork/BmOoPz
+-   Background Music: https://opengameart.org/content/jungle
 
 ### Level 2 Scene:
 
@@ -45,6 +48,7 @@
 -   Troll: https://free-game-assets.itch.io/2d-trolls-free-sprite
 -   Plant: https://opengameart.org/content/plant-growing-sprite
 -   Gardening Sign: https://www.vecteezy.com/png/16548364-watercolor-garden-sign
+-   Background Music: https://opengameart.org/content/a-lucid-dream
 
 ### Level 3 Scene:
 
@@ -62,6 +66,7 @@
 -   Toxic Gas Cloud: https://img.freepik.com/premium-vector/green-smoke-cloud-toxic-smell-cartoon-scent_81894-8958.jpg
 -   Gas Mask: https://img.freepik.com/premium-vector/stencil-gas-mask-icon-flat-vector-chemical-air-toxic-army-isolated_98396-65151.jpg
 -   Fireball: https://static.vecteezy.com/system/resources/previews/012/629/333/original/fireball-drop-effect-png.png
+-   Background Music: https://opengameart.org/content/dark-chamber
 
 ### Ending Cutscene:
 

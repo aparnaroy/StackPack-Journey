@@ -92,11 +92,15 @@ export default class LevelTwo extends Phaser.Scene {
     private oneStarPopup: Phaser.GameObjects.Group;
     private starsPopup: Phaser.GameObjects.Group;
 
+    private backgroundMusic: Phaser.Sound.BaseSound;
+    private musicMuted: boolean = false;
+
     constructor() {
         super({ key: "Level2" });
     }
 
     preload() {
+        this.load.audio("cloud-music", "assets/level2/Cloud.mp3")
         this.load.image(
             "level2-background",
             "assets/level2/level2-background.png"
@@ -219,6 +223,12 @@ export default class LevelTwo extends Phaser.Scene {
             this.cameras.main.width / backgroundImage.width,
             this.cameras.main.height / backgroundImage.height
         );
+
+        this.backgroundMusic = this.sound.add("cloud-music");
+        this.backgroundMusic.play({
+            loop: true,
+            volume: 0.25,
+        });
 
         this.freePopsLeftText = this.add
             .text(285, 71, `${this.freePopsLeft}`, {
@@ -635,6 +645,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
             this.isPaused = false;
             this.resetScene();
             this.scene.start("game-map", {
@@ -666,6 +677,8 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level2", {
                 level0State: this.level0State,
@@ -725,7 +738,12 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Has to get fixed once we have sound
         muteMusic.on("pointerup", () => {
-            pauseGroup.setVisible(false);
+            this.musicMuted = !this.musicMuted;
+            if (this.musicMuted) {
+                this.backgroundMusic.stop();
+            } else {
+                this.backgroundMusic.play();
+            }
         });
 
         // No sound button for Pause popup
