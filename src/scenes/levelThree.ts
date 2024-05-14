@@ -1227,6 +1227,7 @@ export default class LevelThree extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
             this.isPaused = false;
             if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
@@ -1240,6 +1241,8 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level3", {
                 level0State: this.level0State,
@@ -1254,6 +1257,8 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             // Transition to ending cut scene if level 3 completed for the first time
             if (data.level3State != 3) {
                 setTimeout(() => {
@@ -1285,6 +1290,8 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             // Transition to ending cut scene
             setTimeout(() => {
                 this.scene.start("EndCutScene", {
@@ -1976,6 +1983,8 @@ export default class LevelThree extends Phaser.Scene {
             this.lives = 3;
             this.createHearts();
             this.freePopsLeft = 4;
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
         });
     }
 
