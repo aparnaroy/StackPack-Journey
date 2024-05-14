@@ -105,6 +105,7 @@ export default class LevelOne extends Phaser.Scene {
 
     // Music and sounds 
     private backgroundMusic: Phaser.Sound.BaseSound;
+    private musicMuted: boolean = false; 
 
     constructor() {
         super({ key: "Level1" });
@@ -245,7 +246,7 @@ export default class LevelOne extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("jungle-music");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.5,
+            volume: 0.25,
         });
 
         const EFkeys = this.add.image(390, 60, "EF-keys-black");
@@ -694,6 +695,7 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
             this.isPaused = false;
             this.resetScene();
             this.scene.start("game-map", {
@@ -725,6 +727,8 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level1", {
                 level0State: this.level0State,
@@ -782,9 +786,14 @@ export default class LevelOne extends Phaser.Scene {
             muteMusic.setFillStyle();
         });
 
-        // Has to get fixed once we have sound
         muteMusic.on("pointerup", () => {
-            pauseGroup.setVisible(false);
+            this.musicMuted = !this.musicMuted;
+            if(this.musicMuted){
+                this.backgroundMusic.stop();
+            }
+            else{
+                this.backgroundMusic.play();
+            }
         });
 
         // No sound button for Pause popup
