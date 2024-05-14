@@ -47,6 +47,7 @@
 -   Troll: https://free-game-assets.itch.io/2d-trolls-free-sprite
 -   Plant: https://opengameart.org/content/plant-growing-sprite
 -   Gardening Sign: https://www.vecteezy.com/png/16548364-watercolor-garden-sign
+-   Background Music: https://opengameart.org/content/a-lucid-dream
 
 ### Level 3 Scene:
 
