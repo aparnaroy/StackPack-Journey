@@ -28,7 +28,7 @@ export default class GameMap extends Phaser.Scene {
     }
 
     preload() {
-        this.load.audio("music", "assets/Dream.mp3");
+        this.load.audio("map-music", "assets/Dream.mp3");
         this.load.image("game-map", "assets/gameMap/game-map.png");
         this.load.image(
             "level0-unlocked",
@@ -108,7 +108,7 @@ export default class GameMap extends Phaser.Scene {
             this.cameras.main.height / backgroundImage.height
         );
 
-        this.backgroundMusic = this.sound.add("music");
+        this.backgroundMusic = this.sound.add("map-music");
         this.backgroundMusic.play({
             loop: true,
             volume: 0.5,
