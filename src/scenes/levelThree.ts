@@ -738,7 +738,7 @@ export default class LevelThree extends Phaser.Scene {
         this.lava.setDepth(1);
         this.fireball1.setDepth(0);
         this.fireball2.setDepth(0);
-        this.door.setDepth(1);
+        //this.door.setDepth(1);
 
         // Resize collision boxes of player and everything that can be collided with
         this.player
@@ -1475,13 +1475,13 @@ export default class LevelThree extends Phaser.Scene {
                             this.tweens.add({
                                 targets: poppedItem,
                                 angle: 45, // Rotate the chainsaw to the side
-                                x: 537 + 20, // Move the chainsaw a bit to the right
+                                x: 570 + 20, // Move the chainsaw a bit to the right
                                 duration: 500, // Duration of the rotation and movement
                                 yoyo: true, // Play the animation in reverse
                                 repeat: 0, // No repeat
                                 onStart: () => {
                                     poppedItem.setDepth(3);
-                                    poppedItem.setPosition(537, 170);
+                                    poppedItem.setPosition(570, 170);
                                 },
                                 onComplete: () => {
                                     // Execute callback function after animation finishes

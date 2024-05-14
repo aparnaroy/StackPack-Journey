@@ -86,11 +86,6 @@ export default class EndCutScene extends Phaser.Scene {
             "assets/Pink_Monster_Walk_Left6.png",
             { frameWidth: 128, frameHeight: 128 }
         );
-        /*this.load.spritesheet(
-            "gal_jump_right",
-            "assets/Pink_Monster_Jump_8.png",
-            { frameWidth: 128, frameHeight: 128 }
-        );*/
 
         this.load.spritesheet(
             "dude_idle_right",
@@ -304,11 +299,6 @@ export default class EndCutScene extends Phaser.Scene {
         this.physics.add.collider(this.player, this.platforms);
         this.physics.add.collider(this.dude, this.platforms);
 
-        /*this.door = this.physics.add
-            .image(187, 150, "red-opendoor")
-            .setScale(0.15, 0.15);
-        this.physics.add.collider(this.door, this.platforms);*/
-
         // Resize collision boxes of player and everything else that can be collided with
         this.player
             .setSize(this.player.width - 64, this.player.height)
@@ -319,10 +309,6 @@ export default class EndCutScene extends Phaser.Scene {
             .setSize(this.dude.width - 64, this.dude.height)
             .setOffset(32, 0)
             .setDepth(10);
-
-        /*this.door
-            .setSize(this.door.width, this.door.height - 60)
-            .setOffset(0, 0);*/
 
         this.animateEnding();
     }

@@ -2245,12 +2245,6 @@ export default class LevelTwo extends Phaser.Scene {
         }
 
         // Club on top of bird
-        /*
-        if (this.club && this.bird && !this.clubCollected) {
-            this.club.x = this.bird.x;
-            this.club.y = this.bird.y - this.bird.displayHeight / 2;
-        }
-        */
         this.clubOnBird();
 
         if (

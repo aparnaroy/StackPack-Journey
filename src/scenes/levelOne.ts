@@ -1005,14 +1005,6 @@ export default class LevelOne extends Phaser.Scene {
 
     // HELPER FUNCTIONS
 
-    // reset states when restarting level
-    /*private restartStates() {
-        this.usedItems = [];
-        this.stackY = 300;
-        this.mushroomPopped = false;
-        this.startTime = this.time.now;
-    }*/
-
     private formatTime(milliseconds: number) {
         var mins = Math.floor(milliseconds / 60000);
         var secs = Math.floor((milliseconds % 60000) / 1000);
