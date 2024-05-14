@@ -21,12 +21,14 @@ export default class GameMap extends Phaser.Scene {
     private level1Stars: number;
     private level2Stars: number;
     private level3Stars: number;
+    private backgroundMusic?: Phaser.Sound.BaseSound;
 
     constructor() {
         super({ key: "game-map" });
     }
 
     preload() {
+        this.load.audio("map-music", "assets/Dream.mp3");
         this.load.image("game-map", "assets/gameMap/game-map.png");
         this.load.image(
             "level0-unlocked",
@@ -105,6 +107,12 @@ export default class GameMap extends Phaser.Scene {
             this.cameras.main.width / backgroundImage.width,
             this.cameras.main.height / backgroundImage.height
         );
+
+        this.backgroundMusic = this.sound.add("map-music");
+        this.backgroundMusic.play({
+            loop: true,
+            volume: 0.25,
+        });
 
         const totalStarsCollected =
             this.level0Stars +
@@ -208,6 +216,7 @@ export default class GameMap extends Phaser.Scene {
         level0Button.setInteractive();
 
         level0Button.on("pointerup", () => {
+            this.backgroundMusic?.stop()
             this.scene.start("Level0", {
                 level0State: this.level0State,
                 level1State: this.level1State,
@@ -297,6 +306,7 @@ export default class GameMap extends Phaser.Scene {
             level1Button.setInteractive();
 
             level1Button.on("pointerup", () => {
+                this.backgroundMusic?.stop();
                 this.scene.start("Level1", {
                     level0State: this.level0State,
                     level1State: this.level1State,
@@ -387,6 +397,7 @@ export default class GameMap extends Phaser.Scene {
             level2Button.setInteractive();
 
             level2Button.on("pointerup", () => {
+                this.backgroundMusic?.stop();
                 this.scene.start("Level2", {
                     level0State: this.level0State,
                     level1State: this.level1State,
@@ -478,6 +489,7 @@ export default class GameMap extends Phaser.Scene {
             level3Button.setInteractive();
 
             level3Button.on("pointerup", () => {
+                this.backgroundMusic?.stop();
                 this.scene.start("Level3", {
                     level0State: this.level0State,
                     level1State: this.level1State,

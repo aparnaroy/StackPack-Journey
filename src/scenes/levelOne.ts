@@ -103,11 +103,16 @@ export default class LevelOne extends Phaser.Scene {
     private oneStarPopup: Phaser.GameObjects.Group;
     private starsPopup: Phaser.GameObjects.Group;
 
+    // Music and sounds 
+    private backgroundMusic: Phaser.Sound.BaseSound;
+    private musicMuted: boolean = false; 
+
     constructor() {
         super({ key: "Level1" });
     }
 
     preload() {
+        this.load.audio("jungle-music", "assets/level1/Jungle.wav");
         this.load.image(
             "level1Background",
             "assets/level1/Level1Background.jpg"
@@ -237,6 +242,12 @@ export default class LevelOne extends Phaser.Scene {
             this.cameras.main.width / backgroundImage.width,
             this.cameras.main.height / backgroundImage.height
         );
+
+        this.backgroundMusic = this.sound.add("jungle-music");
+        this.backgroundMusic.play({
+            loop: true,
+            volume: 0.25,
+        });
 
         const EFkeys = this.add.image(390, 60, "EF-keys-black");
         EFkeys.setScale(0.35);
@@ -684,6 +695,7 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
             this.isPaused = false;
             this.resetScene();
             this.scene.start("game-map", {
@@ -715,6 +727,8 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level1", {
                 level0State: this.level0State,
@@ -772,9 +786,14 @@ export default class LevelOne extends Phaser.Scene {
             muteMusic.setFillStyle();
         });
 
-        // Has to get fixed once we have sound
         muteMusic.on("pointerup", () => {
-            pauseGroup.setVisible(false);
+            this.musicMuted = !this.musicMuted;
+            if(this.musicMuted){
+                this.backgroundMusic.stop();
+            }
+            else{
+                this.backgroundMusic.play();
+            }
         });
 
         // No sound button for Pause popup
@@ -915,6 +934,7 @@ export default class LevelOne extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
             this.isPaused = false;
             if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
@@ -928,6 +948,8 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level1", {
                 level0State: this.level0State,
@@ -942,6 +964,7 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
             if (data.level2State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
@@ -972,6 +995,8 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             if (data.level2State == 0) {
                 // If level 2 was locked before, set it to current level status
                 this.scene.start("Level2", {
@@ -1616,6 +1641,8 @@ export default class LevelOne extends Phaser.Scene {
             this.lives = 3;
             this.createHearts();
             this.freePopsLeft = 2;
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
         });
     }
 

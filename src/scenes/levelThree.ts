@@ -110,11 +110,15 @@ export default class LevelThree extends Phaser.Scene {
     private level2Stars: number;
     private level3Stars: number;
 
+    private backgroundMusic: Phaser.Sound.BaseSound;
+    private musicMuted: boolean = false;
+
     constructor() {
         super({ key: "Level3" });
     }
 
     preload() {
+        this.load.audio("cave-music", "assets/level3/Dark-chamber.mp3");
         this.load.image(
             "level3-background",
             "assets/level3/level3-background.jpg"
@@ -304,6 +308,12 @@ export default class LevelThree extends Phaser.Scene {
             this.cameras.main.width / backgroundImage.width,
             this.cameras.main.height / backgroundImage.height
         );
+
+        this.backgroundMusic = this.sound.add("cave-music");
+        this.backgroundMusic.play({
+            loop: true,
+            volume: 0.25,
+        });
 
         const stackpack = this.add
             .image(0, 0, "stackpack")
@@ -978,6 +988,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
             this.isPaused = false;
             this.resetScene();
             this.scene.start("game-map", {
@@ -1009,6 +1020,8 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level3", {
                 level0State: this.level0State,
@@ -1068,7 +1081,12 @@ export default class LevelThree extends Phaser.Scene {
 
         // Has to get fixed once we have sound
         muteMusic.on("pointerup", () => {
-            pauseGroup.setVisible(false);
+            this.musicMuted = !this.musicMuted;
+            if (this.musicMuted) {
+                this.backgroundMusic.stop();
+            } else {
+                this.backgroundMusic.play();
+            }
         });
 
         // No sound button for Pause popup
@@ -1209,6 +1227,7 @@ export default class LevelThree extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
             this.isPaused = false;
             if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
@@ -1222,6 +1241,8 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level3", {
                 level0State: this.level0State,
@@ -1236,6 +1257,8 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             // Transition to ending cut scene if level 3 completed for the first time
             if (data.level3State != 3) {
                 setTimeout(() => {
@@ -1267,6 +1290,8 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             // Transition to ending cut scene
             setTimeout(() => {
                 this.scene.start("EndCutScene", {
@@ -1958,6 +1983,8 @@ export default class LevelThree extends Phaser.Scene {
             this.lives = 3;
             this.createHearts();
             this.freePopsLeft = 4;
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
         });
     }
 
