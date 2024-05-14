@@ -14,6 +14,7 @@
 ### Title Scene:
 
 -   Background: https://www.vecteezy.com/photo/30493204-fantasy-landscape-with-trees-and-rocks-3d-render-illustration-ai-generated
+-   Background Music: https://opengameart.org/content/titlemenu-screen-bgm
 
 ### Game Map Scene:
 
@@ -33,6 +34,7 @@
 -   Platforms + stone + river: https://dinosdouisen.itch.io/jungle-platformer-game-tileset#google_vignette
 -   Banana, Mushroom, Vine, Monkey, Speech Bubble: Free elements on Canva
 -   Door: https://www.artstation.com/artwork/BmOoPz
+-   Background Music: https://opengameart.org/content/jungle
 
 ### Level 2 Scene:
 

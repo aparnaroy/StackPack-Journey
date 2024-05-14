@@ -103,11 +103,15 @@ export default class LevelOne extends Phaser.Scene {
     private oneStarPopup: Phaser.GameObjects.Group;
     private starsPopup: Phaser.GameObjects.Group;
 
+    // Music and sounds 
+    private backgroundMusic: Phaser.Sound.BaseSound;
+
     constructor() {
         super({ key: "Level1" });
     }
 
     preload() {
+        this.load.audio("jungle-music", "assets/level1/Jungle.wav");
         this.load.image(
             "level1Background",
             "assets/level1/Level1Background.jpg"
@@ -237,6 +241,12 @@ export default class LevelOne extends Phaser.Scene {
             this.cameras.main.width / backgroundImage.width,
             this.cameras.main.height / backgroundImage.height
         );
+
+        this.backgroundMusic = this.sound.add("jungle-music");
+        this.backgroundMusic.play({
+            loop: true,
+            volume: 0.5,
+        });
 
         const EFkeys = this.add.image(390, 60, "EF-keys-black");
         EFkeys.setScale(0.35);
