@@ -1454,6 +1454,8 @@ export default class LevelZero extends Phaser.Scene {
             this.lives = 3;
             this.createHearts();
             this.freePopsLeft = 2;
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
         });
     }
 

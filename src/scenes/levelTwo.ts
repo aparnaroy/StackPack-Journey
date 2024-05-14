@@ -1747,6 +1747,8 @@ export default class LevelTwo extends Phaser.Scene {
             this.clubCollected = false;
             this.usedClub = false;
             this.usingWand = false;
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
         });
     }
 

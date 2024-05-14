@@ -1976,6 +1976,8 @@ export default class LevelThree extends Phaser.Scene {
             this.lives = 3;
             this.createHearts();
             this.freePopsLeft = 4;
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
         });
     }
 
