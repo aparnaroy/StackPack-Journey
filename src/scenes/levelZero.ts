@@ -721,6 +721,7 @@ export default class LevelZero extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
             this.isPaused = false;
             if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
@@ -734,6 +735,8 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level0", {
                 level0State: this.level0State,
@@ -748,6 +751,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
             console.log(this.level0Stars);
             if (data.level1State == 0) {
                 setTimeout(() => {
@@ -779,6 +783,8 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             if (data.level1State == 0) {
                 // If level 1 was locked before, set it to current level status
                 this.scene.start("Level1", {
