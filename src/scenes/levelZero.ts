@@ -47,6 +47,7 @@ export default class LevelZero extends Phaser.Scene {
     private lastDirection: string = "right";
     private climbing: boolean = false;
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
+    private allItems: string[] = [];
     private flashingRed: boolean = false;
     private freePopsLeft: number = 2;
     private freePopsLeftText: Phaser.GameObjects.Text;
@@ -242,6 +243,8 @@ export default class LevelZero extends Phaser.Scene {
         this.level3Stars = data.level3Stars;
 
         this.lastDirection = "right";
+
+        this.allItems = ["ladder", "plank", "key"];
 
         this.freePopsLeftText = this.add
             .text(285, 71, `${this.freePopsLeft}`, {
@@ -469,10 +472,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         popButton.on("pointerup", () => {
-            this.sound.play("pop-sound");
             this.freePop();
-            this.freePopsLeft -= 1;
-            this.freePopsLeftText.setText(`${this.freePopsLeft}`);
             if (this.freePopsLeft <= 0) {
                 popButton.setScale(originalScale);
                 popButton.disableInteractive();
@@ -1114,8 +1114,10 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private useItem() {
-        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
-            return; // Prevent popping if a push is in progress
+        for (let i = 0; i < this.allItems.length; i++) {
+            if (this.isPushingMap[this.allItems[i]]) {
+                return; // Prevent popping if any push is in progress
+            }
         }
 
         // Remove the top item from the stackpack
@@ -1250,9 +1252,18 @@ export default class LevelZero extends Phaser.Scene {
 
     // Animation for using free pop
     private freePop() {
-        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
-            return; // Prevent popping if a push is in progress
+        this.sound.play("pop-sound");
+        if (this.stack.length <= 0) {
+            return;
         }
+        for (let i = 0; i < this.allItems.length; i++) {
+            if (this.isPushingMap[this.allItems[i]]) {
+                return; // Prevent popping if any push is in progress
+            }
+        }
+
+        this.freePopsLeft -= 1;
+        this.freePopsLeftText.setText(`${this.freePopsLeft}`);
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
@@ -1324,8 +1335,10 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private popWrongItem(usageArea: Phaser.GameObjects.Rectangle) {
-        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
-            return; // Prevent popping if a push is in progress
+        for (let i = 0; i < this.allItems.length; i++) {
+            if (this.isPushingMap[this.allItems[i]]) {
+                return; // Prevent popping if any push is in progress
+            }
         }
 
         this.poppingWrongItem = true;
