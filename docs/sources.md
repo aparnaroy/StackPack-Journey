@@ -14,6 +14,8 @@
 -   Character Injured Noise: https://www.zapsplat.com/music/game-sound-fantasy-hit-injure-critter-or-weird-insect-negative-tone/
 -   Free Pop Noise: https://www.zapsplat.com/music/game-sound-designed-bubble-pop-24/
 -   Player Death Noise: https://www.zapsplat.com/music/retro-8-bit-arcade-style-game-sound-negative-death-die-or-lose-life-4/
+-   Win Level Noise: https://www.zapsplat.com/music/alert-prompt-win-positive-tone-003/
+-   Menu Click: https://www.zapsplat.com/music/game-sound-menu-button-click-2/
 -   Other: Canva Graphics
 
 ### Title Scene:
@@ -44,6 +46,8 @@
 -   Banana, Mushroom, Vine, Monkey, Speech Bubble: Free elements on Canva
 -   Door: https://www.artstation.com/artwork/BmOoPz
 -   Background Music: https://opengameart.org/content/jungle
+-   Water Splash: https://www.zapsplat.com/music/arrow-whoosh-and-hit-water-with-a-splash-21/
+-   Boing: https://www.zapsplat.com/music/cartoon-boing-ascend-bounce-jaw-harp-1/
 
 ### Level 2 Scene:
 
