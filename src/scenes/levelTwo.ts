@@ -101,6 +101,16 @@ export default class LevelTwo extends Phaser.Scene {
 
     preload() {
         this.load.audio("cloud-music", "assets/level2/Cloud.mp3");
+        this.load.audio("collect-sound", "assets/sounds/collectsound.mp3");
+        this.load.audio("dooropen-sound", "assets/sounds/dooropensound.mp3");
+        this.load.audio("injure-sound", "assets/sounds/injuresound.mp3");
+        this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
+        this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
+        this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
+        this.load.audio("win-sound", "assets/sounds/winsound.mp3");
+        this.load.audio("wand-sound", "assets/level2/wandsound.mp3");
+        this.load.audio("can-sound", "assets/level2/wateringsound.mp3");
+
         this.load.image(
             "level2-background",
             "assets/level2/level2-background.png"
@@ -611,6 +621,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         popButton.on("pointerup", () => {
+            this.sound.play("pop-sound");
             this.freePop();
             this.freePopsLeft -= 1;
             this.freePopsLeftText.setText(`${this.freePopsLeft}`);
@@ -645,6 +656,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic.stop();
             this.isPaused = false;
             this.resetScene();
@@ -677,6 +689,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic.stop();
             this.backgroundMusic.destroy();
             this.resetScene();
@@ -707,6 +720,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         resumeButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             pauseGroup.setVisible(false);
             this.pauseTime();
             // Resume all animations and tweens
@@ -738,11 +752,12 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Has to get fixed once we have sound
         muteMusic.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.musicMuted = !this.musicMuted;
             if (this.musicMuted) {
-                this.backgroundMusic.stop();
+                this.backgroundMusic.pause();
             } else {
-                this.backgroundMusic.play();
+                this.backgroundMusic.resume();
             }
         });
 
@@ -762,6 +777,7 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Has to get fixed once we have sound
         muteSound.on("pointerup", () => {
+            this.sound.play("menu-sound");
             pauseGroup.setVisible(false);
         });
 
@@ -799,6 +815,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             if (!this.isPaused) {
                 this.pauseTime();
                 pauseGroup.setVisible(true);
@@ -884,6 +901,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic.stop();
             this.isPaused = false;
             if (threeStars.visible) {
@@ -898,6 +916,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic.stop();
             this.backgroundMusic.destroy();
             this.resetScene();
@@ -914,6 +933,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic.stop();
             if (data.level3State == 0) {
                 setTimeout(() => {
@@ -945,6 +965,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic.stop();
             this.backgroundMusic.destroy();
             if (data.level3State == 0) {
@@ -1112,6 +1133,7 @@ export default class LevelTwo extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
+        this.sound.play("collect-sound");
         if (this.collectedItems.includes(item)) {
             return;
         }
@@ -1191,6 +1213,7 @@ export default class LevelTwo extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "wand") {
+                        this.sound.play("wand-sound");
                         // Wand waving
                         if (this.wand) {
                             this.tweens.add({
@@ -1250,6 +1273,7 @@ export default class LevelTwo extends Phaser.Scene {
                         }
                     }
                     if (poppedItem.name === "can") {
+                        this.sound.play("can-sound");
                         this.tweens.add({
                             targets: poppedItem,
                             angle: 75, // Tilt the water to the side
@@ -1391,6 +1415,7 @@ export default class LevelTwo extends Phaser.Scene {
                         this.clubHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
+                        this.sound.play("dooropen-sound");
                         this.door?.setTexture("pinkopendoor");
                         this.pauseTime();
                         // Make the player get sucked into the door
@@ -1404,6 +1429,7 @@ export default class LevelTwo extends Phaser.Scene {
                                 y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
+                                    this.sound.play("win-sound");
                                     this.player?.disableBody(true, true);
                                     var completedTime = this.add
                                         .text(
@@ -1680,6 +1706,7 @@ export default class LevelTwo extends Phaser.Scene {
 
     private loseLife() {
         if (!this.isColliding && this.player) {
+            this.sound.play("injure-sound");
             this.isColliding = true;
 
             this.player.setVelocity(0, 0);
@@ -1728,6 +1755,7 @@ export default class LevelTwo extends Phaser.Scene {
     }
 
     private playerDie() {
+        this.sound.play("death-sound");
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
@@ -2325,7 +2353,7 @@ export default class LevelTwo extends Phaser.Scene {
                 this.smogGroup,
                 () => {
                     this.collidingWithSmog = true;
-                    this.loseLife(); // have to turn this back on
+                    this.loseLife();
                 },
                 undefined,
                 this

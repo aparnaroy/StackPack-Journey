@@ -119,6 +119,15 @@ export default class LevelThree extends Phaser.Scene {
 
     preload() {
         this.load.audio("cave-music", "assets/level3/Dark-chamber.mp3");
+        this.load.audio("collect-sound", "assets/sounds/collectsound.mp3");
+        this.load.audio("dooropen-sound", "assets/sounds/dooropensound.mp3");
+        this.load.audio("injure-sound", "assets/sounds/injuresound.mp3");
+        this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
+        this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
+        this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
+        this.load.audio("win-sound", "assets/sounds/winsound.mp3");
+
+
         this.load.image(
             "level3-background",
             "assets/level3/level3-background.jpg"
@@ -443,6 +452,7 @@ export default class LevelThree extends Phaser.Scene {
             });
         });
         popButton.on("pointerup", () => {
+            this.sound.play("pop-sound");
             this.freePop();
             this.freePopsLeft -= 1;
             this.freePopsLeftText.setText(`${this.freePopsLeft}`);
@@ -988,6 +998,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic.stop();
             this.isPaused = false;
             this.resetScene();
@@ -1020,6 +1031,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic.stop();
             this.backgroundMusic.destroy();
             this.resetScene();
@@ -1050,6 +1062,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         resumeButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             pauseGroup.setVisible(false);
             this.pauseTime();
             // Resume all animations and tweens
@@ -1081,11 +1094,12 @@ export default class LevelThree extends Phaser.Scene {
 
         // Has to get fixed once we have sound
         muteMusic.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.musicMuted = !this.musicMuted;
             if (this.musicMuted) {
-                this.backgroundMusic.stop();
+                this.backgroundMusic.pause();
             } else {
-                this.backgroundMusic.play();
+                this.backgroundMusic.resume();
             }
         });
 
@@ -1105,6 +1119,7 @@ export default class LevelThree extends Phaser.Scene {
 
         // Has to get fixed once we have sound
         muteSound.on("pointerup", () => {
+            this.sound.play("menu-sound");
             pauseGroup.setVisible(false);
         });
 
@@ -1142,6 +1157,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             if (!this.isPaused) {
                 this.pauseTime();
                 pauseGroup.setVisible(true);
@@ -1227,6 +1243,7 @@ export default class LevelThree extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic.stop();
             this.isPaused = false;
             if (threeStars.visible) {
@@ -1241,6 +1258,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic.stop();
             this.backgroundMusic.destroy();
             this.resetScene();
@@ -1257,6 +1275,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeMenuButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic.stop();
             this.backgroundMusic.destroy();
             // Transition to ending cut scene if level 3 completed for the first time
@@ -1290,6 +1309,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeNextButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic.stop();
             this.backgroundMusic.destroy();
             // Transition to ending cut scene
@@ -1348,6 +1368,7 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
+        this.sound.play("collect-sound");
         if (this.collectedItems.includes(item)) {
             return;
         }
@@ -1603,6 +1624,7 @@ export default class LevelThree extends Phaser.Scene {
                         this.swordHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
+                        this.sound.play("dooropen-sound");
                         this.keyHighlightBox.setVisible(false);
                         this.door?.setTexture("red-opendoor");
                         this.pauseTime();
@@ -1617,6 +1639,7 @@ export default class LevelThree extends Phaser.Scene {
                                 y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
+                                    this.sound.play("win-sound");
                                     if (this.input.keyboard) {
                                         this.input.keyboard.enabled = false;
                                     }
@@ -1891,6 +1914,7 @@ export default class LevelThree extends Phaser.Scene {
 
     private loseLife() {
         if (!this.isColliding && this.player) {
+            this.sound.play("injure-sound");
             this.isColliding = true;
 
             this.player.setVelocity(0, 0);
@@ -1959,6 +1983,7 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     private playerDie() {
+        this.sound.play("death-sound");
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {

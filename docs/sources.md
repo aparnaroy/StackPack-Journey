@@ -9,6 +9,13 @@
 -   Level Pause: https://pzuh.itch.io/free-game-gui
 -   Pause Button: <a href='https://pngtree.com/freepng/casual-game-button-set-stock-illustration_5981555.html'>png image from pngtree.com/</a>
 -   Key: https://frakassets.itch.io/free-rotating-key
+-   Collecting Items Sound: https://www.zapsplat.com/music/game-sound-blip-x-1/
+-   Unlocking Door Sound: https://www.zapsplat.com/music/game-sound-door-open-unlock-magical-secret-level-could-be-level-up-bonus-award-or-other-positive-action-2/
+-   Character Injured Noise: https://www.zapsplat.com/music/game-sound-fantasy-hit-injure-critter-or-weird-insect-negative-tone/
+-   Free Pop Noise: https://www.zapsplat.com/music/game-sound-designed-bubble-pop-24/
+-   Player Death Noise: https://www.zapsplat.com/music/retro-8-bit-arcade-style-game-sound-negative-death-die-or-lose-life-4/
+-   Win Level Noise: https://www.zapsplat.com/music/game-sound-bell-keys-win-or-success-tone/
+-   Menu Click: https://www.zapsplat.com/music/game-sound-menu-button-click-2/
 -   Other: Canva Graphics
 
 ### Title Scene:
@@ -28,6 +35,9 @@
 -   Spikes 1: https://opengameart.org/content/spikey-stuff
 -   Spikes 2: https://www.gamedeveloperstudio.com/graphics/viewgraphic.php?page-name=Animated-floor-spikes-game-asset&item=1u5v5h4w8i7s7t806o
 -   Background Music: https://opengameart.org/content/calm-tutorial
+-   Plank Noise: https://www.zapsplat.com/music/1x4-plank-of-wood-bash-on-ground/
+-   Ladder Noise: https://www.zapsplat.com/music/1x4-plank-of-wood-drop-or-set-down-3/
+-   Climbing Noise: https://www.zapsplat.com/music/cartoon-ascend-wood-knocks-delicate-tip-toes-1/
 
 ### Level 1 Scene:
 
@@ -36,6 +46,10 @@
 -   Banana, Mushroom, Vine, Monkey, Speech Bubble: Free elements on Canva
 -   Door: https://www.artstation.com/artwork/BmOoPz
 -   Background Music: https://opengameart.org/content/jungle
+-   Water Splash: https://www.zapsplat.com/music/arrow-whoosh-and-hit-water-with-a-splash-21/
+-   Boing: https://www.zapsplat.com/music/cartoon-boing-ascend-bounce-jaw-harp-1/
+-   Monkey Sound: https://mixkit.co/free-sound-effects/monkey/
+-   Vine Swing Sound: https://www.zapsplat.com/music/badminton-or-tennis-racket-fast-whoosh-swoosh-swing-6/
 
 ### Level 2 Scene:
 
@@ -49,6 +63,8 @@
 -   Plant: https://opengameart.org/content/plant-growing-sprite
 -   Gardening Sign: https://www.vecteezy.com/png/16548364-watercolor-garden-sign
 -   Background Music: https://opengameart.org/content/a-lucid-dream
+-   Wand Sound: https://www.zapsplat.com/music/magic-glissando-bright-and-magical-wand-cast-spell-etc-4/
+-   Pouring Sound: https://www.zapsplat.com/music/bucket-load-of-water-sudden-pour-into-deep-water-6/
 
 ### Level 3 Scene:
 
