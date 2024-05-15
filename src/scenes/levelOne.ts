@@ -121,6 +121,8 @@ export default class LevelOne extends Phaser.Scene {
         this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
         this.load.audio("bounce-sound", "assets/level1/boing.mp3");
         this.load.audio("splash-sound", "assets/level1/watersplash.mp3");
+        this.load.audio("win-sound", "assets/sounds/winsound.mp3");
+
 
         this.load.image(
             "level1Background",
@@ -1323,6 +1325,7 @@ export default class LevelOne extends Phaser.Scene {
                                 y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
+                                    this.sound.play("win-sound");
                                     if (this.input.keyboard) {
                                         this.input.keyboard.enabled = false;
                                     }

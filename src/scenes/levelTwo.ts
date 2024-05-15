@@ -107,6 +107,8 @@ export default class LevelTwo extends Phaser.Scene {
         this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
         this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
         this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
+        this.load.audio("win-sound", "assets/sounds/winsound.mp3");
+
 
         this.load.image(
             "level2-background",
@@ -1424,6 +1426,7 @@ export default class LevelTwo extends Phaser.Scene {
                                 y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
+                                    this.sound.play("win-sound");
                                     this.player?.disableBody(true, true);
                                     var completedTime = this.add
                                         .text(
