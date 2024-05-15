@@ -101,6 +101,12 @@ export default class LevelTwo extends Phaser.Scene {
 
     preload() {
         this.load.audio("cloud-music", "assets/level2/Cloud.mp3");
+        this.load.audio("collect-sound", "assets/sounds/collectsound.mp3");
+        this.load.audio("dooropen-sound", "assets/sounds/dooropensound.mp3");
+        this.load.audio("injure-sound", "assets/sounds/injuresound.mp3");
+        this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
+        this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
+
         this.load.image(
             "level2-background",
             "assets/level2/level2-background.png"
@@ -611,6 +617,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         popButton.on("pointerup", () => {
+            this.sound.play("pop-sound");
             this.freePop();
             this.freePopsLeft -= 1;
             this.freePopsLeftText.setText(`${this.freePopsLeft}`);
@@ -1112,6 +1119,7 @@ export default class LevelTwo extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
+        this.sound.play("collect-sound");
         if (this.collectedItems.includes(item)) {
             return;
         }
@@ -1391,6 +1399,7 @@ export default class LevelTwo extends Phaser.Scene {
                         this.clubHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
+                        this.sound.play("dooropen-sound");
                         this.door?.setTexture("pinkopendoor");
                         this.pauseTime();
                         // Make the player get sucked into the door
@@ -1680,6 +1689,7 @@ export default class LevelTwo extends Phaser.Scene {
 
     private loseLife() {
         if (!this.isColliding && this.player) {
+            this.sound.play("injure-sound");
             this.isColliding = true;
 
             this.player.setVelocity(0, 0);
@@ -1728,6 +1738,7 @@ export default class LevelTwo extends Phaser.Scene {
     }
 
     private playerDie() {
+        this.sound.play("death-sound");
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
@@ -2325,7 +2336,7 @@ export default class LevelTwo extends Phaser.Scene {
                 this.smogGroup,
                 () => {
                     this.collidingWithSmog = true;
-                    this.loseLife(); // have to turn this back on
+                    this.loseLife(); 
                 },
                 undefined,
                 this
