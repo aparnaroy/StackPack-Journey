@@ -105,6 +105,7 @@ export default class LevelOne extends Phaser.Scene {
     // Music and sounds
     private backgroundMusic: Phaser.Sound.BaseSound;
     private musicMuted: boolean = false;
+    private injureSound: Phaser.Sound.BaseSound;
 
     constructor() {
         super({ key: "Level1" });
@@ -112,6 +113,12 @@ export default class LevelOne extends Phaser.Scene {
 
     preload() {
         this.load.audio("jungle-music", "assets/level1/Jungle.wav");
+        this.load.audio("collect-sound", "assets/sounds/collectsound.mp3");
+        this.load.audio("dooropen-sound", "assets/sounds/dooropensound.mp3");
+        this.load.audio("injure-sound", "assets/sounds/injuresound.mp3");
+        this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
+        this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
+
         this.load.image(
             "level1Background",
             "assets/level1/Level1Background.jpg"
@@ -247,6 +254,7 @@ export default class LevelOne extends Phaser.Scene {
             loop: true,
             volume: 0.25,
         });
+        this.injureSound = this.sound.add("injure-sound");
 
         const EFkeys = this.add.image(390, 60, "EF-keys-black");
         EFkeys.setScale(0.35);
@@ -660,6 +668,7 @@ export default class LevelOne extends Phaser.Scene {
         });
 
         popButton.on("pointerup", () => {
+            this.sound.play("pop-sound");
             this.freePop();
             this.freePopsLeft -= 1;
             this.freePopsLeftText.setText(`Pops Left: ${this.freePopsLeft}`);
@@ -1153,6 +1162,7 @@ export default class LevelOne extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
+        this.sound.play("collect-sound");
         if (this.collectedItems.includes(item)) {
             return;
         }
@@ -1283,6 +1293,7 @@ export default class LevelOne extends Phaser.Scene {
                         this.vineSwingStart();
                     }
                     if (poppedItem.name === "key") {
+                        this.sound.play("dooropen-sound");
                         this.keyHighlightBox.setVisible(false);
                         poppedItem.setVisible(false);
                         this.door?.setTexture("brown-openDoor");
@@ -1567,6 +1578,7 @@ export default class LevelOne extends Phaser.Scene {
     }
 
     private loseLife() {
+        this.injureSound.play();
         if (!this.isColliding && this.player) {
             this.isColliding = true;
 
@@ -1616,6 +1628,7 @@ export default class LevelOne extends Phaser.Scene {
     }
 
     private playerDie() {
+        this.sound.play("death-sound");
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
