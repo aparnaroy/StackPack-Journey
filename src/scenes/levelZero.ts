@@ -89,6 +89,7 @@ export default class LevelZero extends Phaser.Scene {
 
     private backgroundMusic: Phaser.Sound.BaseSound;
     private musicMuted: boolean = false;
+    private soundMuted: boolean = false; 
     private climbingLadderSound: Phaser.Sound.BaseSound;
 
     constructor() {
@@ -623,7 +624,15 @@ export default class LevelZero extends Phaser.Scene {
         // Has to get fixed once we have sound
         muteSound.on("pointerup", () => {
             this.sound.play("menu-sound");
-            pauseGroup.setVisible(false);
+            /*
+            this.soundMuted = !this.soundMuted;
+            if (this.soundMuted) {
+                this.sound.pauseAll();
+                //this.backgroundMusic.resume();
+            } else {
+                this.sound.resumeAll();
+            }
+            */
         });
 
         pauseGroup.setVisible(false);
