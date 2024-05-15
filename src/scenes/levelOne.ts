@@ -122,7 +122,8 @@ export default class LevelOne extends Phaser.Scene {
         this.load.audio("bounce-sound", "assets/level1/boing.mp3");
         this.load.audio("splash-sound", "assets/level1/watersplash.mp3");
         this.load.audio("win-sound", "assets/sounds/winsound.mp3");
-
+        this.load.audio("monkey-sound", "assets/level1/monkeysound.wav");
+        this.load.audio("swing-sound", "assets/level1/swingsound.mp3");
 
         this.load.image(
             "level1Background",
@@ -1295,6 +1296,7 @@ export default class LevelOne extends Phaser.Scene {
                         this.mushroomSign?.disableBody();
                     }
                     if (poppedItem.name === "banana") {
+                        this.sound.play("monkey-sound");
                         if (this.banana) {
                             this.banana.setVelocity(0, 0);
                         }
@@ -1304,6 +1306,7 @@ export default class LevelOne extends Phaser.Scene {
                         this.monkey?.disableBody(true, true);
                     }
                     if (poppedItem.name === "vineItem") {
+                        this.sound.play("swing-sound");
                         poppedItem.setVisible(false);
                         this.vineHighlightBox?.setVisible(false);
                         this.vineSwing?.setVisible(true);
