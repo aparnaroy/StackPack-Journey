@@ -579,9 +579,9 @@ export default class LevelZero extends Phaser.Scene {
         muteMusic.on("pointerup", () => {
             this.musicMuted = !this.musicMuted;
             if (this.musicMuted) {
-                this.backgroundMusic.stop();
+                this.backgroundMusic.pause();
             } else {
-                this.backgroundMusic.play();
+                this.backgroundMusic.resume();
             }
         });
 
