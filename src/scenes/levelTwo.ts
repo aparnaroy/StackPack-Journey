@@ -5,6 +5,10 @@ interface GameMapData {
     level1State: number;
     level2State: number;
     level3State: number;
+    level0Stars: number;
+    level1Stars: number;
+    level2Stars: number;
+    level3Stars: number;
 }
 
 export default class LevelTwo extends Phaser.Scene {
@@ -13,7 +17,6 @@ export default class LevelTwo extends Phaser.Scene {
     private key?: Phaser.GameObjects.Sprite;
     private clouds?: Phaser.Physics.Arcade.StaticGroup;
     private invisiblePot?: Phaser.Physics.Arcade.Image;
-    private invisiblePlant?: Phaser.Physics.Arcade.Image;
     private door?: Phaser.Physics.Arcade.Image;
     private ground?: Phaser.Physics.Arcade.Image;
     private wand?: Phaser.GameObjects.Sprite;
@@ -30,11 +33,10 @@ export default class LevelTwo extends Phaser.Scene {
     private smog5?: Phaser.Physics.Arcade.Sprite;
     private troll?: Phaser.Physics.Arcade.Sprite;
     private trollDirection: number = 1; // 1 for right, -1 for left
-    private trollSpeed: number = 2;
     private trollDead?: boolean = false;
     private usedClub?: boolean = false;
     private plant?: Phaser.Physics.Arcade.Sprite;
-    private gasSign?: Phaser.GameObjects.Image;
+    private bush?: Phaser.Physics.Arcade.Sprite;
 
     private stack: Phaser.GameObjects.Sprite[] = [];
     private collectedItems: Phaser.GameObjects.Sprite[] = []; // To track all collected items (even after they're popped from stack)
@@ -50,6 +52,7 @@ export default class LevelTwo extends Phaser.Scene {
     private freePopsLeft: number = 3;
     private freePopsLeftText: Phaser.GameObjects.Text;
     private flashingRed: boolean = false;
+    private usingWand: boolean = false;
 
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
     private wandDetectionArea: Phaser.GameObjects.Rectangle;
@@ -68,11 +71,16 @@ export default class LevelTwo extends Phaser.Scene {
     private lives: number = 3;
     private isColliding: boolean = false;
     private collidingWithSmog: boolean = false;
+    private poppingWrongItem: boolean = false;
 
     private level0State: number;
     private level1State: number;
     private level2State: number;
     private level3State: number;
+    private level0Stars: number;
+    private level1Stars: number;
+    private level2Stars: number;
+    private level3Stars: number;
 
     private timerText: Phaser.GameObjects.Text;
     private startTime: number;
@@ -85,11 +93,26 @@ export default class LevelTwo extends Phaser.Scene {
     private oneStarPopup: Phaser.GameObjects.Group;
     private starsPopup: Phaser.GameObjects.Group;
 
+    private backgroundMusic: Phaser.Sound.BaseSound;
+    private musicMuted: boolean = false;
+
     constructor() {
         super({ key: "Level2" });
     }
 
     preload() {
+        this.load.audio("cloud-music", "assets/level2/Cloud.mp3");
+        this.load.audio("collect-sound", "assets/sounds/collectsound.mp3");
+        this.load.audio("dooropen-sound", "assets/sounds/dooropensound.mp3");
+        this.load.audio("injure-sound", "assets/sounds/injuresound.mp3");
+        this.load.audio("wrong-sound", "assets/sounds/wrongsound.mp3");
+        this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
+        this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
+        this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
+        this.load.audio("win-sound", "assets/sounds/winsound.mp3");
+        this.load.audio("wand-sound", "assets/level2/wandsound.mp3");
+        this.load.audio("can-sound", "assets/level2/wateringsound.mp3");
+
         this.load.image(
             "level2-background",
             "assets/level2/level2-background.png"
@@ -102,6 +125,8 @@ export default class LevelTwo extends Phaser.Scene {
         this.load.image("watering-can", "assets/level2/watering-can.png");
         this.load.image("smog", "assets/level2/smog.png");
         this.load.image("sign", "assets/level2/toxic-gas.png");
+        this.load.image("garden-sign", "assets/level2/garden-sign.png");
+        this.load.image("bush", "assets/level2/bushes_png.png");
 
         this.load.image("EF-keys-black", "assets/EF-keys-black.png");
 
@@ -160,8 +185,8 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         this.load.spritesheet("plant", "assets/level2/plant.png", {
-            frameWidth: 1872 / 18,
-            frameHeight: 104,
+            frameWidth: 7488 / 18,
+            frameHeight: 416,
         });
 
         this.load.image("cloud-platform", "assets/level2/cloud-platform.png");
@@ -184,6 +209,10 @@ export default class LevelTwo extends Phaser.Scene {
         this.level1State = data.level1State;
         this.level2State = data.level2State;
         this.level3State = data.level3State;
+        this.level0Stars = data.level0Stars;
+        this.level1Stars = data.level1Stars;
+        this.level2Stars = data.level2Stars;
+        this.level3Stars = data.level3Stars;
 
         this.resetScene();
         // Resume all animations and tweens
@@ -206,6 +235,12 @@ export default class LevelTwo extends Phaser.Scene {
             this.cameras.main.width / backgroundImage.width,
             this.cameras.main.height / backgroundImage.height
         );
+
+        this.backgroundMusic = this.sound.add("cloud-music");
+        this.backgroundMusic.play({
+            loop: true,
+            volume: 0.25,
+        });
 
         this.freePopsLeftText = this.add
             .text(285, 71, `${this.freePopsLeft}`, {
@@ -244,6 +279,9 @@ export default class LevelTwo extends Phaser.Scene {
             .setDepth(1)
             .refreshBody();
         this.flyingBird.setCollideWorldBounds(true);
+        this.flyingBird
+            .setSize(this.flyingBird.width, this.flyingBird.height - 30)
+            .setOffset(0, 0);
 
         this.birdPlatform = this.physics.add.group({
             immovable: true, // Make immovable by collisions
@@ -251,13 +289,13 @@ export default class LevelTwo extends Phaser.Scene {
         });
         this.bird = this.birdPlatform.create(
             230,
-            330,
+            335,
             "bird_right"
         ) as Phaser.Physics.Arcade.Image;
         this.bird.setScale(1).refreshBody();
         this.bird
             .setSize(this.bird.width - 44, this.bird.height - 20)
-            .setOffset(22, 47);
+            .setOffset(22, 37);
         this.bird.setVisible(false);
 
         this.physics.add.collider(this.player, this.birdPlatform);
@@ -265,7 +303,7 @@ export default class LevelTwo extends Phaser.Scene {
         // Making bird move back and forth
         this.tweens.add({
             targets: this.birdPlatform.getChildren(),
-            x: "+=480",
+            x: "+=340",
             duration: 4000,
             yoyo: true,
             repeat: -1,
@@ -273,7 +311,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
         this.tweens.add({
             targets: this.flyingBird,
-            x: "+=480",
+            x: "+=340",
             duration: 4000,
             yoyo: true,
             repeat: -1,
@@ -438,18 +476,18 @@ export default class LevelTwo extends Phaser.Scene {
         this.ground.setAlpha(0); // Hide the ground platform
 
         const cloud1 = this.clouds
-            .create(50, 350, "cloud-platform")
+            .create(50, 340, "cloud-platform")
             .setScale(0.5);
         const cloud2 = this.clouds
-            .create(450, 200, "cloud-platform")
+            .create(430, 195, "cloud-platform")
             .setScale(0.75);
         const cloud3 = this.clouds
-            .create(900, 220, "cloud-platform")
+            .create(910, 220, "cloud-platform")
             .setScale(0.5);
 
         const birdGroundPlatform = this.physics.add.staticGroup();
         const birdGround = birdGroundPlatform
-            .create(520, 410, "cloud-platform")
+            .create(520, 380, "cloud-platform")
             .setScale(1.9, 0.5)
             .setVisible(false)
             .refreshBody();
@@ -463,22 +501,14 @@ export default class LevelTwo extends Phaser.Scene {
         this.invisiblePot.disableBody(true, true);
         this.invisiblePot.setVisible(false);
 
-        this.invisiblePlant = this.clouds
-            .create(1150, 660, "pot")
-            .setScale(0.065, 0.5) as Phaser.Physics.Arcade.Image;
-        this.invisiblePlant.setSize(115, 600).setOffset(790, 800);
-        this.physics.add.collider(this.player, this.invisiblePlant);
-        this.invisiblePlant.disableBody(true, true);
-        this.invisiblePlant.setVisible(false);
-
         this.physics.add.collider(this.player, this.clouds);
 
         // Create objects: key, door, wand, club, pot, seeds, watering can
-        this.key = this.add.sprite(1200, 650, "key").setScale(2.5, 2.5);
+        this.key = this.add.sprite(1200, 670, "key").setScale(2.5, 2.5);
         this.key.setName("key");
         this.physics.add.collider(this.key, this.clouds);
 
-        this.door = this.physics.add.image(910, 50, "pinkdoor").setScale(0.4);
+        this.door = this.physics.add.image(920, 50, "pinkdoor").setScale(0.4);
         this.physics.add.collider(this.door, this.clouds);
 
         this.wand = this.add.sprite(425, 115, "wand").setScale(0.06);
@@ -489,16 +519,19 @@ export default class LevelTwo extends Phaser.Scene {
         this.physics.add.collider(this.club, this.clouds);
         this.club.setName("club");
 
-        this.pot = this.add.sprite(900, 660, "pot").setScale(0.065);
+        this.pot = this.add.sprite(80, 650, "pot").setScale(0.065);
         this.physics.add.collider(this.pot, this.ground);
         this.pot.setName("pot");
 
-        this.seeds = this.add.sprite(70, 680, "seeds").setScale(0.6);
+        this.seeds = this.add.sprite(850, 680, "seeds").setScale(0.6);
         this.seeds.setName("seeds");
 
+        this.add.image(1050, 670, "garden-sign").setScale(0.07, 0.06);
+
         this.wateringCan = this.add
-            .sprite(650, 660, "watering-can")
-            .setScale(0.75);
+            .sprite(650, 655, "watering-can")
+            .setScale(0.75)
+            .setDepth(1);
         this.wateringCan.setName("can");
 
         // Make collectable items continuously pulsate
@@ -534,28 +567,28 @@ export default class LevelTwo extends Phaser.Scene {
         );
 
         // Creating smog
-        this.gasSign = this.add.image(125, 425, "sign").setScale(0.2);
+        this.add.image(125, 435, "sign").setScale(0.2);
         this.smogGroup = this.physics.add.staticGroup();
-        const smog1 = this.smogGroup.create(250, 425, "smog").setScale(0.5);
-        const smog2 = this.smogGroup.create(400, 425, "smog").setScale(0.5);
-        const smog3 = this.smogGroup.create(550, 425, "smog").setScale(0.5);
-        this.smog4 = this.smogGroup.create(700, 425, "smog").setScale(0.5);
-        this.smog5 = this.smogGroup.create(850, 425, "smog").setScale(0.5);
+        const smog1 = this.smogGroup.create(250, 430, "smog").setScale(0.5);
+        const smog2 = this.smogGroup.create(400, 430, "smog").setScale(-0.5);
+        const smog3 = this.smogGroup.create(550, 430, "smog").setScale(0.5);
+        this.smog4 = this.smogGroup.create(700, 430, "smog").setScale(-0.5);
+        this.smog5 = this.smogGroup.create(850, 430, "smog").setScale(0.5);
 
-        /*
-        const graphics = this.add.graphics();
-        //Draw the collision bounds of the pot sprite
-        if(this.invisiblePot){
-        const bounds = this.invisiblePot.getBounds();
-        graphics.lineStyle(2, 0xff0000);
-        graphics.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
-        }
-        */
-
-        //this.physics.add.collider(this.flyingBird, this.smogGroup);
-        //this.physics.add.collider(this.bird, this.smogGroup);
         this.physics.add.collider(this.flyingBird, birdGround);
         this.physics.add.collider(this.bird, birdGround);
+
+        // Creating bush
+        this.bush = this.physics.add
+            .sprite(1200, 670, "bush")
+            .setScale(2, 2.8)
+            .setAlpha(0);
+        this.bush.setCollideWorldBounds(true);
+        this.physics.add.collider(this.bush, this.ground);
+
+        this.bush
+            .setSize(this.bush.width, this.bush.height - 15)
+            .setOffset(0, 15);
 
         // Creating lives
         this.createHearts();
@@ -590,6 +623,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         popButton.on("pointerup", () => {
+            this.sound.play("pop-sound");
             this.freePop();
             this.freePopsLeft -= 1;
             this.freePopsLeftText.setText(`${this.freePopsLeft}`);
@@ -624,6 +658,8 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
             this.isPaused = false;
             this.resetScene();
             this.scene.start("game-map", {
@@ -631,6 +667,10 @@ export default class LevelTwo extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
@@ -651,13 +691,19 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
-            this.isPaused = false;
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level2", {
                 level0State: this.level0State,
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
@@ -676,6 +722,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         resumeButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             pauseGroup.setVisible(false);
             this.pauseTime();
             // Resume all animations and tweens
@@ -707,7 +754,13 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Has to get fixed once we have sound
         muteMusic.on("pointerup", () => {
-            pauseGroup.setVisible(false);
+            this.sound.play("menu-sound");
+            this.musicMuted = !this.musicMuted;
+            if (this.musicMuted) {
+                this.backgroundMusic.pause();
+            } else {
+                this.backgroundMusic.resume();
+            }
         });
 
         // No sound button for Pause popup
@@ -726,6 +779,7 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Has to get fixed once we have sound
         muteSound.on("pointerup", () => {
+            this.sound.play("menu-sound");
             pauseGroup.setVisible(false);
         });
 
@@ -763,6 +817,7 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             if (!this.isPaused) {
                 this.pauseTime();
                 pauseGroup.setVisible(true);
@@ -785,9 +840,8 @@ export default class LevelTwo extends Phaser.Scene {
         });
         this.startTime = this.time.now;
         this.pausedTime = 0;
-        this.isPaused = false;
 
-        // Level complete popup - still working
+        // Level complete popup
         const completeExitButton = this.add.circle(790, 185, 35).setDepth(10);
         completeExitButton.setInteractive();
         completeExitButton.on("pointerover", () => {
@@ -849,6 +903,8 @@ export default class LevelTwo extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
             this.isPaused = false;
             if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
@@ -862,25 +918,36 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
-            this.isPaused = false;
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level2", {
                 level0State: this.level0State,
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
         completeMenuButton.on("pointerup", () => {
-            this.isPaused = false;
-            if (this.level3State == 0) {
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
+            if (data.level3State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
                         level0State: this.level0State,
                         level1State: this.level1State,
                         level2State: 3,
                         level3State: 1,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
                     });
                 }, 500);
             } else {
@@ -890,20 +957,30 @@ export default class LevelTwo extends Phaser.Scene {
                         level1State: this.level1State,
                         level2State: 3,
                         level3State: this.level3State,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
                     });
                 }, 1000);
             }
         });
 
         completeNextButton.on("pointerup", () => {
-            this.isPaused = false;
-            if (this.level3State == 0) {
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
+            if (data.level3State == 0) {
                 // If level 3 was locked before, set it to current level status
                 this.scene.start("Level3", {
                     level0State: this.level0State,
                     level1State: this.level1State,
                     level2State: 3,
                     level3State: 2,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             } else {
                 this.scene.start("Level3", {
@@ -911,6 +988,10 @@ export default class LevelTwo extends Phaser.Scene {
                     level1State: this.level1State,
                     level2State: 3,
                     level3State: this.level3State,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             }
         });
@@ -920,8 +1001,9 @@ export default class LevelTwo extends Phaser.Scene {
         this.oneStarPopup.setVisible(false);
 
         // Set the depth of the character/player sprite to a high value
-        this.player.setDepth(2);
+        this.player.setDepth(3);
         this.bird.setDepth(2);
+        this.troll.setDepth(2);
 
         // Set the depth of other game objects to lower values
         this.key.setDepth(0);
@@ -934,7 +1016,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setSize(this.player.width - 64, this.player.height)
             .setOffset(32, 0);
 
-        cloud1.setSize(cloud1.width - 110, cloud1.height - 50).setOffset(0, 45);
+        cloud1.setSize(cloud1.width - 110, cloud1.height - 50).setOffset(0, 35);
         cloud2
             .setSize(cloud2.width - 140, cloud2.height - 30)
             .setOffset(70, 38);
@@ -946,15 +1028,15 @@ export default class LevelTwo extends Phaser.Scene {
             .setSize(this.door.width, this.door.height - 60)
             .setOffset(0, 30);
 
-        smog1.setSize(smog1.width - 200, smog1.height - 140).setOffset(100, 70);
-        smog2.setSize(smog1.width - 200, smog1.height - 140).setOffset(100, 70);
-        smog3.setSize(smog1.width - 200, smog1.height - 140).setOffset(100, 70);
+        smog1.setSize(smog1.width - 200, smog1.height - 170).setOffset(100, 70);
+        smog2.setSize(smog2.width - 200, smog2.height - 170).setOffset(100, 70);
+        smog3.setSize(smog3.width - 200, smog3.height - 170).setOffset(100, 70);
         if (this.smog4 && this.smog5) {
             this.smog4
-                .setSize(smog1.width - 200, smog1.height - 140)
+                .setSize(this.smog4.width - 200, this.smog4.height - 170)
                 .setOffset(100, 70);
             this.smog5
-                .setSize(smog1.width - 200, smog1.height - 140)
+                .setSize(this.smog4.width - 200, this.smog4.height - 170)
                 .setOffset(100, 70);
         }
 
@@ -967,16 +1049,18 @@ export default class LevelTwo extends Phaser.Scene {
         );
 
         // Creating detection area when using the wand
-        this.wandDetectionArea = this.add.rectangle(700, 280, 200, 200);
-
+        this.wandDetectionArea = this.add.rectangle(600, 300, 320, 200);
         // Highlight area for wand
         this.wandHighlightArea = this.add
-            .rectangle(780, 450, 275, 60, 0xffff00)
+            .rectangle(780, 435, 275, 60, 0xffff00)
             .setAlpha(0.4)
             .setVisible(false);
 
         // Creating detection area when using club
-        this.clubDetectionArea = this.add.rectangle(750, 700, 500, 60);
+        //this.clubDetectionArea = this.add.rectangle(750, 700, 500, 60);
+        this.clubDetectionArea = this.add.rectangle(750, 500, 500, 150);
+        this.physics.world.enable(this.clubDetectionArea);
+        this.physics.add.collider(this.clubDetectionArea, this.ground);
 
         // Highlight area for club
         this.clubHighlightArea = this.add
@@ -985,7 +1069,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Detection area for pot
-        this.potDetectionArea = this.add.rectangle(1050, 700, 100, 250);
+        this.potDetectionArea = this.add.rectangle(935, 700, 100, 250);
 
         // Highlight area for pot
         this.potHighlightArea = this.add
@@ -994,7 +1078,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Detection area for seeds
-        this.seedsDetectionArea = this.add.rectangle(950, 700, 100, 250);
+        this.seedsDetectionArea = this.add.rectangle(1050, 700, 100, 250);
 
         // Highlight area for seeds
         this.seedsHighlightArea = this.add
@@ -1003,7 +1087,7 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Detection area for can
-        this.canDetectionArea = this.add.rectangle(950, 700, 100, 250);
+        this.canDetectionArea = this.add.rectangle(1050, 700, 100, 250);
 
         // Highlight area for can
         this.canHighlightArea = this.add
@@ -1016,7 +1100,7 @@ export default class LevelTwo extends Phaser.Scene {
 
         // Highlight area for key
         this.keyHighlightArea = this.add
-            .rectangle(900, 113, 170, 200, 0xffff00)
+            .rectangle(910, 113, 170, 200, 0xffff00)
             .setAlpha(0.4)
             .setVisible(false);
     }
@@ -1051,7 +1135,11 @@ export default class LevelTwo extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
+        this.sound.play("collect-sound");
         if (this.collectedItems.includes(item)) {
+            return;
+        }
+        if (this.usingWand) {
             return;
         }
 
@@ -1127,16 +1215,39 @@ export default class LevelTwo extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "wand") {
-                        // have to add anim for wand
-                        if (this.smog4 && this.smog5 && this.smogGroup) {
-                            this.smogGroup.remove(this.smog4);
-                            this.smogGroup.remove(this.smog5);
-                            this.smog4.setPosition(5000, 5000);
-                            this.smog5.setPosition(5000, 5000);
-                            this.smog4.setVisible(false);
-                            this.smog5.setVisible(false);
+                        this.sound.play("wand-sound");
+                        // Wand waving
+                        if (this.wand) {
+                            this.tweens.add({
+                                targets: poppedItem,
+                                duration: 600, // Adjust the duration of the tween as needed
+                                x: "+=50", // Move the wand to the right
+                                y: "-=50", // Move the wand upward
+                                ease: "Sine.easeInOut", // Use a smooth, sinusoidal ease for a natural waving motion
+                                yoyo: true, // Play the tween in reverse after completing
+                                onStart: () => {
+                                    poppedItem.setDepth(3);
+                                    poppedItem.setPosition(750, 350);
+                                    this.usingWand = true;
+                                },
+                                onComplete: () => {
+                                    if (
+                                        this.smog4 &&
+                                        this.smog5 &&
+                                        this.smogGroup
+                                    ) {
+                                        this.smogGroup.remove(this.smog4);
+                                        this.smogGroup.remove(this.smog5);
+                                        this.smog4.setPosition(5000, 5000);
+                                        this.smog5.setPosition(5000, 5000);
+                                        this.smog4.setVisible(false);
+                                        this.smog5.setVisible(false);
+                                    }
+                                    poppedItem.setVisible(false);
+                                    this.usingWand = false;
+                                },
+                            });
                         }
-                        poppedItem.setVisible(false);
                         this.wandHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "pot") {
@@ -1144,15 +1255,19 @@ export default class LevelTwo extends Phaser.Scene {
                         this.invisiblePot?.enableBody(true);
                         this.potHighlightArea.setVisible(false);
                         this.plant = this.physics.add
-                            .sprite(1050, 100, "plant")
-                            .setScale(1.4, 5.5)
+                            .sprite(1045, 100, "plant")
+                            .setScale(-0.5, 1.5)
                             .setVisible(false);
+                        this.plant
+                            .setSize(
+                                this.plant.width * -1,
+                                this.plant.height - 0
+                            )
+                            .setOffset(0, 30);
                         this.plant.setCollideWorldBounds(true);
                         this.plant.setImmovable(true);
                         this.physics.world.enable(this.plant);
                         if (this.pot && this.ground) {
-                            //this.physics.world.enable(this.pot);
-                            //this.physics.add.collider(this.pot, this.ground);
                             const rect = this.add.rectangle(1050, 675, 100, 75);
                             this.physics.world.enable(rect);
                             this.physics.add.collider(rect, this.ground);
@@ -1160,17 +1275,65 @@ export default class LevelTwo extends Phaser.Scene {
                         }
                     }
                     if (poppedItem.name === "can") {
-                        poppedItem.setVisible(false);
+                        this.sound.play("can-sound");
+                        this.tweens.add({
+                            targets: poppedItem,
+                            angle: 75, // Tilt the water to the side
+                            duration: 500, // Duration of the tilt animation
+                            yoyo: true, // Play the animation in reverse
+                            repeat: 0, // No repeat
+                            onStart: () => {
+                                poppedItem.setPosition(935, 520);
+                            },
+                            onComplete: () => {
+                                poppedItem.setVisible(false);
+                                if (this.bush && this.player) {
+                                    this.tweens.add({
+                                        targets: this.bush,
+                                        alpha: 1, // Fade in to fully visible
+                                        duration: 3000,
+                                        ease: "Power1",
+                                    });
+                                }
+                            },
+                        });
                         this.plant?.play("growing");
                         if (this.player && this.plant && this.pot) {
                             this.physics.add.collider(this.player, this.pot);
                         }
+                        if (this.bush && this.player) {
+                            this.physics.add.collider(this.player, this.bush);
+                        }
                         this.canHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "seeds") {
-                        poppedItem.setVisible(false);
-                        this.plant?.setVisible(true).setFrame(0);
-                        this.invisiblePlant?.enableBody(true);
+                        if (this.player) {
+                            this.tweens.add({
+                                targets: poppedItem,
+                                x: this.player.x + 85,
+                                y: this.player.y - 100,
+                                duration: 1000,
+                                ease: "Power1",
+                                onComplete: () => {
+                                    // Remove the seeds sprite after the throwing animation completes
+                                    poppedItem.setVisible(false);
+                                    this.tweens.add({
+                                        targets: this.plant,
+                                        duration: 1000,
+                                        alpha: 1, // Fade in to fully visible
+                                        onStart: () => {
+                                            // Set the initial alpha to 0 before starting the fade-in
+                                            this.plant?.setVisible(true);
+                                            this.plant?.setAlpha(0);
+                                        },
+                                        onComplete: () => {
+                                            // Set the frame of the plant sprite
+                                            this.plant?.setFrame(0);
+                                        },
+                                    });
+                                },
+                            });
+                        }
                         this.seedsHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "club") {
@@ -1198,7 +1361,7 @@ export default class LevelTwo extends Phaser.Scene {
                                 targets: this.club,
                                 x: this.troll.x + 100,
                                 y: this.troll.y,
-                                duration: 300, // Adjust duration as needed
+                                duration: 300,
                                 onComplete: () => {
                                     if (this.club) {
                                         this.tweens.add({
@@ -1254,6 +1417,7 @@ export default class LevelTwo extends Phaser.Scene {
                         this.clubHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
+                        this.sound.play("dooropen-sound");
                         this.door?.setTexture("pinkopendoor");
                         this.pauseTime();
                         // Make the player get sucked into the door
@@ -1267,6 +1431,7 @@ export default class LevelTwo extends Phaser.Scene {
                                 y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
+                                    this.sound.play("win-sound");
                                     this.player?.disableBody(true, true);
                                     var completedTime = this.add
                                         .text(
@@ -1281,25 +1446,38 @@ export default class LevelTwo extends Phaser.Scene {
                                         .setDepth(11)
                                         .setVisible(false);
                                     // Level popup depends on time it takes to complete
-                                    if (this.elapsedTime <= 30000) {
+                                    if (this.elapsedTime <= 60000) {
                                         this.starsPopup = this.threeStarsPopup;
                                         this.threeStarsPopup.add(completedTime);
                                         this.threeStarsPopup
                                             .setVisible(true)
                                             .setDepth(10);
+                                        this.level2Stars = 3;
                                     }
                                     if (
-                                        this.elapsedTime > 30000 &&
-                                        this.elapsedTime <= 60000
+                                        this.elapsedTime > 60000 &&
+                                        this.elapsedTime <= 90000
                                     ) {
                                         this.starsPopup = this.twoStarsPopup;
                                         this.twoStarsPopup.add(completedTime);
-                                        this.twoStarsPopup.setVisible(true);
+                                        this.twoStarsPopup
+                                            .setVisible(true)
+                                            .setDepth(10);
+                                        // Update stars if its better than previous time
+                                        if (this.level2Stars < 2) {
+                                            this.level2Stars = 2;
+                                        }
                                     }
-                                    if (this.elapsedTime > 60000) {
+                                    if (this.elapsedTime > 90000) {
                                         this.starsPopup = this.oneStarPopup;
                                         this.oneStarPopup.add(completedTime);
-                                        this.oneStarPopup.setVisible(true);
+                                        this.oneStarPopup
+                                            .setVisible(true)
+                                            .setDepth(10);
+                                        // Update stars if its better than previous time
+                                        if (this.level2Stars < 1) {
+                                            this.level2Stars = 1;
+                                        }
                                     }
                                     // Animate level complete text
                                     this.tweens.add({
@@ -1309,6 +1487,13 @@ export default class LevelTwo extends Phaser.Scene {
                                         ease: "Linear",
                                         delay: 1000, // Delay the animation slightly
                                     });
+
+                                    if (this.level3State == 0) {
+                                        this.level2State = 3;
+                                        this.level3State = 1;
+                                    } else {
+                                        this.level2State = 3;
+                                    }
                                 },
                             });
                         }
@@ -1356,18 +1541,34 @@ export default class LevelTwo extends Phaser.Scene {
                     let originalScaleX = 0;
                     let originalScaleY = 0;
                     // Move popped item to its original location
-                    if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "wand") {
+                        poppedItem.setPosition(425, 115);
+                        originalScaleX = 0.06;
+                        originalScaleY = 0.06;
                     }
-                    if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(350, 530);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "club") {
+                        this.clubCollected = false;
+                        this.clubOnBird();
+                        originalScaleX = 0.4;
+                        originalScaleY = 0.4;
+                    }
+                    if (poppedItem.name === "pot") {
+                        poppedItem.setPosition(80, 650);
+                        originalScaleX = 0.065;
+                        originalScaleY = 0.065;
+                    }
+                    if (poppedItem.name === "seeds") {
+                        poppedItem.setPosition(850, 680);
+                        originalScaleX = 0.6;
+                        originalScaleY = 0.6;
+                    }
+                    if (poppedItem.name === "can") {
+                        poppedItem.setPosition(650, 655);
+                        originalScaleX = 0.75;
+                        originalScaleY = 0.75;
                     }
                     if (poppedItem.name === "key") {
-                        poppedItem.setPosition(1200, 650);
+                        poppedItem.setPosition(1200, 670);
                         originalScaleX = 2.5;
                         originalScaleY = 2.5;
                     }
@@ -1380,22 +1581,12 @@ export default class LevelTwo extends Phaser.Scene {
                         duration: 300,
                         onComplete: () => {
                             this.updateStackView();
-                            if (poppedItem.name === "ladder") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.1,
-                                    1000
-                                );
-                            }
-                            if (poppedItem.name === "plank") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.15,
-                                    1000
-                                );
-                            }
+                            this.createPulsateEffect(
+                                this,
+                                poppedItem,
+                                1.15,
+                                1000
+                            );
                         },
                     });
                 },
@@ -1408,7 +1599,9 @@ export default class LevelTwo extends Phaser.Scene {
             return; // Prevent popping if a push is in progress
         }
 
+        this.poppingWrongItem = true;
         this.loseLife();
+        this.poppingWrongItem = false;
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
@@ -1451,18 +1644,34 @@ export default class LevelTwo extends Phaser.Scene {
                     let originalScaleX = 0;
                     let originalScaleY = 0;
                     // Move popped item to its original location
-                    if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "wand") {
+                        poppedItem.setPosition(425, 115);
+                        originalScaleX = 0.06;
+                        originalScaleY = 0.06;
                     }
-                    if (poppedItem.name === "plank") {
-                        poppedItem.setPosition(350, 530);
-                        originalScaleX = 0.5;
-                        originalScaleY = 0.5;
+                    if (poppedItem.name === "club") {
+                        this.clubCollected = false;
+                        this.clubOnBird();
+                        originalScaleX = 0.4;
+                        originalScaleY = 0.4;
+                    }
+                    if (poppedItem.name === "pot") {
+                        poppedItem.setPosition(80, 650);
+                        originalScaleX = 0.065;
+                        originalScaleY = 0.065;
+                    }
+                    if (poppedItem.name === "seeds") {
+                        poppedItem.setPosition(850, 680);
+                        originalScaleX = 0.6;
+                        originalScaleY = 0.6;
+                    }
+                    if (poppedItem.name === "can") {
+                        poppedItem.setPosition(650, 655);
+                        originalScaleX = 0.75;
+                        originalScaleY = 0.75;
                     }
                     if (poppedItem.name === "key") {
-                        poppedItem.setPosition(1200, 650);
+                        poppedItem.setPosition(1200, 670);
                         originalScaleX = 2.5;
                         originalScaleY = 2.5;
                     }
@@ -1475,22 +1684,12 @@ export default class LevelTwo extends Phaser.Scene {
                         duration: 300,
                         onComplete: () => {
                             this.updateStackView();
-                            if (poppedItem.name === "ladder") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.1,
-                                    1000
-                                );
-                            }
-                            if (poppedItem.name === "plank") {
-                                this.createPulsateEffect(
-                                    this,
-                                    poppedItem,
-                                    1.15,
-                                    1000
-                                );
-                            }
+                            this.createPulsateEffect(
+                                this,
+                                poppedItem,
+                                1.15,
+                                1000
+                            );
                         },
                     });
                 },
@@ -1512,6 +1711,11 @@ export default class LevelTwo extends Phaser.Scene {
     private loseLife() {
         if (!this.isColliding && this.player) {
             this.isColliding = true;
+            if (this.poppingWrongItem) {
+                this.sound.play("wrong-sound");
+            } else {
+                this.sound.play("injure-sound");
+            }
 
             this.player.setVelocity(0, 0);
             if (this.lastDirection === "right") {
@@ -1559,6 +1763,7 @@ export default class LevelTwo extends Phaser.Scene {
     }
 
     private playerDie() {
+        this.sound.play("death-sound");
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
@@ -1568,7 +1773,12 @@ export default class LevelTwo extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
+            //this.scene.launch("PreloadScene");
             this.player?.clearTint();
 
             // Reset the stack and collected items
@@ -1581,6 +1791,10 @@ export default class LevelTwo extends Phaser.Scene {
             this.freePopsLeft = 3;
             this.clubCollected = false;
             this.usedClub = false;
+            this.usingWand = false;
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
+            this.poppingWrongItem = false;
         });
     }
 
@@ -1598,6 +1812,14 @@ export default class LevelTwo extends Phaser.Scene {
         this.isPaused = false;
         this.clubCollected = false;
         this.usedClub = false;
+        this.usingWand = false;
+        this.trollDead = false;
+        this.onBird = false;
+        this.climbing = false;
+        this.flashingRed = false;
+        this.isColliding = false;
+        this.collidingWithSmog = false;
+        this.poppingWrongItem = false;
     }
 
     private createPulsateEffect(
@@ -1649,6 +1871,13 @@ export default class LevelTwo extends Phaser.Scene {
         }
     }
 
+    private clubOnBird() {
+        if (this.club && this.bird && !this.clubCollected) {
+            this.club.x = this.bird.x;
+            this.club.y = this.bird.y - this.bird.displayHeight / 2;
+        }
+    }
+
     update() {
         // Updating timer
         if (!this.isPaused) {
@@ -1696,7 +1925,12 @@ export default class LevelTwo extends Phaser.Scene {
         }
 
         // Collect item if 'E' key is pressed
-        if (this.player && this.keyE?.isDown && !this.keyEPressed) {
+        if (
+            this.player &&
+            this.keyE?.isDown &&
+            !this.keyEPressed &&
+            !this.usingWand
+        ) {
             this.keyEPressed = true; // Set the flag for the E key being pressed to true
 
             // Check if the player is close enough to the key, wand, club, gardening stuff, and if so, collect it
@@ -1792,9 +2026,9 @@ export default class LevelTwo extends Phaser.Scene {
                 // If player overlaps with wand detection area, show the highlight box
                 this.wandHighlightArea.setVisible(true);
                 if (
+                    this.stack.length > 0 &&
                     this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack.length > 0
+                    !this.keyFPressed
                 ) {
                     // If player presses F
                     if (this.stack[this.stack.length - 1].name === "wand") {
@@ -1812,6 +2046,10 @@ export default class LevelTwo extends Phaser.Scene {
             }
 
             // Club
+            this.clubDetectionArea.setPosition(
+                this.troll?.x,
+                this.clubDetectionArea.y
+            );
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
@@ -1827,9 +2065,9 @@ export default class LevelTwo extends Phaser.Scene {
                 );
                 this.clubHighlightArea.setVisible(true);
                 if (
+                    this.stack.length > 0 &&
                     this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack.length > 0
+                    !this.keyFPressed
                 ) {
                     // If player presses F
                     if (this.stack[this.stack.length - 1].name === "club") {
@@ -1853,17 +2091,22 @@ export default class LevelTwo extends Phaser.Scene {
                     this.seedsDetectionArea.getBounds()
                 ) &&
                 this.seeds &&
-                !this.usedItems.includes(this.seeds)
+                this.pot &&
+                !this.usedItems.includes(this.seeds) &&
+                !this.potHighlightArea.visible
             ) {
                 // If player overlaps with seeds detection area, show the highlight box
                 this.seedsHighlightArea.setVisible(true);
                 if (
+                    this.stack.length > 0 &&
                     this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack.length > 0
+                    !this.keyFPressed
                 ) {
                     // If player presses F
-                    if (this.stack[this.stack.length - 1].name === "seeds") {
+                    if (
+                        this.stack[this.stack.length - 1].name === "seeds" &&
+                        this.usedItems.includes(this.pot)
+                    ) {
                         // If the top item is seeds, use it
                         this.keyFPressed = true;
                         this.useItem();
@@ -1884,17 +2127,22 @@ export default class LevelTwo extends Phaser.Scene {
                     this.canDetectionArea.getBounds()
                 ) &&
                 this.wateringCan &&
-                !this.usedItems.includes(this.wateringCan)
+                this.pot &&
+                !this.usedItems.includes(this.wateringCan) &&
+                !this.potHighlightArea.visible
             ) {
                 // If player overlaps with wateringCan detection area, show the highlight box
                 this.canHighlightArea.setVisible(true);
                 if (
+                    this.stack.length > 0 &&
                     this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack.length > 0
+                    !this.keyFPressed
                 ) {
                     // If player presses F
-                    if (this.stack[this.stack.length - 1].name === "can") {
+                    if (
+                        this.stack[this.stack.length - 1].name === "can" &&
+                        this.usedItems.includes(this.pot)
+                    ) {
                         // If the top item is wateringCan, use it
                         this.keyFPressed = true;
                         this.useItem();
@@ -1920,9 +2168,9 @@ export default class LevelTwo extends Phaser.Scene {
                 // If player overlaps with pot detection area, show the highlight box
                 this.potHighlightArea.setVisible(true);
                 if (
+                    this.stack.length > 0 &&
                     this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack.length > 0
+                    !this.keyFPressed
                 ) {
                     // If player presses F
                     if (this.stack[this.stack.length - 1].name === "pot") {
@@ -1951,9 +2199,9 @@ export default class LevelTwo extends Phaser.Scene {
                 // If player overlaps with key detection area, show highlight box
                 this.keyHighlightArea.setVisible(true);
                 if (
+                    this.stack.length > 0 &&
                     this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack.length > 0
+                    !this.keyFPressed
                 ) {
                     // If player presses F
                     if (this.stack[this.stack.length - 1].name === "key") {
@@ -1971,105 +2219,23 @@ export default class LevelTwo extends Phaser.Scene {
             }
         }
 
-        /*if (this.player && this.stack.length > 0) {
-            if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.wandDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "wand"
-            ) {
-                // If player overlaps with ladder detection area, show the highlight box
-                this.wandHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.clubDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "club"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.clubHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.seedsDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "seeds"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.seedsHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.canDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "can"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.canHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.potDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "pot"
-            ) {
-                // If player overlaps with plank detection area, show the highlight box
-                this.potHighlightArea.setVisible(true);
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else if (
-                Phaser.Geom.Intersects.RectangleToRectangle(
-                    this.player.getBounds(),
-                    this.keyDetectionArea.getBounds()
-                ) &&
-                this.stack[this.stack.length - 1].name === "key"
-            ) {
-                // If player overlaps with key detection area, open door
-                if (this.keyF?.isDown && !this.keyFPressed) {
-                    this.keyFPressed = true;
-                    this.useItem();
-                }
-            } else {
-                // Otherwise, hide the highlight box
-                this.wandHighlightArea.setVisible(false);
-                this.clubHighlightArea.setVisible(false);
-                this.seedsHighlightArea.setVisible(false);
-                this.potHighlightArea.setVisible(false);
-                this.canDetectionArea.setVisible(false);
-            }
-        }*/
-
         // Climbing the plant
-        if (this.player && this.plant && this.cursors) {
+        if (
+            this.player &&
+            this.plant &&
+            this.cursors &&
+            this.plant.visible &&
+            +this.plant.frame.name > 0
+        ) {
             // Max distance player can be from plant to climb it
             const xTolerance = 30; // Tolerance for X position
-            const yTolerance = 250; // Tolerance for Y position
+            const yTolerance = 270; // Tolerance for Y position
             // Calculate horizontal and vertical distances between player and ladder
             const deltaX = Math.abs(this.player.x - this.plant.x);
             const deltaY = Math.abs(this.player.y - this.plant.y);
 
             if (
-                this.plant.x === 1050 &&
+                this.plant.x === 1045 &&
                 deltaX < xTolerance &&
                 deltaY < yTolerance &&
                 this.cursors.up.isDown
@@ -2083,17 +2249,16 @@ export default class LevelTwo extends Phaser.Scene {
         }
 
         // Making troll move back and forth
-        const leftBoundary = 150;
+        const leftBoundary = 250;
         const rightBoundary = 525;
         const chaseThreshold = 400;
         const attackThreshold = 70;
         const trollAttackY = 595;
         if (!this.usedClub && !this.isPaused) {
-            if (this.troll && this.player) {
+            if (this.troll && this.player && !this.trollDead) {
                 // Calculate the distance between the troll and the player
                 const distanceX = Math.abs(this.player.x - this.troll.x);
                 const distanceY = Math.abs(this.player.y - this.troll.y);
-
                 // If player is close-ish, move toward player
                 if (
                     distanceX < chaseThreshold &&
@@ -2133,7 +2298,7 @@ export default class LevelTwo extends Phaser.Scene {
                         );
                     }
                 }
-                // If player is not close, just walk back and forth
+                //If player is not close, just walk back and forth
                 else {
                     if (
                         this.troll.x <= rightBoundary &&
@@ -2162,71 +2327,9 @@ export default class LevelTwo extends Phaser.Scene {
                 }
             }
         }
-        /*const chaseThreshold = 400;
-        const attackThreshold = 70;
-        if (!this.isPaused && !this.usedClub) {
-            if (this.troll && this.player) {
-                // Calculate distance between troll and player
-                const distanceX = Math.abs(this.player.x - this.troll.x);
-                const distanceY = Math.abs(this.player.y - this.troll.y);
-
-                // If player is close-ish, move toward player
-                if (
-                    distanceX < chaseThreshold &&
-                    distanceX > attackThreshold &&
-                    distanceY < 40
-                ) {
-                    if (this.troll.x < this.player.x) {
-                        this.troll.x += 4.3; // Move right
-                        this.troll.flipX = false;
-                    } else if (this.troll.x > this.player.x) {
-                        this.troll.x -= 4.3; // Move left
-                        this.troll.flipX = true;
-                    }
-                    this.troll.anims.play("troll_right", true);
-                }
-                // If player is close to troll, troll attacks
-                else if (distanceX <= attackThreshold && distanceY < 100) {
-                    this.troll.anims.play("troll_attack", true); // Attack right
-                    if (this.troll.x < this.player.x) {
-                        this.troll.flipX = false;
-                    } else if (this.troll.x > this.player.x) {
-                        this.troll.flipX = true;
-                    }
-                    if (!this.collidingWithSmog) {
-                        this.time.delayedCall(
-                            500,
-                            () => {
-                                this.collidingWithSmog = true;
-                                this.loseLife();
-                            },
-                            [],
-                            this
-                        );
-                    }
-                } else {
-                    if (this.trollDirection === 1) {
-                        this.troll.x += this.trollSpeed; // Move right
-                    } else {
-                        this.troll.x -= this.trollSpeed; // Move left
-                    }
-                    this.troll.flipX = this.trollDirection === -1; // Flip troll if moving left
-                    this.troll.anims.play("troll_right", true);
-
-                    // Check if the troll reaches the screen edges
-                    if (this.troll.x <= 150 || this.troll.x >= 525) {
-                        // Change direction
-                        this.trollDirection *= -1;
-                    }
-                }
-            }
-        }*/
 
         // Club on top of bird
-        if (this.club && this.bird && !this.clubCollected) {
-            this.club.x = this.bird.x;
-            this.club.y = this.bird.y - this.bird.displayHeight / 2;
-        }
+        this.clubOnBird();
 
         if (
             this.player &&
@@ -2260,7 +2363,7 @@ export default class LevelTwo extends Phaser.Scene {
                 this.smogGroup,
                 () => {
                     this.collidingWithSmog = true;
-                    this.loseLife(); // have to turn this back on
+                    this.loseLife();
                 },
                 undefined,
                 this

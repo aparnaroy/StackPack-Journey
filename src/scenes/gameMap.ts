@@ -1,11 +1,15 @@
 import Phaser from "phaser";
 
-// 0 = Locked, 1 = Just Unlocked, 2 = Current Level, 3 = Completed
+// Level States: 0 = Locked, 1 = Just Unlocked, 2 = Current Level, 3 = Completed
 interface GameMapData {
     level0State: number;
     level1State: number;
     level2State: number;
     level3State: number;
+    level0Stars: number;
+    level1Stars: number;
+    level2Stars: number;
+    level3Stars: number;
 }
 
 export default class GameMap extends Phaser.Scene {
@@ -13,12 +17,18 @@ export default class GameMap extends Phaser.Scene {
     private level1State: number;
     private level2State: number;
     private level3State: number;
+    private level0Stars: number;
+    private level1Stars: number;
+    private level2Stars: number;
+    private level3Stars: number;
+    private backgroundMusic?: Phaser.Sound.BaseSound;
 
     constructor() {
         super({ key: "game-map" });
     }
 
     preload() {
+        this.load.audio("map-music", "assets/Dream.mp3");
         this.load.image("game-map", "assets/gameMap/game-map.png");
         this.load.image(
             "level0-unlocked",
@@ -64,6 +74,18 @@ export default class GameMap extends Phaser.Scene {
             "level3-completed",
             "assets/gameMap/level3-button-completed.png"
         );
+
+        // Stars
+        this.load.image("0starsDown", "assets/gameMap/stars/0starsDown.png");
+        this.load.image("0starsUp", "assets/gameMap/stars/0starsUp.png");
+        this.load.image("1starsDown", "assets/gameMap/stars/1starsDown.png");
+        this.load.image("1starsUp", "assets/gameMap/stars/1starsUp.png");
+        this.load.image("2starsDown", "assets/gameMap/stars/2starsDown.png");
+        this.load.image("2starsUp", "assets/gameMap/stars/2starsUp.png");
+        this.load.image("3starsDown", "assets/gameMap/stars/3starsDown.png");
+        this.load.image("3starsUp", "assets/gameMap/stars/3starsUp.png");
+
+        this.load.image("star", "assets/star.png");
     }
 
     create(data: GameMapData) {
@@ -71,6 +93,12 @@ export default class GameMap extends Phaser.Scene {
         this.level1State = data.level1State | 0;
         this.level2State = data.level2State | 0;
         this.level3State = data.level3State | 0;
+        this.level0Stars = data.level0Stars | 0;
+        this.level1Stars = data.level1Stars | 0;
+        this.level2Stars = data.level2Stars | 0;
+        this.level3Stars = data.level3Stars | 0;
+
+        console.log(this.level0Stars, data.level0Stars);
 
         const backgroundImage = this.add
             .image(0, 0, "game-map")
@@ -80,8 +108,102 @@ export default class GameMap extends Phaser.Scene {
             this.cameras.main.height / backgroundImage.height
         );
 
+        this.backgroundMusic = this.sound.add("map-music");
+        this.backgroundMusic.play({
+            loop: true,
+            volume: 0.25,
+        });
+
+        const totalStarsCollected =
+            this.level0Stars +
+            this.level1Stars +
+            this.level2Stars +
+            this.level3Stars;
+
+        const starsCollectedText = this.add.text(
+            135,
+            91,
+            `${totalStarsCollected} / 12`,
+            {
+                fontFamily: "Comic Sans MS",
+                fontSize: "32px",
+                color: "#ffffff",
+                align: "center",
+            }
+        );
+        starsCollectedText.setOrigin(0, 0.5).setDepth(32);
+
+        const star = this.add.image(85, 89, "star");
+        star.setScale(0.14);
+
         const originalScale = 0.43;
         const hoverScale = 0.46;
+
+        // Creating Level Stars
+        const level0Stars = this.add
+            .image(180, 485, "0starsUp")
+            .setScale(0.21)
+            .setDepth(2);
+
+        const level1Stars = this.add
+            .image(447, 446, "0starsDown")
+            .setScale(0.21)
+            .setDepth(2);
+
+        const level2Stars = this.add
+            .image(768, 535, "0starsDown")
+            .setScale(0.21)
+            .setDepth(2);
+
+        const level3Stars = this.add
+            .image(1058, 196, "0starsUp")
+            .setScale(0.21)
+            .setDepth(2);
+
+        // If player hasn't played level yet, don't show stars, else, show the number of stars they earned
+        // Level 0 Stars
+        if (this.level0Stars == 0) {
+            level0Stars.setVisible(false);
+        } else if (this.level0Stars == 1) {
+            level0Stars.setTexture("1starsUp");
+        } else if (this.level0Stars == 2) {
+            level0Stars.setTexture("2starsUp");
+        } else if (this.level0Stars == 3) {
+            level0Stars.setTexture("3starsUp");
+        }
+
+        // Level 1 Stars
+        if (this.level1Stars == 0) {
+            level1Stars.setVisible(false);
+        } else if (this.level1Stars == 1) {
+            level1Stars.setTexture("1starsDown");
+        } else if (this.level1Stars == 2) {
+            level1Stars.setTexture("2starsDown");
+        } else if (this.level1Stars == 3) {
+            level1Stars.setTexture("3starsDown");
+        }
+
+        // Level 2 Stars
+        if (this.level2Stars == 0) {
+            level2Stars.setVisible(false);
+        } else if (this.level2Stars == 1) {
+            level2Stars.setTexture("1starsDown");
+        } else if (this.level2Stars == 2) {
+            level2Stars.setTexture("2starsDown");
+        } else if (this.level2Stars == 3) {
+            level2Stars.setTexture("3starsDown");
+        }
+
+        // Level 3 Stars
+        if (this.level3Stars == 0) {
+            level3Stars.setVisible(false);
+        } else if (this.level3Stars == 1) {
+            level3Stars.setTexture("1starsUp");
+        } else if (this.level3Stars == 2) {
+            level3Stars.setTexture("2starsUp");
+        } else if (this.level3Stars == 3) {
+            level3Stars.setTexture("3starsUp");
+        }
 
         // Level 0 Button:
         const level0Button = this.add.image(180, 552, "level0-unlocked");
@@ -94,11 +216,16 @@ export default class GameMap extends Phaser.Scene {
         level0Button.setInteractive();
 
         level0Button.on("pointerup", () => {
+            this.backgroundMusic?.stop()
             this.scene.start("Level0", {
                 level0State: this.level0State,
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
@@ -111,6 +238,13 @@ export default class GameMap extends Phaser.Scene {
                 duration: 100, // Duration of the tween in milliseconds
                 ease: "Linear", // Easing function for the tween
             });
+            this.tweens.add({
+                targets: level0Stars,
+                scaleX: 0.24,
+                scaleY: 0.24,
+                duration: 100, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
         });
 
         // Restore original scale when pointer leaves
@@ -119,6 +253,13 @@ export default class GameMap extends Phaser.Scene {
                 targets: level0Button,
                 scaleX: originalScale,
                 scaleY: originalScale,
+                duration: 100, // Duration of the tween in milliseconds
+                ease: "Linear", // Easing function for the tween
+            });
+            this.tweens.add({
+                targets: level0Stars,
+                scaleX: 0.21,
+                scaleY: 0.21,
                 duration: 100, // Duration of the tween in milliseconds
                 ease: "Linear", // Easing function for the tween
             });
@@ -165,11 +306,16 @@ export default class GameMap extends Phaser.Scene {
             level1Button.setInteractive();
 
             level1Button.on("pointerup", () => {
+                this.backgroundMusic?.stop();
                 this.scene.start("Level1", {
                     level0State: this.level0State,
                     level1State: this.level1State,
                     level2State: this.level2State,
                     level3State: this.level3State,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             });
 
@@ -182,6 +328,13 @@ export default class GameMap extends Phaser.Scene {
                     duration: 100,
                     ease: "Linear",
                 });
+                this.tweens.add({
+                    targets: level1Stars,
+                    scaleX: 0.24,
+                    scaleY: 0.24,
+                    duration: 100, // Duration of the tween in milliseconds
+                    ease: "Linear", // Easing function for the tween
+                });
             });
 
             // Restore original scale when pointer leaves
@@ -192,6 +345,13 @@ export default class GameMap extends Phaser.Scene {
                     scaleY: originalScale,
                     duration: 100,
                     ease: "Linear",
+                });
+                this.tweens.add({
+                    targets: level1Stars,
+                    scaleX: 0.21,
+                    scaleY: 0.21,
+                    duration: 100, // Duration of the tween in milliseconds
+                    ease: "Linear", // Easing function for the tween
                 });
             });
         }
@@ -228,7 +388,7 @@ export default class GameMap extends Phaser.Scene {
             level2Button.setTexture("level2-unlocked");
         }
         // If level 2 is completed
-        else if (this.level1State == 3) {
+        else if (this.level2State == 3) {
             level2Button.setTexture("level2-completed");
         }
 
@@ -237,11 +397,16 @@ export default class GameMap extends Phaser.Scene {
             level2Button.setInteractive();
 
             level2Button.on("pointerup", () => {
+                this.backgroundMusic?.stop();
                 this.scene.start("Level2", {
                     level0State: this.level0State,
                     level1State: this.level1State,
                     level2State: this.level2State,
                     level3State: this.level3State,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             });
 
@@ -254,6 +419,13 @@ export default class GameMap extends Phaser.Scene {
                     duration: 100,
                     ease: "Linear",
                 });
+                this.tweens.add({
+                    targets: level2Stars,
+                    scaleX: 0.24,
+                    scaleY: 0.24,
+                    duration: 100, // Duration of the tween in milliseconds
+                    ease: "Linear", // Easing function for the tween
+                });
             });
 
             // Restore original scale when pointer leaves
@@ -264,6 +436,13 @@ export default class GameMap extends Phaser.Scene {
                     scaleY: originalScale,
                     duration: 100,
                     ease: "Linear",
+                });
+                this.tweens.add({
+                    targets: level2Stars,
+                    scaleX: 0.21,
+                    scaleY: 0.21,
+                    duration: 100, // Duration of the tween in milliseconds
+                    ease: "Linear", // Easing function for the tween
                 });
             });
         }
@@ -310,11 +489,16 @@ export default class GameMap extends Phaser.Scene {
             level3Button.setInteractive();
 
             level3Button.on("pointerup", () => {
+                this.backgroundMusic?.stop();
                 this.scene.start("Level3", {
                     level0State: this.level0State,
                     level1State: this.level1State,
                     level2State: this.level2State,
                     level3State: this.level3State,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             });
 
@@ -327,6 +511,13 @@ export default class GameMap extends Phaser.Scene {
                     duration: 100,
                     ease: "Linear",
                 });
+                this.tweens.add({
+                    targets: level3Stars,
+                    scaleX: 0.24,
+                    scaleY: 0.24,
+                    duration: 100, // Duration of the tween in milliseconds
+                    ease: "Linear", // Easing function for the tween
+                });
             });
 
             // Restore original scale when pointer leaves
@@ -337,6 +528,13 @@ export default class GameMap extends Phaser.Scene {
                     scaleY: originalScale,
                     duration: 100,
                     ease: "Linear",
+                });
+                this.tweens.add({
+                    targets: level3Stars,
+                    scaleX: 0.21,
+                    scaleY: 0.21,
+                    duration: 100, // Duration of the tween in milliseconds
+                    ease: "Linear", // Easing function for the tween
                 });
             });
         }

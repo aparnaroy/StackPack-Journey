@@ -5,6 +5,10 @@ interface GameMapData {
     level1State: number;
     level2State: number;
     level3State: number;
+    level0Stars: number;
+    level1Stars: number;
+    level2Stars: number;
+    level3Stars: number;
 }
 
 export default class LevelThree extends Phaser.Scene {
@@ -85,6 +89,7 @@ export default class LevelThree extends Phaser.Scene {
     private usedSword: boolean = false;
     private skeletonDead: boolean = false;
     private playerLostLife: boolean = false;
+    private poppingWrongItem: boolean = false;
 
     private timerText: Phaser.GameObjects.Text;
     private startTime: number;
@@ -101,12 +106,29 @@ export default class LevelThree extends Phaser.Scene {
     private level1State: number;
     private level2State: number;
     private level3State: number;
+    private level0Stars: number;
+    private level1Stars: number;
+    private level2Stars: number;
+    private level3Stars: number;
+
+    private backgroundMusic: Phaser.Sound.BaseSound;
+    private musicMuted: boolean = false;
 
     constructor() {
         super({ key: "Level3" });
     }
 
     preload() {
+        this.load.audio("cave-music", "assets/level3/Dark-chamber.mp3");
+        this.load.audio("collect-sound", "assets/sounds/collectsound.mp3");
+        this.load.audio("dooropen-sound", "assets/sounds/dooropensound.mp3");
+        this.load.audio("injure-sound", "assets/sounds/injuresound.mp3");
+        this.load.audio("wrong-sound", "assets/sounds/wrongsound.mp3");
+        this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
+        this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
+        this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
+        this.load.audio("win-sound", "assets/sounds/winsound.mp3");
+
         this.load.image(
             "level3-background",
             "assets/level3/level3-background.jpg"
@@ -262,6 +284,10 @@ export default class LevelThree extends Phaser.Scene {
         this.level1State = data.level1State;
         this.level2State = data.level2State;
         this.level3State = data.level3State;
+        this.level0Stars = data.level0Stars;
+        this.level1Stars = data.level1Stars;
+        this.level2Stars = data.level2Stars;
+        this.level3Stars = data.level3Stars;
 
         this.resetScene();
         // Resume all animations and tweens
@@ -292,6 +318,12 @@ export default class LevelThree extends Phaser.Scene {
             this.cameras.main.width / backgroundImage.width,
             this.cameras.main.height / backgroundImage.height
         );
+
+        this.backgroundMusic = this.sound.add("cave-music");
+        this.backgroundMusic.play({
+            loop: true,
+            volume: 0.25,
+        });
 
         const stackpack = this.add
             .image(0, 0, "stackpack")
@@ -421,6 +453,7 @@ export default class LevelThree extends Phaser.Scene {
             });
         });
         popButton.on("pointerup", () => {
+            this.sound.play("pop-sound");
             this.freePop();
             this.freePopsLeft -= 1;
             this.freePopsLeftText.setText(`${this.freePopsLeft}`);
@@ -726,6 +759,7 @@ export default class LevelThree extends Phaser.Scene {
         this.lava.setDepth(1);
         this.fireball1.setDepth(0);
         this.fireball2.setDepth(0);
+        //this.door.setDepth(1);
 
         // Resize collision boxes of player and everything that can be collided with
         this.player
@@ -965,6 +999,8 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
             this.isPaused = false;
             this.resetScene();
             this.scene.start("game-map", {
@@ -972,6 +1008,10 @@ export default class LevelThree extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
@@ -992,13 +1032,19 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
-            this.isPaused = false;
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level3", {
                 level0State: this.level0State,
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
@@ -1017,6 +1063,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         resumeButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             pauseGroup.setVisible(false);
             this.pauseTime();
             // Resume all animations and tweens
@@ -1048,7 +1095,13 @@ export default class LevelThree extends Phaser.Scene {
 
         // Has to get fixed once we have sound
         muteMusic.on("pointerup", () => {
-            pauseGroup.setVisible(false);
+            this.sound.play("menu-sound");
+            this.musicMuted = !this.musicMuted;
+            if (this.musicMuted) {
+                this.backgroundMusic.pause();
+            } else {
+                this.backgroundMusic.resume();
+            }
         });
 
         // No sound button for Pause popup
@@ -1067,6 +1120,7 @@ export default class LevelThree extends Phaser.Scene {
 
         // Has to get fixed once we have sound
         muteSound.on("pointerup", () => {
+            this.sound.play("menu-sound");
             pauseGroup.setVisible(false);
         });
 
@@ -1104,6 +1158,7 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
             if (!this.isPaused) {
                 this.pauseTime();
                 pauseGroup.setVisible(true);
@@ -1126,7 +1181,6 @@ export default class LevelThree extends Phaser.Scene {
         });
         this.startTime = this.time.now;
         this.pausedTime = 0;
-        this.isPaused = false;
 
         // Level complete popup - still working
         const completeExitButton = this.add.circle(790, 185, 35).setDepth(20);
@@ -1190,6 +1244,8 @@ export default class LevelThree extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
             this.isPaused = false;
             if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
@@ -1203,38 +1259,71 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
-            this.isPaused = false;
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level3", {
                 level0State: this.level0State,
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
         completeMenuButton.on("pointerup", () => {
-            this.isPaused = false;
-            // TODO: Transition to ending cut scene
-            setTimeout(() => {
-                this.scene.start("EndCutScene", {
-                    level0State: this.level0State,
-                    level1State: this.level1State,
-                    level2State: this.level2State,
-                    level3State: 3,
-                });
-            }, 500);
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
+            // Transition to ending cut scene if level 3 completed for the first time
+            if (data.level3State != 3) {
+                setTimeout(() => {
+                    this.scene.start("EndCutScene", {
+                        level0State: this.level0State,
+                        level1State: this.level1State,
+                        level2State: this.level2State,
+                        level3State: 3,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
+                    });
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: this.level0State,
+                        level1State: this.level1State,
+                        level2State: this.level2State,
+                        level3State: 3,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
+                    });
+                }, 500);
+            }
         });
 
         completeNextButton.on("pointerup", () => {
-            this.isPaused = false;
-            // TODO: Transition to ending cut scene
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
+            // Transition to ending cut scene
             setTimeout(() => {
                 this.scene.start("EndCutScene", {
                     level0State: this.level0State,
                     level1State: this.level1State,
                     level2State: this.level2State,
                     level3State: 3,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             }, 500);
         });
@@ -1280,6 +1369,7 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
+        this.sound.play("collect-sound");
         if (this.collectedItems.includes(item)) {
             return;
         }
@@ -1432,13 +1522,13 @@ export default class LevelThree extends Phaser.Scene {
                             this.tweens.add({
                                 targets: poppedItem,
                                 angle: 45, // Rotate the chainsaw to the side
-                                x: 537 + 20, // Move the chainsaw a bit to the right
+                                x: 570 + 20, // Move the chainsaw a bit to the right
                                 duration: 500, // Duration of the rotation and movement
                                 yoyo: true, // Play the animation in reverse
                                 repeat: 0, // No repeat
                                 onStart: () => {
                                     poppedItem.setDepth(3);
-                                    poppedItem.setPosition(537, 170);
+                                    poppedItem.setPosition(570, 170);
                                 },
                                 onComplete: () => {
                                     // Execute callback function after animation finishes
@@ -1535,6 +1625,7 @@ export default class LevelThree extends Phaser.Scene {
                         this.swordHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "key") {
+                        this.sound.play("dooropen-sound");
                         this.keyHighlightBox.setVisible(false);
                         this.door?.setTexture("red-opendoor");
                         this.pauseTime();
@@ -1549,6 +1640,7 @@ export default class LevelThree extends Phaser.Scene {
                                 y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
+                                    this.sound.play("win-sound");
                                     if (this.input.keyboard) {
                                         this.input.keyboard.enabled = false;
                                     }
@@ -1573,6 +1665,7 @@ export default class LevelThree extends Phaser.Scene {
                                         this.threeStarsPopup
                                             .setVisible(true)
                                             .setDepth(20);
+                                        this.level3Stars = 3;
                                     }
                                     if (
                                         this.elapsedTime > 30000 &&
@@ -1583,6 +1676,10 @@ export default class LevelThree extends Phaser.Scene {
                                         this.twoStarsPopup
                                             .setVisible(true)
                                             .setDepth(20);
+                                        // Update stars if its better than previous time
+                                        if (this.level3Stars < 2) {
+                                            this.level3Stars = 2;
+                                        }
                                     }
                                     if (this.elapsedTime > 60000) {
                                         this.starsPopup = this.oneStarPopup;
@@ -1590,6 +1687,10 @@ export default class LevelThree extends Phaser.Scene {
                                         this.oneStarPopup
                                             .setVisible(true)
                                             .setDepth(20);
+                                        // Update stars if its better than previous time
+                                        if (this.level3Stars < 1) {
+                                            this.level3Stars = 1;
+                                        }
                                     }
                                     // Animate level complete text
                                     this.tweens.add({
@@ -1599,6 +1700,8 @@ export default class LevelThree extends Phaser.Scene {
                                         ease: "Linear",
                                         delay: 1000, // Delay the animation slightly
                                     });
+
+                                    this.level3State = 3;
                                 },
                             });
                         }
@@ -1624,7 +1727,9 @@ export default class LevelThree extends Phaser.Scene {
             return; // Prevent popping if a push is in progress
         }
 
+        this.poppingWrongItem = true;
         this.loseLife();
+        this.poppingWrongItem = false;
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
@@ -1813,6 +1918,11 @@ export default class LevelThree extends Phaser.Scene {
     private loseLife() {
         if (!this.isColliding && this.player) {
             this.isColliding = true;
+            if (this.poppingWrongItem) {
+                this.sound.play("wrong-sound");
+            } else {
+                this.sound.play("injure-sound");
+            }
 
             this.player.setVelocity(0, 0);
             if (this.lastDirection === "right") {
@@ -1880,6 +1990,7 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     private playerDie() {
+        this.sound.play("death-sound");
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
@@ -1889,6 +2000,10 @@ export default class LevelThree extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
             this.player?.clearTint();
 
@@ -1900,6 +2015,9 @@ export default class LevelThree extends Phaser.Scene {
             this.lives = 3;
             this.createHearts();
             this.freePopsLeft = 4;
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
+            this.poppingWrongItem = false;
         });
     }
 
@@ -1912,6 +2030,14 @@ export default class LevelThree extends Phaser.Scene {
         this.lives = 3;
         this.createHearts();
         this.freePopsLeft = 4;
+        this.isPaused = false;
+        this.skeletonDead = false;
+        this.flashingRed = false;
+        this.isColliding = false;
+        this.collidingWithDeath = false;
+        this.usedSword = false;
+        this.playerLostLife = false;
+        this.poppingWrongItem = false;
     }
 
     private formatTime(milliseconds: number) {
@@ -2089,7 +2215,7 @@ export default class LevelThree extends Phaser.Scene {
         const chaseThreshold = 300;
         const attackThreshold = 70;
         if (!this.usedSword && !this.isPaused) {
-            if (this.skeleton && this.player) {
+            if (this.skeleton && this.player && !this.skeletonDead) {
                 // Calculate the distance between the skeleton and the player
                 const distanceX = Math.abs(this.player.x - this.skeleton.x);
                 const distanceY = Math.abs(this.player.y - this.skeleton.y);

@@ -92,7 +92,7 @@ We can give a short pre-test and post-test to assess how much the student has le
     -   Description: When the player successfully gets to the end door and unlocks it with the key, they have completed the level.
     -   Alignment: Completing a level shows understanding with the LIFO and Push/Pop concepts, since those are required to use the items in their correct order.
 
--   Find your Soulmate
+-   Find your Soulmate.
     -   Description: Completing all the levels will lead you to your soulmate, who you lost at the beginning of the game.
     -   Alignment: Since each level has more items than the last, getting past all levels shows a true deep understanding of how a stack works.
 
@@ -108,7 +108,6 @@ We can give a short pre-test and post-test to assess how much the student has le
 -   If the player uses the correct object in the right area, the player will be able to advance through the level.
 -   If the player obtains the key and uses it on the door, the player will advance to the next level.
 -   Over time, the level of difficulty will increase and evolve to incorporate the following:
-    -   Increased stack size
     -   Increased number of objects needed to push and pop
     -   More planning needed to complete the levels as the number of obstacles increases
 
@@ -120,24 +119,22 @@ In a Level:
 -   There will be a visible stack that shows your current “inventory” of items in the stack
 -   There will be platforms across the screen that the player can walk across
 -   There will be objects players can collect
--   There will be a prompt that pops up when the player gets close enough to an object, letting them know they can pick it up
 -   There will be obstacles throughout the level
--   There will be a prompt that pops up when the player gets close enough to an object, letting them know they can use it on that obstacle
--   There will be instructions in the first couple scenes of the game
+-   There will be a highlighted box that shows up when the player gets close enough to an obstacle, letting them know they can use an item on that obstacle
 
 On Map (showing all levels):
 
--   There will be a spot for each level in the game, with completed levels marked with a green flag, incomplete/inaccessible levels grayed out, and the current level marked with the main character standing on top of it.
+-   There will be a spot for each level in the game, with completed levels colored green, incomplete/inaccessible levels grayed out, and the current level colored blue.
 
 ## Core Gameplay Mechanics (Detailed)
 
--   “Level 0”: Players will have to complete Level 0 - a short introductory walkthrough that demonstrates the basic mechanics of the game. It will force players to pick objects up and push or pop them off the stack. It will also force players to make incorrect choices to show what not to do.
+-   “Level 0”: Players will have to complete Level 0 - a short introductory walkthrough that demonstrates the basic mechanics of the game. It will force players to pick objects up and push or pop them off the stack.
 
 -   “Pushing”: (aka. Collecting items) Players will be able to push objects to their stack using the letter ‘E’ when standing over an object. When that prompt is shown and E is pressed, the object will visually appear in the player’s stack-pack.
 
 -   “Popping”: (aka. Using items) Players will be able to pop objects from their stack using the letter ‘F’ when standing over an obstacle to use the objects throughout the levels. When that prompt is shown and the valid object is at the top of the stack, the action is performed (Ex. unlocking the door at the end of the level if the key is at the top of the stack).
 
--   “Movement”: Players will be able to move around the 2D world using all four arrow keys. Left moves left, right moves right, and up and down will be used to fly/climb/descend things like ladders.
+-   “Movement”: Players will be able to move around the 2D world using all four arrow keys. Left moves left, right moves right, and up will be used to climb things like ladders.
 
 -   “Next Level”: Players will be able to advance to the next level only if they use the key on the door. The door will swing open and players will go through the door.
 
@@ -147,8 +144,8 @@ On Map (showing all levels):
 
 -   When you try to use an object in an area where it’s not supposed to be used, the area will flash red indicating that you can’t do that with a sound effect.
 -   When you correctly use an object to overcome an area’s obstacle, the area will visibly change (animations) to show the object being used and appropriate sound effects will play based on what the item is.
--   When you complete a level by using the correct key on the door, the door will swing open, confetti will shower down, and text will show up saying you did it. A victory sound effect will also play.
--   When you complete a level, the next level will “unlock” in the game map (it will not be grayed out anymore and the main character will be shown on top of the new current level). Also, the level you just completed will have a green flag over it showing that you finished it.
+-   When you complete a level by using the correct key on the door, the door will swing open and text will show up saying you did it. A victory sound effect will also play.
+-   When you complete a level, the next level will “unlock” in the game map (it will be colored blue). Also, the level you just completed will become green showing that you finished it.
 -   When you win the game by finishing the last level and getting to your soulmate, a big victory message will appear and you will see an animation showing the main character reunite with the soulmate, and sound effects will also play accompanying it.
 
 # Story and Gameplay

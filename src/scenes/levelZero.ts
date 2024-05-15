@@ -5,6 +5,10 @@ interface GameMapData {
     level1State: number;
     level2State: number;
     level3State: number;
+    level0Stars: number;
+    level1Stars: number;
+    level2Stars: number;
+    level3Stars: number;
 }
 
 export default class LevelZero extends Phaser.Scene {
@@ -62,11 +66,16 @@ export default class LevelZero extends Phaser.Scene {
     private lives: number = 3;
     private isColliding: boolean = false;
     private collidingWithSpikes: boolean = false;
+    private poppingWrongItem: boolean = false;
 
     private level0State: number;
     private level1State: number;
     private level2State: number;
     private level3State: number;
+    private level0Stars: number;
+    private level1Stars: number;
+    private level2Stars: number;
+    private level3Stars: number;
 
     private timerText: Phaser.GameObjects.Text;
     private startTime: number;
@@ -79,11 +88,41 @@ export default class LevelZero extends Phaser.Scene {
     private oneStarPopup: Phaser.GameObjects.Group;
     private starsPopup: Phaser.GameObjects.Group;
 
+    private backgroundMusic: Phaser.Sound.BaseSound;
+    private musicMuted: boolean = false;
+    private soundMuted: boolean = false;
+    private collectSound: Phaser.Sound.BaseSound;
+    private plankSound: Phaser.Sound.BaseSound;
+    private ladderSound: Phaser.Sound.BaseSound;
+    private climbingLadderSound: Phaser.Sound.BaseSound;
+    private doorOpenSound: Phaser.Sound.BaseSound;
+    private injureSound: Phaser.Sound.BaseSound;
+    private popSound: Phaser.Sound.BaseSound;
+    private deathSound: Phaser.Sound.BaseSound;
+    private menuSound: Phaser.Sound.BaseSound;
+    private winSound: Phaser.Sound.BaseSound;
+
     constructor() {
         super({ key: "Level0" });
     }
 
     preload() {
+        this.load.audio("tutorial-music", "assets/level0/tutorialmusic.mp3");
+        this.load.audio("collect-sound", "assets/sounds/collectsound.mp3");
+        this.load.audio("plank-sound", "assets/level0/planksound.mp3");
+        this.load.audio("ladder-sound", "assets/level0/laddersound.mp3");
+        this.load.audio(
+            "climbingladder-sound",
+            "assets/level0/climbingladder.mp3"
+        );
+        this.load.audio("dooropen-sound", "assets/sounds/dooropensound.mp3");
+        this.load.audio("injure-sound", "assets/sounds/injuresound.mp3");
+        this.load.audio("wrong-sound", "assets/sounds/wrongsound.mp3");
+        this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
+        this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
+        this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
+        this.load.audio("win-sound", "assets/sounds/winsound.mp3");
+
         this.load.image(
             "level0-background",
             "assets/level0/level0-background.jpg"
@@ -206,6 +245,10 @@ export default class LevelZero extends Phaser.Scene {
         this.level1State = data.level1State;
         this.level2State = data.level2State;
         this.level3State = data.level3State;
+        this.level0Stars = data.level0Stars;
+        this.level1Stars = data.level1Stars;
+        this.level2Stars = data.level2Stars;
+        this.level3Stars = data.level3Stars;
 
         this.lastDirection = "right";
 
@@ -224,6 +267,22 @@ export default class LevelZero extends Phaser.Scene {
             this.cameras.main.width / backgroundImage.width,
             this.cameras.main.height / backgroundImage.height
         );
+
+        this.backgroundMusic = this.sound.add("tutorial-music");
+        this.backgroundMusic.play({
+            loop: true,
+            volume: 0.25,
+        });
+        this.collectSound = this.sound.add("collect-sound");
+        this.plankSound = this.sound.add("plank-sound");
+        this.ladderSound = this.sound.add("ladder-sound");
+        this.climbingLadderSound = this.sound.add("climbingladder-sound");
+        this.doorOpenSound = this.sound.add("dooropen-sound");
+        this.injureSound = this.sound.add("injure-sound");
+        this.popSound = this.sound.add("pop-sound");
+        this.deathSound = this.sound.add("death-sound");
+        this.menuSound = this.sound.add("menu-sound");
+        this.winSound = this.sound.add("win-sound");
 
         const stackpack = this.add
             .image(0, 0, "stackpack")
@@ -428,6 +487,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         popButton.on("pointerup", () => {
+            this.popSound.play();
             this.freePop();
             this.freePopsLeft -= 1;
             this.freePopsLeftText.setText(`${this.freePopsLeft}`);
@@ -462,6 +522,8 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         exitButton.on("pointerup", () => {
+            this.menuSound.play();
+            this.backgroundMusic.stop();
             this.isPaused = false;
             this.resetScene();
             this.scene.start("game-map", {
@@ -469,6 +531,10 @@ export default class LevelZero extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
@@ -489,13 +555,19 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         restartButton.on("pointerup", () => {
-            this.isPaused = false;
+            this.menuSound.play();
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level0", {
                 level0State: this.level0State,
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
@@ -514,6 +586,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         resumeButton.on("pointerup", () => {
+            this.menuSound.play();
             pauseGroup.setVisible(false);
             this.pauseTime();
             // Resume all animations and tweens
@@ -545,7 +618,13 @@ export default class LevelZero extends Phaser.Scene {
 
         // Has to get fixed once we have sound
         muteMusic.on("pointerup", () => {
-            pauseGroup.setVisible(false);
+            this.menuSound.play();
+            this.musicMuted = !this.musicMuted;
+            if (this.musicMuted) {
+                this.backgroundMusic.pause();
+            } else {
+                this.backgroundMusic.resume();
+            }
         });
 
         // No sound button for Pause popup
@@ -564,7 +643,16 @@ export default class LevelZero extends Phaser.Scene {
 
         // Has to get fixed once we have sound
         muteSound.on("pointerup", () => {
-            pauseGroup.setVisible(false);
+            this.menuSound.play();
+            /*
+            this.soundMuted = !this.soundMuted;
+            if (this.soundMuted) {
+                this.sound.pauseAll();
+                //this.backgroundMusic.resume();
+            } else {
+                this.sound.resumeAll();
+            }
+            */
         });
 
         pauseGroup.setVisible(false);
@@ -601,6 +689,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
+            this.menuSound.play();
             if (!this.isPaused) {
                 this.pauseTime();
                 pauseGroup.setVisible(true);
@@ -684,6 +773,8 @@ export default class LevelZero extends Phaser.Scene {
         this.oneStarPopup.add(completeNextButton);
 
         completeExitButton.on("pointerup", () => {
+            this.menuSound.play();
+            this.backgroundMusic.stop();
             this.isPaused = false;
             if (threeStars.visible) {
                 this.threeStarsPopup.setVisible(false);
@@ -697,25 +788,37 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         completeReplayButton.on("pointerup", () => {
-            this.isPaused = false;
+            this.menuSound.play();
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             this.resetScene();
             this.scene.start("Level0", {
                 level0State: this.level0State,
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
 
         completeMenuButton.on("pointerup", () => {
-            this.isPaused = false;
-            if (this.level1State == 0) {
+            this.menuSound.play();
+            this.backgroundMusic.stop();
+            console.log(this.level0Stars);
+            if (data.level1State == 0) {
                 setTimeout(() => {
                     this.scene.start("game-map", {
                         level0State: 3,
                         level1State: 1,
                         level2State: this.level2State,
                         level3State: this.level3State,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
                     });
                 }, 500);
             } else {
@@ -725,20 +828,30 @@ export default class LevelZero extends Phaser.Scene {
                         level1State: this.level1State,
                         level2State: this.level2State,
                         level3State: this.level3State,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
                     });
                 }, 1000);
             }
         });
 
         completeNextButton.on("pointerup", () => {
-            this.isPaused = false;
-            if (this.level1State == 0) {
+            this.menuSound.play();
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
+            if (data.level1State == 0) {
                 // If level 1 was locked before, set it to current level status
                 this.scene.start("Level1", {
                     level0State: 3,
                     level1State: 2,
                     level2State: this.level2State,
                     level3State: this.level3State,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             } else {
                 this.scene.start("Level1", {
@@ -746,6 +859,10 @@ export default class LevelZero extends Phaser.Scene {
                     level1State: this.level1State,
                     level2State: this.level2State,
                     level3State: this.level3State,
+                    level0Stars: this.level0Stars,
+                    level1Stars: this.level1Stars,
+                    level2Stars: this.level2Stars,
+                    level3Stars: this.level3Stars,
                 });
             }
         });
@@ -960,6 +1077,7 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
+        this.collectSound.play();
         if (this.collectedItems.includes(item)) {
             return;
         }
@@ -1036,15 +1154,18 @@ export default class LevelZero extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "ladder") {
+                        this.ladderSound.play();
                         poppedItem.setPosition(680, 365);
                         this.ladderHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "plank") {
+                        this.plankSound.play();
                         poppedItem.setPosition(815, 600);
                         this.plankHighlightBox.setVisible(false);
                         this.plankPlatform?.enableBody(true, 938, 650);
                     }
                     if (poppedItem.name === "key") {
+                        this.doorOpenSound.play();
                         this.keyHighlightBox.setVisible(false);
                         this.popButton2?.setVisible(false);
                         this.door?.setTexture("opendoor");
@@ -1060,6 +1181,7 @@ export default class LevelZero extends Phaser.Scene {
                                 y: this.door.y + 15,
                                 duration: 800,
                                 onComplete: () => {
+                                    this.winSound.play();
                                     if (this.input.keyboard) {
                                         this.input.keyboard.enabled = false;
                                     }
@@ -1083,6 +1205,7 @@ export default class LevelZero extends Phaser.Scene {
                                         this.threeStarsPopup
                                             .setVisible(true)
                                             .setDepth(10);
+                                        this.level0Stars = 3;
                                     }
                                     if (
                                         this.elapsedTime > 30000 &&
@@ -1093,6 +1216,10 @@ export default class LevelZero extends Phaser.Scene {
                                         this.twoStarsPopup
                                             .setVisible(true)
                                             .setDepth(10);
+                                        // Update stars if its better than previous time
+                                        if (this.level0Stars < 2) {
+                                            this.level0Stars = 2;
+                                        }
                                     }
                                     if (this.elapsedTime > 60000) {
                                         this.starsPopup = this.oneStarPopup;
@@ -1100,8 +1227,12 @@ export default class LevelZero extends Phaser.Scene {
                                         this.oneStarPopup
                                             .setVisible(true)
                                             .setDepth(10);
+                                        // Update stars if its better than previous time
+                                        if (this.level0Stars < 1) {
+                                            this.level0Stars = 1;
+                                        }
                                     }
-                                    // Animate level complete text
+                                    // Animate level complete popup
                                     this.tweens.add({
                                         targets: this.starsPopup,
                                         alpha: 1,
@@ -1109,6 +1240,13 @@ export default class LevelZero extends Phaser.Scene {
                                         ease: "Linear",
                                         delay: 1000, // Delay the animation slightly
                                     });
+
+                                    if (this.level1State == 0) {
+                                        this.level0State = 3;
+                                        this.level1State = 1;
+                                    } else {
+                                        this.level0State = 3;
+                                    }
                                 },
                             });
                         }
@@ -1208,7 +1346,9 @@ export default class LevelZero extends Phaser.Scene {
             return; // Prevent popping if a push is in progress
         }
 
+        this.poppingWrongItem = true;
         this.loseLife();
+        this.poppingWrongItem = false;
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
@@ -1310,8 +1450,14 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private loseLife() {
+        this.injureSound.play();
         if (!this.isColliding && this.player) {
             this.isColliding = true;
+            if (this.poppingWrongItem) {
+                this.sound.play("wrong-sound");
+            } else {
+                this.sound.play("injure-sound");
+            }
 
             this.player.setVelocity(0, 0);
             if (this.lastDirection === "right") {
@@ -1359,6 +1505,7 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private playerDie() {
+        this.deathSound.play();
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
@@ -1368,6 +1515,10 @@ export default class LevelZero extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
             this.player?.clearTint();
 
@@ -1379,6 +1530,9 @@ export default class LevelZero extends Phaser.Scene {
             this.lives = 3;
             this.createHearts();
             this.freePopsLeft = 2;
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
+            this.poppingWrongItem = false;
         });
     }
 
@@ -1392,10 +1546,14 @@ export default class LevelZero extends Phaser.Scene {
         this.createHearts();
         this.freePopsLeft = 2;
         this.downArrow?.setPosition(350, 350);
-        //console.log("resetting", this.time.now, this.startTime);
         this.startTime = this.time.now;
         this.pausedTime = 0;
         this.isPaused = false;
+        this.climbing = false;
+        this.flashingRed = false;
+        this.isColliding = false;
+        this.collidingWithSpikes = false;
+        this.poppingWrongItem = false;
     }
 
     private createPulsateEffect(
@@ -1725,10 +1883,16 @@ export default class LevelZero extends Phaser.Scene {
                 deltaY < yTolerance &&
                 this.cursors.up.isDown
             ) {
+                if (!this.climbing) {
+                    this.climbingLadderSound.play();
+                }
                 this.climbing = true;
                 this.player.anims.play("climb", true);
                 this.player.setVelocityY(-150);
             } else {
+                if (this.climbing) {
+                    this.climbingLadderSound.stop();
+                }
                 this.climbing = false;
             }
         }

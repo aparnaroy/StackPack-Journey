@@ -5,6 +5,10 @@ interface GameMapData {
     level1State: number;
     level2State: number;
     level3State: number;
+    level0Stars: number;
+    level1Stars: number;
+    level2Stars: number;
+    level3Stars: number;
 }
 
 export default class EndCutScene extends Phaser.Scene {
@@ -28,6 +32,10 @@ export default class EndCutScene extends Phaser.Scene {
     private level1State: number;
     private level2State: number;
     private level3State: number;
+    private level0Stars: number;
+    private level1Stars: number;
+    private level2Stars: number;
+    private level3Stars: number;
 
     constructor() {
         super({ key: "EndCutScene" });
@@ -78,11 +86,6 @@ export default class EndCutScene extends Phaser.Scene {
             "assets/Pink_Monster_Walk_Left6.png",
             { frameWidth: 128, frameHeight: 128 }
         );
-        /*this.load.spritesheet(
-            "gal_jump_right",
-            "assets/Pink_Monster_Jump_8.png",
-            { frameWidth: 128, frameHeight: 128 }
-        );*/
 
         this.load.spritesheet(
             "dude_idle_right",
@@ -130,6 +133,7 @@ export default class EndCutScene extends Phaser.Scene {
         this.load.image("level0-platform", "assets/level0/platform.png");
 
         //this.load.image("red-opendoor", "assets/level3/red-door-open.png");
+        this.load.image("star", "assets/star.png");
     }
 
     create(data: GameMapData) {
@@ -145,6 +149,10 @@ export default class EndCutScene extends Phaser.Scene {
         this.level1State = data.level1State;
         this.level2State = data.level2State;
         this.level3State = data.level3State;
+        this.level0Stars = data.level0Stars;
+        this.level1Stars = data.level1Stars;
+        this.level2Stars = data.level2Stars;
+        this.level3Stars = data.level3Stars;
 
         this.galMove = "";
         this.dudeMove = "";
@@ -291,11 +299,6 @@ export default class EndCutScene extends Phaser.Scene {
         this.physics.add.collider(this.player, this.platforms);
         this.physics.add.collider(this.dude, this.platforms);
 
-        /*this.door = this.physics.add
-            .image(187, 150, "red-opendoor")
-            .setScale(0.15, 0.15);
-        this.physics.add.collider(this.door, this.platforms);*/
-
         // Resize collision boxes of player and everything else that can be collided with
         this.player
             .setSize(this.player.width - 64, this.player.height)
@@ -306,10 +309,6 @@ export default class EndCutScene extends Phaser.Scene {
             .setSize(this.dude.width - 64, this.dude.height)
             .setOffset(32, 0)
             .setDepth(10);
-
-        /*this.door
-            .setSize(this.door.width, this.door.height - 60)
-            .setOffset(0, 0);*/
 
         this.animateEnding();
     }
@@ -447,7 +446,7 @@ export default class EndCutScene extends Phaser.Scene {
 
         const thankYouText = this.add.text(
             this.cameras.main.centerX,
-            this.cameras.main.centerY - 210,
+            this.cameras.main.centerY - 230,
             "Thank you for Playing",
             {
                 fontFamily: "Comic Sans MS",
@@ -460,23 +459,43 @@ export default class EndCutScene extends Phaser.Scene {
         thankYouText.setOrigin(0.5).setDepth(32);
 
         const authorText = this.add.text(
-            this.cameras.main.centerX + 50,
-            this.cameras.main.centerY + 110,
+            this.cameras.main.centerX + 55,
+            this.cameras.main.centerY + 265,
             "A game by Aparna Roy, Sam Glover & Emilie Barniak",
             {
                 fontFamily: "Comic Sans MS",
-                fontSize: "35px",
+                fontSize: "34px",
                 color: "#253347",
                 align: "center",
             }
         );
         authorText.setOrigin(0.5).setDepth(32);
 
+        const totalStarsCollected =
+            this.level0Stars +
+            this.level1Stars +
+            this.level2Stars +
+            this.level3Stars;
+        const starsCollectedText = this.add.text(
+            557,
+            222,
+            `Earned: ${totalStarsCollected} / 12`,
+            {
+                fontFamily: "Comic Sans MS",
+                fontSize: "32px",
+                color: "#253347",
+                align: "center",
+            }
+        );
+        starsCollectedText.setOrigin(0, 0.5).setDepth(32);
+        const star = this.add.image(517, 220, "star");
+        star.setScale(0.13).setDepth(32);
+
         this.stackpack
             ?.setVisible(true)
             .setScale(0.06)
             .setDepth(35)
-            .setPosition(220, 500);
+            .setPosition(230, 655);
 
         this.galMove = "";
         this.dudeMove = "";
@@ -485,15 +504,15 @@ export default class EndCutScene extends Phaser.Scene {
         this.player?.setVelocityX(0);
         this.dude?.setVelocityX(0);
         this.player?.setDepth(31);
-        this.player?.setPosition(this.cameras.main.centerX - 80, 315);
+        this.player?.setPosition(this.cameras.main.centerX - 80, 345);
         this.dude?.setDepth(31);
-        this.dude?.setPosition(this.cameras.main.centerX + 80, 315);
-        this.ground?.setPosition(650, 500).refreshBody();
+        this.dude?.setPosition(this.cameras.main.centerX + 80, 345);
+        this.ground?.setPosition(650, 530).refreshBody();
 
         const playAgainButton = this.add
             .image(
                 this.cameras.main.centerX - 180,
-                this.cameras.main.centerY + 235,
+                this.cameras.main.centerY + 165,
                 "play-again-button"
             )
             .setDepth(30);
@@ -503,7 +522,7 @@ export default class EndCutScene extends Phaser.Scene {
         const worldMapButton = this.add
             .image(
                 this.cameras.main.centerX + 180,
-                this.cameras.main.centerY + 235,
+                this.cameras.main.centerY + 165,
                 "world-map-button"
             )
             .setDepth(30);
@@ -563,6 +582,10 @@ export default class EndCutScene extends Phaser.Scene {
                 level1State: this.level1State,
                 level2State: this.level2State,
                 level3State: this.level3State,
+                level0Stars: this.level0Stars,
+                level1Stars: this.level1Stars,
+                level2Stars: this.level2Stars,
+                level3Stars: this.level3Stars,
             });
         });
     }
