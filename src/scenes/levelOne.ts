@@ -79,7 +79,6 @@ export default class LevelOne extends Phaser.Scene {
     private isColliding: boolean = false;
     private collidingWithWater: boolean = false;
     private flashingRed: boolean = false;
-    private freePopUsed: boolean = false;
 
     // Level States and Stars
     private level0State: number;
@@ -103,9 +102,9 @@ export default class LevelOne extends Phaser.Scene {
     private oneStarPopup: Phaser.GameObjects.Group;
     private starsPopup: Phaser.GameObjects.Group;
 
-    // Music and sounds 
+    // Music and sounds
     private backgroundMusic: Phaser.Sound.BaseSound;
-    private musicMuted: boolean = false; 
+    private musicMuted: boolean = false;
 
     constructor() {
         super({ key: "Level1" });
@@ -788,10 +787,9 @@ export default class LevelOne extends Phaser.Scene {
 
         muteMusic.on("pointerup", () => {
             this.musicMuted = !this.musicMuted;
-            if(this.musicMuted){
+            if (this.musicMuted) {
                 this.backgroundMusic.stop();
-            }
-            else{
+            } else {
                 this.backgroundMusic.play();
             }
         });
@@ -1660,6 +1658,9 @@ export default class LevelOne extends Phaser.Scene {
         this.isPaused = false;
         this.stackY = 300;
         this.mushroomPopped = false;
+        this.isColliding = false;
+        this.collidingWithWater = false;
+        this.flashingRed = false;
     }
 
     private createPulsateEffect(

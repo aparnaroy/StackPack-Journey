@@ -100,7 +100,7 @@ export default class LevelTwo extends Phaser.Scene {
     }
 
     preload() {
-        this.load.audio("cloud-music", "assets/level2/Cloud.mp3")
+        this.load.audio("cloud-music", "assets/level2/Cloud.mp3");
         this.load.image(
             "level2-background",
             "assets/level2/level2-background.png"
@@ -282,8 +282,8 @@ export default class LevelTwo extends Phaser.Scene {
         ) as Phaser.Physics.Arcade.Image;
         this.bird.setScale(1).refreshBody();
         this.bird
-            .setSize(this.bird.width - 34, this.bird.height - 20)
-            .setOffset(17, 37);
+            .setSize(this.bird.width - 44, this.bird.height - 20)
+            .setOffset(22, 37);
         this.bird.setVisible(false);
 
         this.physics.add.collider(this.player, this.birdPlatform);
@@ -507,11 +507,11 @@ export default class LevelTwo extends Phaser.Scene {
         this.physics.add.collider(this.club, this.clouds);
         this.club.setName("club");
 
-        this.pot = this.add.sprite(900, 650, "pot").setScale(0.065);
+        this.pot = this.add.sprite(80, 650, "pot").setScale(0.065);
         this.physics.add.collider(this.pot, this.ground);
         this.pot.setName("pot");
 
-        this.seeds = this.add.sprite(80, 680, "seeds").setScale(0.6);
+        this.seeds = this.add.sprite(850, 680, "seeds").setScale(0.6);
         this.seeds.setName("seeds");
 
         this.add.image(1050, 670, "garden-sign").setScale(0.07, 0.06);
@@ -558,9 +558,9 @@ export default class LevelTwo extends Phaser.Scene {
         this.add.image(125, 435, "sign").setScale(0.2);
         this.smogGroup = this.physics.add.staticGroup();
         const smog1 = this.smogGroup.create(250, 430, "smog").setScale(0.5);
-        const smog2 = this.smogGroup.create(400, 430, "smog").setScale(0.5);
+        const smog2 = this.smogGroup.create(400, 430, "smog").setScale(-0.5);
         const smog3 = this.smogGroup.create(550, 430, "smog").setScale(0.5);
-        this.smog4 = this.smogGroup.create(700, 430, "smog").setScale(0.5);
+        this.smog4 = this.smogGroup.create(700, 430, "smog").setScale(-0.5);
         this.smog5 = this.smogGroup.create(850, 430, "smog").setScale(0.5);
 
         this.physics.add.collider(this.flyingBird, birdGround);
@@ -1006,14 +1006,14 @@ export default class LevelTwo extends Phaser.Scene {
             .setOffset(0, 30);
 
         smog1.setSize(smog1.width - 200, smog1.height - 170).setOffset(100, 70);
-        smog2.setSize(smog1.width - 200, smog1.height - 170).setOffset(100, 70);
-        smog3.setSize(smog1.width - 200, smog1.height - 170).setOffset(100, 70);
+        smog2.setSize(smog2.width - 200, smog2.height - 170).setOffset(100, 70);
+        smog3.setSize(smog3.width - 200, smog3.height - 170).setOffset(100, 70);
         if (this.smog4 && this.smog5) {
             this.smog4
-                .setSize(smog1.width - 200, smog1.height - 170)
+                .setSize(this.smog4.width - 200, this.smog4.height - 170)
                 .setOffset(100, 70);
             this.smog5
-                .setSize(smog1.width - 200, smog1.height - 170)
+                .setSize(this.smog4.width - 200, this.smog4.height - 170)
                 .setOffset(100, 70);
         }
 
@@ -1026,8 +1026,7 @@ export default class LevelTwo extends Phaser.Scene {
         );
 
         // Creating detection area when using the wand
-        this.wandDetectionArea = this.add.rectangle(700, 300, 350, 100);
-
+        this.wandDetectionArea = this.add.rectangle(600, 300, 320, 200);
         // Highlight area for wand
         this.wandHighlightArea = this.add
             .rectangle(780, 435, 275, 60, 0xffff00)
@@ -1035,7 +1034,10 @@ export default class LevelTwo extends Phaser.Scene {
             .setVisible(false);
 
         // Creating detection area when using club
-        this.clubDetectionArea = this.add.rectangle(750, 700, 500, 60);
+        //this.clubDetectionArea = this.add.rectangle(750, 700, 500, 60);
+        this.clubDetectionArea = this.add.rectangle(750, 500, 500, 150);
+        this.physics.world.enable(this.clubDetectionArea);
+        this.physics.add.collider(this.clubDetectionArea, this.ground);
 
         // Highlight area for club
         this.clubHighlightArea = this.add
@@ -1523,12 +1525,12 @@ export default class LevelTwo extends Phaser.Scene {
                         originalScaleY = 0.4;
                     }
                     if (poppedItem.name === "pot") {
-                        poppedItem.setPosition(900, 650);
+                        poppedItem.setPosition(80, 650);
                         originalScaleX = 0.065;
                         originalScaleY = 0.065;
                     }
                     if (poppedItem.name === "seeds") {
-                        poppedItem.setPosition(80, 680);
+                        poppedItem.setPosition(850, 680);
                         originalScaleX = 0.6;
                         originalScaleY = 0.6;
                     }
@@ -1624,12 +1626,12 @@ export default class LevelTwo extends Phaser.Scene {
                         originalScaleY = 0.4;
                     }
                     if (poppedItem.name === "pot") {
-                        poppedItem.setPosition(900, 650);
+                        poppedItem.setPosition(80, 650);
                         originalScaleX = 0.065;
                         originalScaleY = 0.065;
                     }
                     if (poppedItem.name === "seeds") {
-                        poppedItem.setPosition(80, 680);
+                        poppedItem.setPosition(850, 680);
                         originalScaleX = 0.6;
                         originalScaleY = 0.6;
                     }
@@ -1740,6 +1742,7 @@ export default class LevelTwo extends Phaser.Scene {
                 level2Stars: this.level2Stars,
                 level3Stars: this.level3Stars,
             });
+            //this.scene.launch("PreloadScene");
             this.player?.clearTint();
 
             // Reset the stack and collected items
@@ -1773,6 +1776,12 @@ export default class LevelTwo extends Phaser.Scene {
         this.clubCollected = false;
         this.usedClub = false;
         this.usingWand = false;
+        this.trollDead = false;
+        this.onBird = false;
+        this.climbing = false;
+        this.flashingRed = false;
+        this.isColliding = false;
+        this.collidingWithSmog = false;
     }
 
     private createPulsateEffect(
@@ -1979,9 +1988,9 @@ export default class LevelTwo extends Phaser.Scene {
                 // If player overlaps with wand detection area, show the highlight box
                 this.wandHighlightArea.setVisible(true);
                 if (
+                    this.stack.length > 0 &&
                     this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack.length > 0
+                    !this.keyFPressed
                 ) {
                     // If player presses F
                     if (this.stack[this.stack.length - 1].name === "wand") {
@@ -1999,6 +2008,10 @@ export default class LevelTwo extends Phaser.Scene {
             }
 
             // Club
+            this.clubDetectionArea.setPosition(
+                this.troll?.x,
+                this.clubDetectionArea.y
+            );
             if (
                 Phaser.Geom.Intersects.RectangleToRectangle(
                     this.player.getBounds(),
@@ -2014,9 +2027,9 @@ export default class LevelTwo extends Phaser.Scene {
                 );
                 this.clubHighlightArea.setVisible(true);
                 if (
+                    this.stack.length > 0 &&
                     this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack.length > 0
+                    !this.keyFPressed
                 ) {
                     // If player presses F
                     if (this.stack[this.stack.length - 1].name === "club") {
@@ -2040,18 +2053,22 @@ export default class LevelTwo extends Phaser.Scene {
                     this.seedsDetectionArea.getBounds()
                 ) &&
                 this.seeds &&
+                this.pot &&
                 !this.usedItems.includes(this.seeds) &&
                 !this.potHighlightArea.visible
             ) {
                 // If player overlaps with seeds detection area, show the highlight box
                 this.seedsHighlightArea.setVisible(true);
                 if (
+                    this.stack.length > 0 &&
                     this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack.length > 0
+                    !this.keyFPressed
                 ) {
                     // If player presses F
-                    if (this.stack[this.stack.length - 1].name === "seeds") {
+                    if (
+                        this.stack[this.stack.length - 1].name === "seeds" &&
+                        this.usedItems.includes(this.pot)
+                    ) {
                         // If the top item is seeds, use it
                         this.keyFPressed = true;
                         this.useItem();
@@ -2072,18 +2089,22 @@ export default class LevelTwo extends Phaser.Scene {
                     this.canDetectionArea.getBounds()
                 ) &&
                 this.wateringCan &&
+                this.pot &&
                 !this.usedItems.includes(this.wateringCan) &&
                 !this.potHighlightArea.visible
             ) {
                 // If player overlaps with wateringCan detection area, show the highlight box
                 this.canHighlightArea.setVisible(true);
                 if (
+                    this.stack.length > 0 &&
                     this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack.length > 0
+                    !this.keyFPressed
                 ) {
                     // If player presses F
-                    if (this.stack[this.stack.length - 1].name === "can") {
+                    if (
+                        this.stack[this.stack.length - 1].name === "can" &&
+                        this.usedItems.includes(this.pot)
+                    ) {
                         // If the top item is wateringCan, use it
                         this.keyFPressed = true;
                         this.useItem();
@@ -2109,9 +2130,9 @@ export default class LevelTwo extends Phaser.Scene {
                 // If player overlaps with pot detection area, show the highlight box
                 this.potHighlightArea.setVisible(true);
                 if (
+                    this.stack.length > 0 &&
                     this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack.length > 0
+                    !this.keyFPressed
                 ) {
                     // If player presses F
                     if (this.stack[this.stack.length - 1].name === "pot") {
@@ -2140,9 +2161,9 @@ export default class LevelTwo extends Phaser.Scene {
                 // If player overlaps with key detection area, show highlight box
                 this.keyHighlightArea.setVisible(true);
                 if (
+                    this.stack.length > 0 &&
                     this.keyF?.isDown &&
-                    !this.keyFPressed &&
-                    this.stack.length > 0
+                    !this.keyFPressed
                 ) {
                     // If player presses F
                     if (this.stack[this.stack.length - 1].name === "key") {
@@ -2190,17 +2211,16 @@ export default class LevelTwo extends Phaser.Scene {
         }
 
         // Making troll move back and forth
-        const leftBoundary = 150;
+        const leftBoundary = 250;
         const rightBoundary = 525;
         const chaseThreshold = 400;
         const attackThreshold = 70;
         const trollAttackY = 595;
         if (!this.usedClub && !this.isPaused) {
-            if (this.troll && this.player) {
+            if (this.troll && this.player && !this.trollDead) {
                 // Calculate the distance between the troll and the player
                 const distanceX = Math.abs(this.player.x - this.troll.x);
                 const distanceY = Math.abs(this.player.y - this.troll.y);
-
                 // If player is close-ish, move toward player
                 if (
                     distanceX < chaseThreshold &&
@@ -2240,7 +2260,7 @@ export default class LevelTwo extends Phaser.Scene {
                         );
                     }
                 }
-                // If player is not close, just walk back and forth
+                //If player is not close, just walk back and forth
                 else {
                     if (
                         this.troll.x <= rightBoundary &&

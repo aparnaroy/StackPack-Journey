@@ -1998,6 +1998,12 @@ export default class LevelThree extends Phaser.Scene {
         this.createHearts();
         this.freePopsLeft = 4;
         this.isPaused = false;
+        this.skeletonDead = false;
+        this.flashingRed = false;
+        this.isColliding = false;
+        this.collidingWithDeath = false;
+        this.usedSword = false;
+        this.playerLostLife = false;
     }
 
     private formatTime(milliseconds: number) {
@@ -2175,7 +2181,7 @@ export default class LevelThree extends Phaser.Scene {
         const chaseThreshold = 300;
         const attackThreshold = 70;
         if (!this.usedSword && !this.isPaused) {
-            if (this.skeleton && this.player) {
+            if (this.skeleton && this.player && !this.skeletonDead) {
                 // Calculate the distance between the skeleton and the player
                 const distanceX = Math.abs(this.player.x - this.skeleton.x);
                 const distanceY = Math.abs(this.player.y - this.skeleton.y);
