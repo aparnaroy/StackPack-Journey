@@ -79,6 +79,7 @@ export default class LevelOne extends Phaser.Scene {
     private isColliding: boolean = false;
     private collidingWithWater: boolean = false;
     private flashingRed: boolean = false;
+    private poppingWrongItem: boolean = false;
 
     // Level States and Stars
     private level0State: number;
@@ -116,6 +117,7 @@ export default class LevelOne extends Phaser.Scene {
         this.load.audio("collect-sound", "assets/sounds/collectsound.mp3");
         this.load.audio("dooropen-sound", "assets/sounds/dooropensound.mp3");
         this.load.audio("injure-sound", "assets/sounds/injuresound.mp3");
+        this.load.audio("wrong-sound", "assets/sounds/wrongsound.mp3");
         this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
         this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
         this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
@@ -1420,7 +1422,9 @@ export default class LevelOne extends Phaser.Scene {
             return; // Prevent popping if a push is in progress
         }
 
+        this.poppingWrongItem = true;
         this.loseLife();
+        this.poppingWrongItem = false;
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
@@ -1599,9 +1603,13 @@ export default class LevelOne extends Phaser.Scene {
     }
 
     private loseLife() {
-        this.injureSound.play();
         if (!this.isColliding && this.player) {
             this.isColliding = true;
+            if (this.poppingWrongItem) {
+                this.sound.play("wrong-sound");
+            } else {
+                this.injureSound.play();
+            }
 
             this.player.setVelocity(0, 0);
             if (this.lastDirection === "right") {
@@ -1675,6 +1683,7 @@ export default class LevelOne extends Phaser.Scene {
             this.freePopsLeft = 2;
             this.backgroundMusic.stop();
             this.backgroundMusic.destroy();
+            this.poppingWrongItem = false;
         });
     }
 
@@ -1695,6 +1704,7 @@ export default class LevelOne extends Phaser.Scene {
         this.isColliding = false;
         this.collidingWithWater = false;
         this.flashingRed = false;
+        this.poppingWrongItem = false;
     }
 
     private createPulsateEffect(
