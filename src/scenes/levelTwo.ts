@@ -108,7 +108,8 @@ export default class LevelTwo extends Phaser.Scene {
         this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
         this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
         this.load.audio("win-sound", "assets/sounds/winsound.mp3");
-
+        this.load.audio("wand-sound", "assets/level2/wandsound.mp3");
+        this.load.audio("can-sound", "assets/level2/wateringsound.mp3");
 
         this.load.image(
             "level2-background",
@@ -1212,6 +1213,7 @@ export default class LevelTwo extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "wand") {
+                        this.sound.play("wand-sound");
                         // Wand waving
                         if (this.wand) {
                             this.tweens.add({
@@ -1271,6 +1273,7 @@ export default class LevelTwo extends Phaser.Scene {
                         }
                     }
                     if (poppedItem.name === "can") {
+                        this.sound.play("can-sound");
                         this.tweens.add({
                             targets: poppedItem,
                             angle: 75, // Tilt the water to the side
