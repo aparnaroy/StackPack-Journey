@@ -1479,6 +1479,10 @@ export default class LevelZero extends Phaser.Scene {
         this.startTime = this.time.now;
         this.pausedTime = 0;
         this.isPaused = false;
+        this.climbing = false;
+        this.flashingRed = false;
+        this.isColliding = false;
+        this.collidingWithSpikes = false;
     }
 
     private createPulsateEffect(

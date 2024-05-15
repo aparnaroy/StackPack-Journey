@@ -748,7 +748,7 @@ export default class LevelThree extends Phaser.Scene {
         this.lava.setDepth(1);
         this.fireball1.setDepth(0);
         this.fireball2.setDepth(0);
-        this.door.setDepth(1);
+        //this.door.setDepth(1);
 
         // Resize collision boxes of player and everything that can be collided with
         this.player
@@ -1500,13 +1500,13 @@ export default class LevelThree extends Phaser.Scene {
                             this.tweens.add({
                                 targets: poppedItem,
                                 angle: 45, // Rotate the chainsaw to the side
-                                x: 537 + 20, // Move the chainsaw a bit to the right
+                                x: 570 + 20, // Move the chainsaw a bit to the right
                                 duration: 500, // Duration of the rotation and movement
                                 yoyo: true, // Play the animation in reverse
                                 repeat: 0, // No repeat
                                 onStart: () => {
                                     poppedItem.setDepth(3);
-                                    poppedItem.setPosition(537, 170);
+                                    poppedItem.setPosition(570, 170);
                                 },
                                 onComplete: () => {
                                     // Execute callback function after animation finishes
@@ -1998,6 +1998,12 @@ export default class LevelThree extends Phaser.Scene {
         this.createHearts();
         this.freePopsLeft = 4;
         this.isPaused = false;
+        this.skeletonDead = false;
+        this.flashingRed = false;
+        this.isColliding = false;
+        this.collidingWithDeath = false;
+        this.usedSword = false;
+        this.playerLostLife = false;
     }
 
     private formatTime(milliseconds: number) {
@@ -2175,7 +2181,7 @@ export default class LevelThree extends Phaser.Scene {
         const chaseThreshold = 300;
         const attackThreshold = 70;
         if (!this.usedSword && !this.isPaused) {
-            if (this.skeleton && this.player) {
+            if (this.skeleton && this.player && !this.skeletonDead) {
                 // Calculate the distance between the skeleton and the player
                 const distanceX = Math.abs(this.player.x - this.skeleton.x);
                 const distanceY = Math.abs(this.player.y - this.skeleton.y);
