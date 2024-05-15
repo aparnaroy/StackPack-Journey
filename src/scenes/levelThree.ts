@@ -89,6 +89,7 @@ export default class LevelThree extends Phaser.Scene {
     private usedSword: boolean = false;
     private skeletonDead: boolean = false;
     private playerLostLife: boolean = false;
+    private poppingWrongItem: boolean = false;
 
     private timerText: Phaser.GameObjects.Text;
     private startTime: number;
@@ -122,11 +123,11 @@ export default class LevelThree extends Phaser.Scene {
         this.load.audio("collect-sound", "assets/sounds/collectsound.mp3");
         this.load.audio("dooropen-sound", "assets/sounds/dooropensound.mp3");
         this.load.audio("injure-sound", "assets/sounds/injuresound.mp3");
+        this.load.audio("wrong-sound", "assets/sounds/wrongsound.mp3");
         this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
         this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
         this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
         this.load.audio("win-sound", "assets/sounds/winsound.mp3");
-
 
         this.load.image(
             "level3-background",
@@ -1726,7 +1727,9 @@ export default class LevelThree extends Phaser.Scene {
             return; // Prevent popping if a push is in progress
         }
 
+        this.poppingWrongItem = true;
         this.loseLife();
+        this.poppingWrongItem = false;
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
@@ -1914,8 +1917,12 @@ export default class LevelThree extends Phaser.Scene {
 
     private loseLife() {
         if (!this.isColliding && this.player) {
-            this.sound.play("injure-sound");
             this.isColliding = true;
+            if (this.poppingWrongItem) {
+                this.sound.play("wrong-sound");
+            } else {
+                this.sound.play("injure-sound");
+            }
 
             this.player.setVelocity(0, 0);
             if (this.lastDirection === "right") {
@@ -2010,6 +2017,7 @@ export default class LevelThree extends Phaser.Scene {
             this.freePopsLeft = 4;
             this.backgroundMusic.stop();
             this.backgroundMusic.destroy();
+            this.poppingWrongItem = false;
         });
     }
 
@@ -2029,6 +2037,7 @@ export default class LevelThree extends Phaser.Scene {
         this.collidingWithDeath = false;
         this.usedSword = false;
         this.playerLostLife = false;
+        this.poppingWrongItem = false;
     }
 
     private formatTime(milliseconds: number) {
