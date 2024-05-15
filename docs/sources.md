@@ -9,6 +9,11 @@
 -   Level Pause: https://pzuh.itch.io/free-game-gui
 -   Pause Button: <a href='https://pngtree.com/freepng/casual-game-button-set-stock-illustration_5981555.html'>png image from pngtree.com/</a>
 -   Key: https://frakassets.itch.io/free-rotating-key
+-   Collecting Items Sound: https://www.zapsplat.com/music/game-sound-blip-x-1/
+-   Unlocking Door Sound: https://www.zapsplat.com/music/game-sound-door-open-unlock-magical-secret-level-could-be-level-up-bonus-award-or-other-positive-action-2/
+-   Character Injured Noise: https://www.zapsplat.com/music/game-sound-fantasy-hit-injure-critter-or-weird-insect-negative-tone/
+-   Free Pop Noise: https://www.zapsplat.com/music/game-sound-designed-bubble-pop-24/
+-   Player Death Noise: https://www.zapsplat.com/music/retro-8-bit-arcade-style-game-sound-negative-death-die-or-lose-life-4/
 -   Other: Canva Graphics
 
 ### Title Scene:
@@ -28,6 +33,9 @@
 -   Spikes 1: https://opengameart.org/content/spikey-stuff
 -   Spikes 2: https://www.gamedeveloperstudio.com/graphics/viewgraphic.php?page-name=Animated-floor-spikes-game-asset&item=1u5v5h4w8i7s7t806o
 -   Background Music: https://opengameart.org/content/calm-tutorial
+-   Plank Noise: https://www.zapsplat.com/music/1x4-plank-of-wood-bash-on-ground/
+-   Ladder Noise: https://www.zapsplat.com/music/1x4-plank-of-wood-drop-or-set-down-3/
+-   Climbing Noise: https://www.zapsplat.com/music/cartoon-ascend-wood-knocks-delicate-tip-toes-1/
 
 ### Level 1 Scene:
 

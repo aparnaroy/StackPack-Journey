@@ -89,6 +89,7 @@ export default class LevelZero extends Phaser.Scene {
 
     private backgroundMusic: Phaser.Sound.BaseSound;
     private musicMuted: boolean = false;
+    private climbingLadderSound: Phaser.Sound.BaseSound;
 
     constructor() {
         super({ key: "Level0" });
@@ -96,6 +97,18 @@ export default class LevelZero extends Phaser.Scene {
 
     preload() {
         this.load.audio("tutorial-music", "assets/level0/tutorialmusic.mp3");
+        this.load.audio("collect-sound", "assets/sounds/collectsound.mp3");
+        this.load.audio("plank-sound", "assets/level0/planksound.mp3");
+        this.load.audio("ladder-sound", "assets/level0/laddersound.mp3");
+        this.load.audio(
+            "climbingladder-sound",
+            "assets/level0/climbingladder.mp3"
+        );
+        this.load.audio("dooropen-sound", "assets/sounds/dooropensound.mp3");
+        this.load.audio("injure-sound", "assets/sounds/injuresound.mp3");
+        this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
+        this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
+
         this.load.image(
             "level0-background",
             "assets/level0/level0-background.jpg"
@@ -246,6 +259,7 @@ export default class LevelZero extends Phaser.Scene {
             loop: true,
             volume: 0.25,
         });
+        this.climbingLadderSound = this.sound.add("climbingladder-sound");
 
         const stackpack = this.add
             .image(0, 0, "stackpack")
@@ -450,6 +464,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         popButton.on("pointerup", () => {
+            this.sound.play("pop-sound");
             this.freePop();
             this.freePopsLeft -= 1;
             this.freePopsLeftText.setText(`${this.freePopsLeft}`);
@@ -1021,6 +1036,7 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
+        this.sound.play("collect-sound");
         if (this.collectedItems.includes(item)) {
             return;
         }
@@ -1097,15 +1113,18 @@ export default class LevelZero extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "ladder") {
+                        this.sound.play("ladder-sound");
                         poppedItem.setPosition(680, 365);
                         this.ladderHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "plank") {
+                        this.sound.play("plank-sound");
                         poppedItem.setPosition(815, 600);
                         this.plankHighlightBox.setVisible(false);
                         this.plankPlatform?.enableBody(true, 938, 650);
                     }
                     if (poppedItem.name === "key") {
+                        this.sound.play("dooropen-sound");
                         this.keyHighlightBox.setVisible(false);
                         this.popButton2?.setVisible(false);
                         this.door?.setTexture("opendoor");
@@ -1387,6 +1406,7 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private loseLife() {
+        this.sound.play("injure-sound");
         if (!this.isColliding && this.player) {
             this.isColliding = true;
 
@@ -1436,6 +1456,7 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private playerDie() {
+        this.sound.play("death-sound");
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
@@ -1812,10 +1833,16 @@ export default class LevelZero extends Phaser.Scene {
                 deltaY < yTolerance &&
                 this.cursors.up.isDown
             ) {
+                if (!this.climbing) {
+                    this.climbingLadderSound.play();
+                }
                 this.climbing = true;
                 this.player.anims.play("climb", true);
                 this.player.setVelocityY(-150);
             } else {
+                if(this.climbing){
+                    this.climbingLadderSound.stop();
+                }
                 this.climbing = false;
             }
         }
