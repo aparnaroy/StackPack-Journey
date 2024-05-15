@@ -12,6 +12,7 @@ import youDiedScene3 from "./scenes/youDiedScene3";
 import youDiedScene1 from "./scenes/youDiedScene1";
 import youDiedScene2 from "./scenes/youDiedScene2";
 import EndCutScene from "./scenes/endCutScene";
+import StartCutScene from "./scenes/startCutScene";
 
 const DEFAULT_WIDTH = 1280;
 const DEFAULT_HEIGHT = 720;
@@ -42,6 +43,7 @@ export const CONFIG = {
         youDiedScene1,
         youDiedScene2,
         EndCutScene,
+        StartCutScene,
     ],
     physics: {
         default: "arcade",
