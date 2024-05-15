@@ -66,6 +66,7 @@ export default class LevelZero extends Phaser.Scene {
     private lives: number = 3;
     private isColliding: boolean = false;
     private collidingWithSpikes: boolean = false;
+    private poppingWrongItem: boolean = false;
 
     private level0State: number;
     private level1State: number;
@@ -89,7 +90,7 @@ export default class LevelZero extends Phaser.Scene {
 
     private backgroundMusic: Phaser.Sound.BaseSound;
     private musicMuted: boolean = false;
-    private soundMuted: boolean = false; 
+    private soundMuted: boolean = false;
     private climbingLadderSound: Phaser.Sound.BaseSound;
 
     constructor() {
@@ -107,6 +108,7 @@ export default class LevelZero extends Phaser.Scene {
         );
         this.load.audio("dooropen-sound", "assets/sounds/dooropensound.mp3");
         this.load.audio("injure-sound", "assets/sounds/injuresound.mp3");
+        this.load.audio("wrong-sound", "assets/sounds/wrongsound.mp3");
         this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
         this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
         this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
@@ -1326,7 +1328,9 @@ export default class LevelZero extends Phaser.Scene {
             return; // Prevent popping if a push is in progress
         }
 
+        this.poppingWrongItem = true;
         this.loseLife();
+        this.poppingWrongItem = false;
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
@@ -1428,9 +1432,13 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private loseLife() {
-        this.sound.play("injure-sound");
         if (!this.isColliding && this.player) {
             this.isColliding = true;
+            if (this.poppingWrongItem) {
+                this.sound.play("wrong-sound");
+            } else {
+                this.sound.play("injure-sound");
+            }
 
             this.player.setVelocity(0, 0);
             if (this.lastDirection === "right") {
@@ -1505,6 +1513,7 @@ export default class LevelZero extends Phaser.Scene {
             this.freePopsLeft = 2;
             this.backgroundMusic.stop();
             this.backgroundMusic.destroy();
+            this.poppingWrongItem = false;
         });
     }
 
@@ -1518,7 +1527,6 @@ export default class LevelZero extends Phaser.Scene {
         this.createHearts();
         this.freePopsLeft = 2;
         this.downArrow?.setPosition(350, 350);
-        //console.log("resetting", this.time.now, this.startTime);
         this.startTime = this.time.now;
         this.pausedTime = 0;
         this.isPaused = false;
@@ -1526,6 +1534,7 @@ export default class LevelZero extends Phaser.Scene {
         this.flashingRed = false;
         this.isColliding = false;
         this.collidingWithSpikes = false;
+        this.poppingWrongItem = false;
     }
 
     private createPulsateEffect(

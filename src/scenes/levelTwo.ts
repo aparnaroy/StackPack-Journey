@@ -71,6 +71,7 @@ export default class LevelTwo extends Phaser.Scene {
     private lives: number = 3;
     private isColliding: boolean = false;
     private collidingWithSmog: boolean = false;
+    private poppingWrongItem: boolean = false;
 
     private level0State: number;
     private level1State: number;
@@ -104,6 +105,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.load.audio("collect-sound", "assets/sounds/collectsound.mp3");
         this.load.audio("dooropen-sound", "assets/sounds/dooropensound.mp3");
         this.load.audio("injure-sound", "assets/sounds/injuresound.mp3");
+        this.load.audio("wrong-sound", "assets/sounds/wrongsound.mp3");
         this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
         this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
         this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
@@ -1597,7 +1599,9 @@ export default class LevelTwo extends Phaser.Scene {
             return; // Prevent popping if a push is in progress
         }
 
+        this.poppingWrongItem = true;
         this.loseLife();
+        this.poppingWrongItem = false;
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
@@ -1706,8 +1710,12 @@ export default class LevelTwo extends Phaser.Scene {
 
     private loseLife() {
         if (!this.isColliding && this.player) {
-            this.sound.play("injure-sound");
             this.isColliding = true;
+            if (this.poppingWrongItem) {
+                this.sound.play("wrong-sound");
+            } else {
+                this.sound.play("injure-sound");
+            }
 
             this.player.setVelocity(0, 0);
             if (this.lastDirection === "right") {
@@ -1786,6 +1794,7 @@ export default class LevelTwo extends Phaser.Scene {
             this.usingWand = false;
             this.backgroundMusic.stop();
             this.backgroundMusic.destroy();
+            this.poppingWrongItem = false;
         });
     }
 
@@ -1810,6 +1819,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.flashingRed = false;
         this.isColliding = false;
         this.collidingWithSmog = false;
+        this.poppingWrongItem = false;
     }
 
     private createPulsateEffect(
