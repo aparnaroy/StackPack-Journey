@@ -119,6 +119,8 @@ export default class LevelOne extends Phaser.Scene {
         this.load.audio("pop-sound", "assets/sounds/popsound.mp3");
         this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
         this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
+        this.load.audio("bounce-sound", "assets/level1/boing.mp3");
+        this.load.audio("splash-sound", "assets/level1/watersplash.mp3");
 
         this.load.image(
             "level1Background",
@@ -1266,6 +1268,7 @@ export default class LevelOne extends Phaser.Scene {
                         this.player &&
                         this.stone
                     ) {
+                        this.sound.play("splash-sound");
                         poppedItem.setPosition(700, 560).setScale(0.22, 0.22);
                         this.stoneHighlightBox?.setVisible(false);
                         this.stone.setVisible(true);
@@ -1979,6 +1982,7 @@ export default class LevelOne extends Phaser.Scene {
                 playerBounds.right < mushroomBounds.right &&
                 this.mushroomPopped
             ) {
+                this.sound.play("bounce-sound");
                 this.player.setVelocityY(-640);
             }
         }
