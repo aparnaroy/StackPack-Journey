@@ -48,6 +48,8 @@
 -   Background Music: https://opengameart.org/content/jungle
 -   Water Splash: https://www.zapsplat.com/music/arrow-whoosh-and-hit-water-with-a-splash-21/
 -   Boing: https://www.zapsplat.com/music/cartoon-boing-ascend-bounce-jaw-harp-1/
+-   Monkey Sound: https://mixkit.co/free-sound-effects/monkey/
+-   Vine Swing Sound: https://www.zapsplat.com/music/badminton-or-tennis-racket-fast-whoosh-swoosh-swing-6/
 
 ### Level 2 Scene:
 
@@ -61,6 +63,8 @@
 -   Plant: https://opengameart.org/content/plant-growing-sprite
 -   Gardening Sign: https://www.vecteezy.com/png/16548364-watercolor-garden-sign
 -   Background Music: https://opengameart.org/content/a-lucid-dream
+-   Wand Sound: https://www.zapsplat.com/music/magic-glissando-bright-and-magical-wand-cast-spell-etc-4/
+-   Pouring Sound: https://www.zapsplat.com/music/bucket-load-of-water-sudden-pour-into-deep-water-6/
 
 ### Level 3 Scene:
 

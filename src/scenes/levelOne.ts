@@ -1276,6 +1276,7 @@ export default class LevelOne extends Phaser.Scene {
                         this.stone.setPushable(false);
                     }
                     if (poppedItem.name === "mushroom") {
+                        this.sound.play("bounce-sound");
                         poppedItem.setPosition(1160, 500);
                         //poppedItem.setPosition(1160, 560);
                         poppedItem.setSize(
