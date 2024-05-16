@@ -101,6 +101,7 @@ export default class LevelZero extends Phaser.Scene {
     private deathSound: Phaser.Sound.BaseSound;
     private menuSound: Phaser.Sound.BaseSound;
     private winSound: Phaser.Sound.BaseSound;
+    private wrongSound: Phaser.Sound.BaseSound;
 
     constructor() {
         super({ key: "Level0" });
@@ -283,6 +284,7 @@ export default class LevelZero extends Phaser.Scene {
         this.deathSound = this.sound.add("death-sound");
         this.menuSound = this.sound.add("menu-sound");
         this.winSound = this.sound.add("win-sound");
+        this.wrongSound = this.sound.add("wrong-sound");
 
         const stackpack = this.add
             .image(0, 0, "stackpack")
@@ -412,7 +414,7 @@ export default class LevelZero extends Phaser.Scene {
         this.key.setName("key");
         this.physics.add.collider(this.key, this.platforms);
 
-        this.ladder = this.add.sprite(1050, 550, "ladder").setScale(0.5, 0.55);
+        this.ladder = this.add.sprite(1050, 560, "ladder").setScale(0.5, 0.55);
         this.ladder.setName("ladder");
 
         this.plank = this.add.sprite(350, 530, "plank").setScale(0.5, 0.5);
@@ -641,18 +643,14 @@ export default class LevelZero extends Phaser.Scene {
             muteSound.setFillStyle();
         });
 
-        // Has to get fixed once we have sound
         muteSound.on("pointerup", () => {
             this.menuSound.play();
-            /*
             this.soundMuted = !this.soundMuted;
             if (this.soundMuted) {
-                this.sound.pauseAll();
-                //this.backgroundMusic.resume();
+                this.game.sound.mute = true;
             } else {
-                this.sound.resumeAll();
+                this.game.sound.mute = false;
             }
-            */
         });
 
         pauseGroup.setVisible(false);
@@ -1454,9 +1452,9 @@ export default class LevelZero extends Phaser.Scene {
         if (!this.isColliding && this.player) {
             this.isColliding = true;
             if (this.poppingWrongItem) {
-                this.sound.play("wrong-sound");
+                this.wrongSound.play();
             } else {
-                this.sound.play("injure-sound");
+                this.injureSound.play();
             }
 
             this.player.setVelocity(0, 0);

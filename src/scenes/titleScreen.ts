@@ -11,6 +11,7 @@ export default class TitleScreen extends Phaser.Scene {
     }
 
     preload() {
+        this.load.audio("start-sound", "assets/sounds/startsound.mp3");
         this.load.image("title-screen", "assets/title-screen.png");
         this.load.image("play-button", "assets/play-button.png");
 
@@ -106,6 +107,7 @@ export default class TitleScreen extends Phaser.Scene {
 
         // Change scale on hover
         playButton.on("pointerover", () => {
+            this.sound.play("start-sound");
             this.tweens.add({
                 targets: playButton,
                 scaleX: hoverScale,

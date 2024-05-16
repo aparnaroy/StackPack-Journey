@@ -113,6 +113,7 @@ export default class LevelThree extends Phaser.Scene {
 
     private backgroundMusic: Phaser.Sound.BaseSound;
     private musicMuted: boolean = false;
+    private soundMuted: boolean = false;
 
     constructor() {
         super({ key: "Level3" });
@@ -128,6 +129,13 @@ export default class LevelThree extends Phaser.Scene {
         this.load.audio("death-sound", "assets/sounds/playerdiesound.mp3");
         this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
         this.load.audio("win-sound", "assets/sounds/winsound.mp3");
+        this.load.audio("gas-sound", "assets/level3/gassound.mp3");
+        this.load.audio("bucket-sound", "assets/level3/bucketsound.mp3");
+        this.load.audio("chainsaw-sound", "assets/level3/chainsawsound.mp3");
+        this.load.audio("toolbox-sound", "assets/level3/toolboxsound.mp3");
+        this.load.audio("sword-sound", "assets/level3/swordsound.mp3");
+        this.load.audio("skeleton-sound", "assets/level3/skeletonsound.wav");
+
 
         this.load.image(
             "level3-background",
@@ -322,7 +330,7 @@ export default class LevelThree extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("cave-music");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.25,
+            volume: 0.50,
         });
 
         const stackpack = this.add
@@ -1121,7 +1129,12 @@ export default class LevelThree extends Phaser.Scene {
         // Has to get fixed once we have sound
         muteSound.on("pointerup", () => {
             this.sound.play("menu-sound");
-            pauseGroup.setVisible(false);
+            this.soundMuted = !this.soundMuted;
+            if (this.soundMuted) {
+                this.game.sound.mute = true;
+            } else {
+                this.game.sound.mute = false;
+            }
         });
 
         pauseGroup.setVisible(false);
@@ -1446,6 +1459,7 @@ export default class LevelThree extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "gas-mask") {
+                        this.sound.play("gas-sound");
                         poppedItem.setDepth(10);
                         // Move the gas mask towards the player
                         poppedItem.setPosition(1005, 400);
@@ -1471,6 +1485,7 @@ export default class LevelThree extends Phaser.Scene {
                         this.gasMaskHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "water") {
+                        this.sound.play("bucket-sound");
                         // Play animation to tilt the water to the side
                         this.tweens.add({
                             targets: poppedItem,
@@ -1494,6 +1509,7 @@ export default class LevelThree extends Phaser.Scene {
                         this.waterHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "toolbox") {
+                        this.sound.play("toolbox-sound");
                         poppedItem.setVisible(false);
                         this.tweens.add({
                             targets: this.dangerSign,
@@ -1517,6 +1533,7 @@ export default class LevelThree extends Phaser.Scene {
                         this.toolboxHighlightBox.setVisible(false);
                     }
                     if (poppedItem.name === "chainsaw") {
+                        this.sound.play("chainsaw-sound");
                         // Play animation to rotate and move the chainsaw side to side
                         if (this.chainsaw) {
                             this.tweens.add({
@@ -1566,6 +1583,7 @@ export default class LevelThree extends Phaser.Scene {
                             }
 
                             // Make the sword move towards the skeleton and rotate down after passing it
+                            this.sound.play("sword-sound");
                             this.tweens.add({
                                 targets: this.sword,
                                 x: this.skeleton.x + 100,
@@ -1589,6 +1607,7 @@ export default class LevelThree extends Phaser.Scene {
                                                     this.skeleton.x <
                                                         this.player.x
                                                 ) {
+                                                    this.sound.play("skeleton-sound");
                                                     this.skeleton.anims.play(
                                                         "die_right",
                                                         true
@@ -1599,6 +1618,9 @@ export default class LevelThree extends Phaser.Scene {
                                                     this.skeleton.x >
                                                         this.player.x
                                                 ) {
+                                                    this.sound.play(
+                                                        "skeleton-sound"
+                                                    );
                                                     this.skeleton.anims.play(
                                                         "die_left",
                                                         true
