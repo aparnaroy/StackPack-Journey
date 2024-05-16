@@ -648,7 +648,6 @@ export default class LevelZero extends Phaser.Scene {
             this.soundMuted = !this.soundMuted;
             if (this.soundMuted) {
                 this.game.sound.mute = true;
-                this.backgroundMusic.resume();
             } else {
                 this.game.sound.mute = false;
             }
