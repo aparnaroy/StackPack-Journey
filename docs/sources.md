@@ -90,6 +90,12 @@
 -   Gas Mask: https://img.freepik.com/premium-vector/stencil-gas-mask-icon-flat-vector-chemical-air-toxic-army-isolated_98396-65151.jpg
 -   Fireball: https://static.vecteezy.com/system/resources/previews/012/629/333/original/fireball-drop-effect-png.png
 -   Background Music: https://opengameart.org/content/dark-chamber
+-   Gas Noise: https://www.zapsplat.com/music/gas-hiss-leak-from-gas-canister-short-burst-2/
+-   Bucket Noise: https://www.zapsplat.com/music/fast-swoosh-and-splash-of-water-3/
+-   Chainsaw Noise: https://www.zapsplat.com/music/electric-chainsaw-short-burst-1/
+-   Toolbox Noise: https://www.zapsplat.com/music/cordless-electric-screwdriver-tool-operate-screwing-with-force-short-burst-1/
+-   Sword Noise: https://www.zapsplat.com/music/heavy-sword-impact-fast-whoosh-into-wood-hit-with-a-thud-and-loud-cracking-sound-version-1/
+-   Skeleton Noise: https://www.soundsnap.com/search/audio?query=monster+death
 
 ### Ending Cutscene:
 
