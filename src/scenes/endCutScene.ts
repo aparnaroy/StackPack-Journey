@@ -177,7 +177,7 @@ export default class EndCutScene extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("endMusic");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.25,
+            volume: 0.10,
         });
 
         this.stackpack = this.add

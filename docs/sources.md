@@ -18,6 +18,7 @@
 -   Player Death Noise: https://www.zapsplat.com/music/retro-8-bit-arcade-style-game-sound-negative-death-die-or-lose-life-4/
 -   Win Level Noise: https://www.zapsplat.com/music/game-sound-bell-keys-win-or-success-tone/
 -   Menu Click: https://www.zapsplat.com/music/game-sound-menu-button-click-2/
+-   Intro Music: https://pixabay.com/music/pulses-lofi-nostalgia-melancolia-207487/
 -   Other: Canva Graphics
 
 ### Title Scene:
