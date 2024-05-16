@@ -67,6 +67,11 @@
 -   Background Music: https://opengameart.org/content/a-lucid-dream
 -   Wand Sound: https://www.zapsplat.com/music/magic-glissando-bright-and-magical-wand-cast-spell-etc-4/
 -   Pouring Sound: https://www.zapsplat.com/music/bucket-load-of-water-sudden-pour-into-deep-water-6/
+-   Seed Sound: https://www.zapsplat.com/music/axe-or-similar-tool-impact-hit-dirt-ground-3/
+-   Club Sound: https://www.zapsplat.com/music/heavy-medieval-axe-or-other-weapon-swing-in-air-whoosh-3/
+-   Ogre Hurt: https://www.soundsnap.com/giant_video_game_character_pain_vocalization_wound_oof_2
+-   Pot Sound: https://www.zapsplat.com/music/debris-small-pieces-in-plastic-pot-or-container-set-down-on-table-4/
+-   Climbing Noise: https://www.zapsplat.com/music/cartoon-ascend-climb-cute-and-fun-mallet-2/
 
 ### Level 3 Scene:
 

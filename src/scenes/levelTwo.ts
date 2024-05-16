@@ -95,6 +95,8 @@ export default class LevelTwo extends Phaser.Scene {
 
     private backgroundMusic: Phaser.Sound.BaseSound;
     private musicMuted: boolean = false;
+    private soundMuted: boolean = false;
+    private climbingPlantSound: Phaser.Sound.BaseSound;
 
     constructor() {
         super({ key: "Level2" });
@@ -112,6 +114,11 @@ export default class LevelTwo extends Phaser.Scene {
         this.load.audio("win-sound", "assets/sounds/winsound.mp3");
         this.load.audio("wand-sound", "assets/level2/wandsound.mp3");
         this.load.audio("can-sound", "assets/level2/wateringsound.mp3");
+        this.load.audio("seed-sound", "assets/level2/seedsound.mp3");
+        this.load.audio("club-sound", "assets/level2/clubsound.mp3");
+        this.load.audio("troll-sound", "assets/level2/trollsound.wav");
+        this.load.audio("pot-sound", "assets/level2/potsound.mp3");
+        this.load.audio("plant-sound", "assets/level2/climbingplant.mp3");
 
         this.load.image(
             "level2-background",
@@ -241,6 +248,7 @@ export default class LevelTwo extends Phaser.Scene {
             loop: true,
             volume: 0.25,
         });
+        this.climbingPlantSound = this.sound.add("plant-sound");
 
         this.freePopsLeftText = this.add
             .text(285, 71, `${this.freePopsLeft}`, {
@@ -780,7 +788,12 @@ export default class LevelTwo extends Phaser.Scene {
         // Has to get fixed once we have sound
         muteSound.on("pointerup", () => {
             this.sound.play("menu-sound");
-            pauseGroup.setVisible(false);
+            this.soundMuted = !this.soundMuted;
+            if (this.soundMuted) {
+                this.game.sound.mute = true;
+            } else {
+                this.game.sound.mute = false;
+            }
         });
 
         pauseGroup.setVisible(false);
@@ -1251,6 +1264,7 @@ export default class LevelTwo extends Phaser.Scene {
                         this.wandHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "pot") {
+                        this.sound.play("pot-sound");
                         poppedItem.setPosition(1050, 665).setDepth(1);
                         this.invisiblePot?.enableBody(true);
                         this.potHighlightArea.setVisible(false);
@@ -1308,6 +1322,7 @@ export default class LevelTwo extends Phaser.Scene {
                     }
                     if (poppedItem.name === "seeds") {
                         if (this.player) {
+                            this.sound.play("seed-sound");
                             this.tweens.add({
                                 targets: poppedItem,
                                 x: this.player.x + 85,
@@ -1357,6 +1372,7 @@ export default class LevelTwo extends Phaser.Scene {
                             }
 
                             // Make the club move towards the troll and rotate down after passing it
+                            this.sound.play("club-sound");
                             this.tweens.add({
                                 targets: this.club,
                                 x: this.troll.x + 100,
@@ -1379,6 +1395,7 @@ export default class LevelTwo extends Phaser.Scene {
                                                     this.player &&
                                                     this.troll.x < this.player.x
                                                 ) {
+                                                    this.sound.play("troll-sound");
                                                     this.troll.anims.play(
                                                         "troll_die",
                                                         true
@@ -2240,10 +2257,16 @@ export default class LevelTwo extends Phaser.Scene {
                 deltaY < yTolerance &&
                 this.cursors.up.isDown
             ) {
+                if (!this.climbing) {
+                    this.climbingPlantSound.play();
+                }
                 this.climbing = true;
                 this.player.anims.play("climb", true);
                 this.player.setVelocityY(-150);
             } else {
+                if (this.climbing) {
+                    this.climbingPlantSound.stop();
+                }
                 this.climbing = false;
             }
         }
