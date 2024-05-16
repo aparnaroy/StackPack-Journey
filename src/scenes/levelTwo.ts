@@ -97,7 +97,7 @@ export default class LevelTwo extends Phaser.Scene {
 
     private backgroundMusic: Phaser.Sound.BaseSound;
     private musicMuted: boolean = false;
-    private soundMuted: boolean = false;
+    private soundMuted: boolean;
     private climbingPlantSound: Phaser.Sound.BaseSound;
     private noMusic: Phaser.GameObjects.Image;
     private noSound: Phaser.GameObjects.Image;
@@ -241,6 +241,8 @@ export default class LevelTwo extends Phaser.Scene {
         this.lastDirection = "right";
 
         this.allItems = ["wand", "pot", "can", "seeds", "club", "key"];
+
+        this.soundMuted = this.game.sound.mute;
 
         const backgroundImage = this.add
             .image(0, 0, "level2-background")
@@ -864,7 +866,7 @@ export default class LevelTwo extends Phaser.Scene {
                 if (this.musicMuted) {
                     this.noMusic.setVisible(true);
                 }
-                if (this.soundMuted) {
+                if (this.soundMuted || this.game.sound.mute) {
                     this.noSound.setVisible(true);
                 }
                 // Pause all animations and tweens

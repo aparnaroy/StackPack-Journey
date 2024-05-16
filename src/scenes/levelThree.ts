@@ -114,7 +114,7 @@ export default class LevelThree extends Phaser.Scene {
 
     private backgroundMusic: Phaser.Sound.BaseSound;
     private musicMuted: boolean = false;
-    private soundMuted: boolean = false;
+    private soundMuted: boolean;
     private noMusic: Phaser.GameObjects.Image;
     private noSound: Phaser.GameObjects.Image;
 
@@ -322,6 +322,8 @@ export default class LevelThree extends Phaser.Scene {
             "sword",
             "key",
         ];
+
+        this.soundMuted = this.game.sound.mute;
 
         this.freePopsLeftText = this.add
             .text(285, 71, `${this.freePopsLeft}`, {
@@ -1210,7 +1212,7 @@ export default class LevelThree extends Phaser.Scene {
                 if (this.musicMuted) {
                     this.noMusic.setVisible(true);
                 }
-                if (this.soundMuted) {
+                if (this.soundMuted || this.game.sound.mute) {
                     this.noSound.setVisible(true);
                 }
                 // Pause all animations and tweens

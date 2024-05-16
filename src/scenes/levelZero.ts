@@ -258,6 +258,8 @@ export default class LevelZero extends Phaser.Scene {
 
         this.allItems = ["ladder", "plank", "key"];
 
+        this.soundMuted = this.game.sound.mute;
+
         this.freePopsLeftText = this.add
             .text(285, 71, `${this.freePopsLeft}`, {
                 fontFamily: "Arial",
@@ -719,7 +721,7 @@ export default class LevelZero extends Phaser.Scene {
                 if (this.musicMuted) {
                     this.noMusic.setVisible(true);
                 }
-                if (this.soundMuted) {
+                if (this.soundMuted || this.game.sound.mute) {
                     this.noSound.setVisible(true);
                 }
                 // Pause all animations and tweens
