@@ -106,6 +106,7 @@ export default class LevelOne extends Phaser.Scene {
     // Music and sounds
     private backgroundMusic: Phaser.Sound.BaseSound;
     private musicMuted: boolean = false;
+    private soundMuted: boolean = false;
     private injureSound: Phaser.Sound.BaseSound;
 
     constructor() {
@@ -832,7 +833,12 @@ export default class LevelOne extends Phaser.Scene {
         // Has to get fixed once we have sound
         muteSound.on("pointerup", () => {
             this.sound.play("menu-sound");
-            pauseGroup.setVisible(false);
+            this.soundMuted = !this.soundMuted;
+            if (this.soundMuted) {
+                this.game.sound.mute = true;
+            } else {
+                this.game.sound.mute = false;
+            }
         });
 
         pauseGroup.setVisible(false);
