@@ -631,7 +631,7 @@ export default class LevelOne extends Phaser.Scene {
         this.vineHighlightBox.setAlpha(0.5);
         this.vineHighlightBox.setVisible(false);
 
-        this.keyDetectionArea = this.add.rectangle(890, 100, 200, 150);
+        this.keyDetectionArea = this.add.rectangle(890, 100, 100, 150);
         this.physics.world.enable(this.keyDetectionArea);
         this.physics.add.collider(this.keyDetectionArea, this.platforms);
 
