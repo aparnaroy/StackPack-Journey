@@ -330,7 +330,7 @@ export default class LevelThree extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("cave-music");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.25,
+            volume: 0.50,
         });
 
         const stackpack = this.add
