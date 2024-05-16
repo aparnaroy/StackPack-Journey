@@ -54,6 +54,7 @@ export default class LevelTwo extends Phaser.Scene {
     private freePopsLeftText: Phaser.GameObjects.Text;
     private flashingRed: boolean = false;
     private usingWand: boolean = false;
+    private usingClub: boolean = false;
 
     private keyDetectionArea: Phaser.GameObjects.Rectangle;
     private wandDetectionArea: Phaser.GameObjects.Rectangle;
@@ -242,7 +243,7 @@ export default class LevelTwo extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("cloud-music");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.25,
+            volume: 0.6,
         });
 
         this.freePopsLeftText = this.add
@@ -626,7 +627,6 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         popButton.on("pointerup", () => {
-            this.sound.play("pop-sound");
             this.freePop();
             if (this.freePopsLeft <= 0) {
                 popButton.setScale(originalScale);
@@ -818,8 +818,8 @@ export default class LevelTwo extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
-            this.sound.play("menu-sound");
             if (!this.isPaused) {
+                this.sound.play("menu-sound");
                 this.pauseTime();
                 pauseGroup.setVisible(true);
                 // Pause all animations and tweens
@@ -1108,14 +1108,21 @@ export default class LevelTwo extends Phaser.Scene {
 
     private updateStackView() {
         const offsetX = 1170; // starting X position for stack items
-        const offsetY = 270; // starting Y position for stack items
-        const padding = 20;
+        const offsetY = 271; // starting Y position for stack items
+        const padding = 10;
 
         let currTotalHeight = 0;
+
+        let stackItemScale = 1;
+        if (this.stack.length == 5) {
+            stackItemScale = 0.8;
+        }
 
         this.stack.forEach((item) => {
             // Calculate and set (x, y) position of stack items in stackpack view
             item.setOrigin(0.5, 0);
+            item.setScale(item.scale * stackItemScale);
+
             const stackItemX = offsetX;
             const stackItemY =
                 offsetY - item.displayHeight - currTotalHeight - padding;
@@ -1136,13 +1143,13 @@ export default class LevelTwo extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
-        this.sound.play("collect-sound");
         if (this.collectedItems.includes(item)) {
             return;
         }
-        if (this.usingWand) {
+        if (this.usingWand || this.usingClub) {
             return;
         }
+        this.sound.play("collect-sound");
 
         this.isPushingMap[item.name] = true;
 
@@ -1218,7 +1225,9 @@ export default class LevelTwo extends Phaser.Scene {
 
                     // Move popped item to location it will be used
                     if (poppedItem.name === "wand") {
-                        this.sound.play("wand-sound");
+                        const wandSound = this.sound.add("wand-sound");
+                        wandSound.play();
+                        wandSound.setVolume(0.35);
                         // Wand waving
                         if (this.wand) {
                             this.tweens.add({
@@ -1278,7 +1287,9 @@ export default class LevelTwo extends Phaser.Scene {
                         }
                     }
                     if (poppedItem.name === "can") {
-                        this.sound.play("can-sound");
+                        const canSound = this.sound.add("can-sound");
+                        canSound.play();
+                        canSound.setVolume(0.25);
                         this.tweens.add({
                             targets: poppedItem,
                             angle: 75, // Tilt the water to the side
@@ -1313,8 +1324,8 @@ export default class LevelTwo extends Phaser.Scene {
                         if (this.player) {
                             this.tweens.add({
                                 targets: poppedItem,
-                                x: this.player.x + 85,
-                                y: this.player.y - 100,
+                                x: 970 + 85,
+                                y: 660 - 100,
                                 duration: 1000,
                                 ease: "Power1",
                                 onComplete: () => {
@@ -1340,6 +1351,7 @@ export default class LevelTwo extends Phaser.Scene {
                         this.seedsHighlightArea.setVisible(false);
                     }
                     if (poppedItem.name === "club") {
+                        this.usingClub = true;
                         this.usedClub = true;
                         this.trollDead = true;
                         poppedItem.setDepth(5);
@@ -1411,6 +1423,7 @@ export default class LevelTwo extends Phaser.Scene {
                                                     );
                                                     this.troll?.destroy();
                                                 }, 1000);
+                                                this.usingClub = false;
                                             },
                                         });
                                     }
@@ -1526,6 +1539,7 @@ export default class LevelTwo extends Phaser.Scene {
                 return; // Prevent popping if any push is in progress
             }
         }
+        this.sound.play("pop-sound");
 
         this.freePopsLeft -= 1;
         this.freePopsLeftText.setText(`${this.freePopsLeft}`);
@@ -1544,7 +1558,7 @@ export default class LevelTwo extends Phaser.Scene {
             this.tweens.add({
                 targets: poppedItem,
                 alpha: 0, // Fade out
-                duration: 200,
+                duration: 800,
                 onComplete: () => {
                     // Set item origin back to default (center)
                     poppedItem.setOrigin(0.5, 0.5);
@@ -1776,7 +1790,9 @@ export default class LevelTwo extends Phaser.Scene {
     }
 
     private playerDie() {
-        this.sound.play("death-sound");
+        const deathSound = this.sound.add("death-sound");
+        deathSound.play();
+        deathSound.setVolume(0.3);
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {

@@ -111,7 +111,7 @@ export default class GameMap extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("map-music");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.25,
+            volume: 0.8,
         });
 
         const totalStarsCollected =
@@ -216,7 +216,7 @@ export default class GameMap extends Phaser.Scene {
         level0Button.setInteractive();
 
         level0Button.on("pointerup", () => {
-            this.backgroundMusic?.stop()
+            this.backgroundMusic?.stop();
             this.scene.start("Level0", {
                 level0State: this.level0State,
                 level1State: this.level1State,

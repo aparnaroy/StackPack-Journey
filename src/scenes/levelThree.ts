@@ -332,7 +332,7 @@ export default class LevelThree extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("cave-music");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.25,
+            volume: 0.85,
         });
 
         const stackpack = this.add
@@ -463,7 +463,6 @@ export default class LevelThree extends Phaser.Scene {
             });
         });
         popButton.on("pointerup", () => {
-            this.sound.play("pop-sound");
             this.freePop();
             if (this.freePopsLeft <= 0) {
                 popButton.setScale(originalScale);
@@ -1166,8 +1165,8 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
-            this.sound.play("menu-sound");
             if (!this.isPaused) {
+                this.sound.play("menu-sound");
                 this.pauseTime();
                 pauseGroup.setVisible(true);
                 // Pause all animations and tweens
@@ -1377,10 +1376,10 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
-        this.sound.play("collect-sound");
         if (this.collectedItems.includes(item)) {
             return;
         }
+        this.sound.play("collect-sound");
 
         this.isPushingMap[item.name] = true;
 
@@ -1846,6 +1845,7 @@ export default class LevelThree extends Phaser.Scene {
                 return; // Prevent popping if any push is in progress
             }
         }
+        this.sound.play("pop-sound");
 
         this.freePopsLeft -= 1;
         this.freePopsLeftText.setText(`${this.freePopsLeft}`);
@@ -1864,7 +1864,7 @@ export default class LevelThree extends Phaser.Scene {
             this.tweens.add({
                 targets: poppedItem,
                 alpha: 0, // Fade out
-                duration: 200,
+                duration: 800,
                 onComplete: () => {
                     // Set item origin back to default (center)
                     poppedItem.setOrigin(0.5, 0.5);
@@ -2010,7 +2010,9 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     private playerDie() {
-        this.sound.play("death-sound");
+        const deathSound = this.sound.add("death-sound");
+        deathSound.play();
+        deathSound.setVolume(0.3);
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
