@@ -78,6 +78,7 @@ export default class LevelThree extends Phaser.Scene {
     private keyFPressed: boolean = false; // Flag to check if 'E' was pressed to prevent using multiple items from one long key press
     private lastDirection: string = "right";
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
+    private allItems: string[] = [];
     private flashingRed: boolean = false;
     private freePopsLeft: number = 4;
     private freePopsLeftText: Phaser.GameObjects.Text;
@@ -114,6 +115,8 @@ export default class LevelThree extends Phaser.Scene {
     private backgroundMusic: Phaser.Sound.BaseSound;
     private musicMuted: boolean = false;
     private soundMuted: boolean = false;
+    private noMusic: Phaser.GameObjects.Image;
+    private noSound: Phaser.GameObjects.Image;
 
     constructor() {
         super({ key: "Level3" });
@@ -135,7 +138,6 @@ export default class LevelThree extends Phaser.Scene {
         this.load.audio("toolbox-sound", "assets/level3/toolboxsound.mp3");
         this.load.audio("sword-sound", "assets/level3/swordsound.mp3");
         this.load.audio("skeleton-sound", "assets/level3/skeletonsound.wav");
-
 
         this.load.image(
             "level3-background",
@@ -281,6 +283,7 @@ export default class LevelThree extends Phaser.Scene {
 
         this.load.image("pause-button", "assets/pause2.png");
         this.load.image("pause-popup", "assets/paused-popup.png");
+        this.load.image("red-line", "assets/red-line.png");
 
         this.load.image("3stars", "assets/FullStars.png");
         this.load.image("2stars", "assets/2Stars.png");
@@ -311,6 +314,15 @@ export default class LevelThree extends Phaser.Scene {
         this.lastDirection = "right";
         this.usedSword = false;
 
+        this.allItems = [
+            "gas-mask",
+            "water",
+            "toolbox",
+            "chainsaw",
+            "sword",
+            "key",
+        ];
+
         this.freePopsLeftText = this.add
             .text(285, 71, `${this.freePopsLeft}`, {
                 fontFamily: "Arial",
@@ -330,8 +342,11 @@ export default class LevelThree extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("cave-music");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.50,
+            volume: 0.85,
         });
+        if (this.musicMuted) {
+            this.backgroundMusic.pause();
+        }
 
         const stackpack = this.add
             .image(0, 0, "stackpack")
@@ -461,10 +476,7 @@ export default class LevelThree extends Phaser.Scene {
             });
         });
         popButton.on("pointerup", () => {
-            this.sound.play("pop-sound");
             this.freePop();
-            this.freePopsLeft -= 1;
-            this.freePopsLeftText.setText(`${this.freePopsLeft}`);
             if (this.freePopsLeft <= 0) {
                 popButton.setScale(originalScale);
                 popButton.disableInteractive();
@@ -992,6 +1004,20 @@ export default class LevelThree extends Phaser.Scene {
         pausePopup.setDepth(20);
         pauseGroup.add(pausePopup);
 
+        this.noMusic = this.add.image(582, 215, "red-line");
+        this.noMusic
+            .setScale(0.32)
+            .setOrigin(0.5)
+            .setDepth(20)
+            .setVisible(false);
+
+        this.noSound = this.add.image(698, 215, "red-line");
+        this.noSound
+            .setScale(0.32)
+            .setOrigin(0.5)
+            .setDepth(20)
+            .setVisible(false);
+
         // Exit button for Pause popup
         const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(20);
         exitButton.setOrigin(0.5);
@@ -1073,6 +1099,8 @@ export default class LevelThree extends Phaser.Scene {
         resumeButton.on("pointerup", () => {
             this.sound.play("menu-sound");
             pauseGroup.setVisible(false);
+            this.noMusic.setVisible(false);
+            this.noSound.setVisible(false);
             this.pauseTime();
             // Resume all animations and tweens
             this.anims.resumeAll();
@@ -1107,8 +1135,10 @@ export default class LevelThree extends Phaser.Scene {
             this.musicMuted = !this.musicMuted;
             if (this.musicMuted) {
                 this.backgroundMusic.pause();
+                this.noMusic.setVisible(true);
             } else {
                 this.backgroundMusic.resume();
+                this.noMusic.setVisible(false);
             }
         });
 
@@ -1132,8 +1162,10 @@ export default class LevelThree extends Phaser.Scene {
             this.soundMuted = !this.soundMuted;
             if (this.soundMuted) {
                 this.game.sound.mute = true;
+                this.noSound.setVisible(true);
             } else {
                 this.game.sound.mute = false;
+                this.noSound.setVisible(false);
             }
         });
 
@@ -1171,10 +1203,16 @@ export default class LevelThree extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
-            this.sound.play("menu-sound");
             if (!this.isPaused) {
+                this.sound.play("menu-sound");
                 this.pauseTime();
                 pauseGroup.setVisible(true);
+                if (this.musicMuted) {
+                    this.noMusic.setVisible(true);
+                }
+                if (this.soundMuted) {
+                    this.noSound.setVisible(true);
+                }
                 // Pause all animations and tweens
                 this.anims.pauseAll();
                 this.tweens.pauseAll();
@@ -1382,10 +1420,10 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
-        this.sound.play("collect-sound");
         if (this.collectedItems.includes(item)) {
             return;
         }
+        this.sound.play("collect-sound");
 
         this.isPushingMap[item.name] = true;
 
@@ -1437,8 +1475,10 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     private useItem() {
-        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
-            return; // Prevent popping if a push is in progress
+        for (let i = 0; i < this.allItems.length; i++) {
+            if (this.isPushingMap[this.allItems[i]]) {
+                return; // Prevent popping if any push is in progress
+            }
         }
 
         // Remove the top item from the stackpack
@@ -1607,7 +1647,9 @@ export default class LevelThree extends Phaser.Scene {
                                                     this.skeleton.x <
                                                         this.player.x
                                                 ) {
-                                                    this.sound.play("skeleton-sound");
+                                                    this.sound.play(
+                                                        "skeleton-sound"
+                                                    );
                                                     this.skeleton.anims.play(
                                                         "die_right",
                                                         true
@@ -1745,8 +1787,10 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     private popWrongItem(usageArea: Phaser.GameObjects.Rectangle) {
-        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
-            return; // Prevent popping if a push is in progress
+        for (let i = 0; i < this.allItems.length; i++) {
+            if (this.isPushingMap[this.allItems[i]]) {
+                return; // Prevent popping if any push is in progress
+            }
         }
 
         this.poppingWrongItem = true;
@@ -1848,9 +1892,18 @@ export default class LevelThree extends Phaser.Scene {
 
     // Animation for using free pop
     private freePop() {
-        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
-            return; // Prevent popping if a push is in progress
+        if (this.stack.length <= 0) {
+            return;
         }
+        for (let i = 0; i < this.allItems.length; i++) {
+            if (this.isPushingMap[this.allItems[i]]) {
+                return; // Prevent popping if any push is in progress
+            }
+        }
+        this.sound.play("pop-sound");
+
+        this.freePopsLeft -= 1;
+        this.freePopsLeftText.setText(`${this.freePopsLeft}`);
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
@@ -1866,7 +1919,7 @@ export default class LevelThree extends Phaser.Scene {
             this.tweens.add({
                 targets: poppedItem,
                 alpha: 0, // Fade out
-                duration: 200,
+                duration: 800,
                 onComplete: () => {
                     // Set item origin back to default (center)
                     poppedItem.setOrigin(0.5, 0.5);
@@ -2012,7 +2065,9 @@ export default class LevelThree extends Phaser.Scene {
     }
 
     private playerDie() {
-        this.sound.play("death-sound");
+        const deathSound = this.sound.add("death-sound");
+        deathSound.play();
+        deathSound.setVolume(0.3);
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {

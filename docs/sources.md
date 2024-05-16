@@ -11,8 +11,7 @@
 -   Key: https://frakassets.itch.io/free-rotating-key
 -   Collecting Items Sound: https://www.zapsplat.com/music/game-sound-blip-x-1/
 -   Unlocking Door Sound: https://www.zapsplat.com/music/game-sound-door-open-unlock-magical-secret-level-could-be-level-up-bonus-award-or-other-positive-action-2/
--   Character Injured Noise: https://www.zapsplat.com/music/game-sound-fantasy-hit-injure-critter-or-weird-insect-negative-tone/
-    -   OR https://www.zapsplat.com/music/cartoon-voice-high-pitched-grunt-in-pain-5/
+-   Character Injured Noise: https://www.zapsplat.com/music/cartoon-voice-high-pitched-grunt-in-pain-5/
 -   Incorrect Item Pop Noise: https://www.zapsplat.com/music/game-error-tone-2/
 -   Free Pop Noise: https://www.zapsplat.com/music/game-sound-designed-bubble-pop-24/
 -   Player Death Noise: https://www.zapsplat.com/music/retro-8-bit-arcade-style-game-sound-negative-death-die-or-lose-life-4/

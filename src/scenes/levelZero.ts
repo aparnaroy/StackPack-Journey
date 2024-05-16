@@ -47,6 +47,7 @@ export default class LevelZero extends Phaser.Scene {
     private lastDirection: string = "right";
     private climbing: boolean = false;
     private isPushingMap: { [key: string]: boolean } = {}; // Flags for each item to make sure you can't pop it while it is being pushed
+    private allItems: string[] = [];
     private flashingRed: boolean = false;
     private freePopsLeft: number = 2;
     private freePopsLeftText: Phaser.GameObjects.Text;
@@ -98,10 +99,11 @@ export default class LevelZero extends Phaser.Scene {
     private doorOpenSound: Phaser.Sound.BaseSound;
     private injureSound: Phaser.Sound.BaseSound;
     private popSound: Phaser.Sound.BaseSound;
-    private deathSound: Phaser.Sound.BaseSound;
     private menuSound: Phaser.Sound.BaseSound;
     private winSound: Phaser.Sound.BaseSound;
     private wrongSound: Phaser.Sound.BaseSound;
+    private noMusic: Phaser.GameObjects.Image;
+    private noSound: Phaser.GameObjects.Image;
 
     constructor() {
         super({ key: "Level0" });
@@ -223,6 +225,7 @@ export default class LevelZero extends Phaser.Scene {
 
         this.load.image("pause-button", "assets/pause2.png");
         this.load.image("pause-popup", "assets/paused-popup.png");
+        this.load.image("red-line", "assets/red-line.png");
 
         this.load.image("3stars", "assets/FullStars.png");
         this.load.image("2stars", "assets/2Stars.png");
@@ -253,6 +256,8 @@ export default class LevelZero extends Phaser.Scene {
 
         this.lastDirection = "right";
 
+        this.allItems = ["ladder", "plank", "key"];
+
         this.freePopsLeftText = this.add
             .text(285, 71, `${this.freePopsLeft}`, {
                 fontFamily: "Arial",
@@ -272,8 +277,12 @@ export default class LevelZero extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("tutorial-music");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.25,
+            volume: 0.6,
         });
+        if (this.musicMuted) {
+            this.backgroundMusic.pause();
+        }
+
         this.collectSound = this.sound.add("collect-sound");
         this.plankSound = this.sound.add("plank-sound");
         this.ladderSound = this.sound.add("ladder-sound");
@@ -281,7 +290,6 @@ export default class LevelZero extends Phaser.Scene {
         this.doorOpenSound = this.sound.add("dooropen-sound");
         this.injureSound = this.sound.add("injure-sound");
         this.popSound = this.sound.add("pop-sound");
-        this.deathSound = this.sound.add("death-sound");
         this.menuSound = this.sound.add("menu-sound");
         this.winSound = this.sound.add("win-sound");
         this.wrongSound = this.sound.add("wrong-sound");
@@ -489,10 +497,7 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         popButton.on("pointerup", () => {
-            this.popSound.play();
             this.freePop();
-            this.freePopsLeft -= 1;
-            this.freePopsLeftText.setText(`${this.freePopsLeft}`);
             if (this.freePopsLeft <= 0) {
                 popButton.setScale(originalScale);
                 popButton.disableInteractive();
@@ -508,6 +513,20 @@ export default class LevelZero extends Phaser.Scene {
         pausePopup.setOrigin(0.5);
         pausePopup.setDepth(10);
         pauseGroup.add(pausePopup);
+
+        this.noMusic = this.add.image(582, 215, "red-line");
+        this.noMusic
+            .setScale(0.32)
+            .setOrigin(0.5)
+            .setDepth(10)
+            .setVisible(false);
+
+        this.noSound = this.add.image(698, 215, "red-line");
+        this.noSound
+            .setScale(0.32)
+            .setOrigin(0.5)
+            .setDepth(10)
+            .setVisible(false);
 
         // Exit button for Pause popup
         const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(10);
@@ -590,6 +609,8 @@ export default class LevelZero extends Phaser.Scene {
         resumeButton.on("pointerup", () => {
             this.menuSound.play();
             pauseGroup.setVisible(false);
+            this.noMusic.setVisible(false);
+            this.noSound.setVisible(false);
             this.pauseTime();
             // Resume all animations and tweens
             this.anims.resumeAll();
@@ -624,8 +645,10 @@ export default class LevelZero extends Phaser.Scene {
             this.musicMuted = !this.musicMuted;
             if (this.musicMuted) {
                 this.backgroundMusic.pause();
+                this.noMusic.setVisible(true);
             } else {
                 this.backgroundMusic.resume();
+                this.noMusic.setVisible(false);
             }
         });
 
@@ -648,8 +671,10 @@ export default class LevelZero extends Phaser.Scene {
             this.soundMuted = !this.soundMuted;
             if (this.soundMuted) {
                 this.game.sound.mute = true;
+                this.noSound.setVisible(true);
             } else {
                 this.game.sound.mute = false;
+                this.noSound.setVisible(false);
             }
         });
 
@@ -687,10 +712,16 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
-            this.menuSound.play();
             if (!this.isPaused) {
+                this.menuSound.play();
                 this.pauseTime();
                 pauseGroup.setVisible(true);
+                if (this.musicMuted) {
+                    this.noMusic.setVisible(true);
+                }
+                if (this.soundMuted) {
+                    this.noSound.setVisible(true);
+                }
                 // Pause all animations and tweens
                 this.anims.pauseAll();
                 this.tweens.pauseAll();
@@ -1075,10 +1106,10 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
-        this.collectSound.play();
         if (this.collectedItems.includes(item)) {
             return;
         }
+        this.collectSound.play();
 
         this.isPushingMap[item.name] = true;
 
@@ -1130,8 +1161,10 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private useItem() {
-        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
-            return; // Prevent popping if a push is in progress
+        for (let i = 0; i < this.allItems.length; i++) {
+            if (this.isPushingMap[this.allItems[i]]) {
+                return; // Prevent popping if any push is in progress
+            }
         }
 
         // Remove the top item from the stackpack
@@ -1266,9 +1299,18 @@ export default class LevelZero extends Phaser.Scene {
 
     // Animation for using free pop
     private freePop() {
-        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
-            return; // Prevent popping if a push is in progress
+        if (this.stack.length <= 0) {
+            return;
         }
+        for (let i = 0; i < this.allItems.length; i++) {
+            if (this.isPushingMap[this.allItems[i]]) {
+                return; // Prevent popping if any push is in progress
+            }
+        }
+        this.popSound.play();
+
+        this.freePopsLeft -= 1;
+        this.freePopsLeftText.setText(`${this.freePopsLeft}`);
 
         // Remove the top item from the stackpack
         const poppedItem = this.stack.pop();
@@ -1293,7 +1335,7 @@ export default class LevelZero extends Phaser.Scene {
                     let originalScaleY = 0;
                     // Move popped item to its original location
                     if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
+                        poppedItem.setPosition(1050, 560);
                         originalScaleX = 0.5;
                         originalScaleY = 0.5;
                     }
@@ -1340,8 +1382,10 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private popWrongItem(usageArea: Phaser.GameObjects.Rectangle) {
-        if (this.isPushingMap[this.stack[this.stack.length - 1].name]) {
-            return; // Prevent popping if a push is in progress
+        for (let i = 0; i < this.allItems.length; i++) {
+            if (this.isPushingMap[this.allItems[i]]) {
+                return; // Prevent popping if any push is in progress
+            }
         }
 
         this.poppingWrongItem = true;
@@ -1390,7 +1434,7 @@ export default class LevelZero extends Phaser.Scene {
                     let originalScaleY = 0;
                     // Move popped item to its original location
                     if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
+                        poppedItem.setPosition(1050, 560);
                         originalScaleX = 0.5;
                         originalScaleY = 0.5;
                     }
@@ -1448,7 +1492,6 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private loseLife() {
-        this.injureSound.play();
         if (!this.isColliding && this.player) {
             this.isColliding = true;
             if (this.poppingWrongItem) {
@@ -1503,7 +1546,10 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private playerDie() {
-        this.deathSound.play();
+        const deathSound = this.sound.add("death-sound");
+        deathSound.play();
+        deathSound.setVolume(0.3);
+
         this.player?.setTint(0xff0000);
 
         this.time.delayedCall(300, () => {
@@ -1604,6 +1650,7 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     update() {
+        console.log(this.musicMuted, this.soundMuted);
         // Updating timer
         if (!this.isPaused) {
             //console.log("updating time", this.time.now, this.startTime);

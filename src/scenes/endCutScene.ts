@@ -20,6 +20,7 @@ export default class EndCutScene extends Phaser.Scene {
     private ground?: Phaser.Physics.Arcade.Image;
     private stackpack?: Phaser.GameObjects.Image;
     private heart?: Phaser.GameObjects.Image;
+    private heartSmall?: Phaser.GameObjects.Image;
 
     private galMove: string = "right";
     private dudeMove: string = "left";
@@ -177,7 +178,7 @@ export default class EndCutScene extends Phaser.Scene {
         this.backgroundMusic = this.sound.add("endMusic");
         this.backgroundMusic.play({
             loop: true,
-            volume: 0.10,
+            volume: 0.1,
         });
 
         this.stackpack = this.add
@@ -193,6 +194,15 @@ export default class EndCutScene extends Phaser.Scene {
         );
         this.heart.setDepth(20);
         this.heart.setScale(0);
+
+        this.heartSmall = this.add.image(
+            this.cameras.main.centerX,
+            300,
+            "cutscene-heart"
+        );
+        this.heartSmall.setDepth(20);
+        this.heartSmall.setScale(0.2, 0.2);
+        this.heartSmall.setVisible(false);
 
         // Creating Gal
         this.player = this.physics.add
@@ -363,6 +373,23 @@ export default class EndCutScene extends Phaser.Scene {
             });
         }, this.delay);
 
+        this.delay += 2200;
+        setTimeout(() => {
+            this.heartSmall?.setVisible(true);
+            this.heartSmall?.setX(this.cameras.main.centerX).setY(300);
+            this.tweens.add({
+                targets: this.heartSmall,
+                scaleX: `*=${1.3}`,
+                scaleY: `*=${1.3}`,
+                duration: 500,
+                yoyo: true, // Reverse back to original scale
+                repeat: 1,
+                onComplete: () => {
+                    this.heartSmall?.setVisible(false);
+                },
+            });
+        }, this.delay);
+
         this.delay += 2700;
         // Step 2: Player looks left
         setTimeout(() => {
@@ -435,7 +462,7 @@ export default class EndCutScene extends Phaser.Scene {
                 targets: this.heart,
                 scaleX: 3,
                 scaleY: 3,
-                duration: 2800,
+                duration: 2300,
                 onComplete: () => {
                     // Step 8: Display last scene
                     this.displayLastScene();
@@ -565,8 +592,8 @@ export default class EndCutScene extends Phaser.Scene {
 
         playAgainButton.on("pointerup", () => {
             this.sound.play("menu-sound");
-            this.backgroundMusic.stop()
-            this.backgroundMusic.destroy()
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             window.location.reload(); // Reload the page
         });
 

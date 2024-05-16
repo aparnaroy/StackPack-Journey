@@ -52,22 +52,9 @@ export default class StartCutScene extends Phaser.Scene {
             "end-cutscene-background",
             "assets/end-cutscene/end-background1.jpeg"
         );
-        this.load.image(
-            "final-background",
-            "assets/end-cutscene/final-background.jpg"
-        );
         this.load.image("just-stackpack", "assets/backpack.png");
 
         this.load.image("cutscene-heart", "assets/end-cutscene/heart.png");
-
-        this.load.image(
-            "play-again-button",
-            "assets/end-cutscene/play-again-button.png"
-        );
-        this.load.image(
-            "world-map-button",
-            "assets/end-cutscene/world-map-button.png"
-        );
 
         this.load.spritesheet(
             "gal_idle_right",
@@ -150,15 +137,19 @@ export default class StartCutScene extends Phaser.Scene {
         );
 
         this.load.image("level0-platform", "assets/level0/platform.png");
-        this.load.image("skipButton", "assets/SkipButton.png");
-        this.load.image("picnic", "assets/picnic.png");
-        this.load.image("grass", "assets/grassStrip.png");
-        this.load.image("flower", "assets/flower.png");
-        this.load.image("portal", "assets/portal.png");
-        this.load.image("cutsceneDoor", "assets/level0/door.png");
-        this.load.image("cutsceneDoorOpen", "assets/level0/open-door.png");
-
-        //this.load.image("red-opendoor", "assets/level3/red-door-open.png");
+        this.load.image("skipButton", "assets/start-cutscene/SkipButton.png");
+        this.load.image("picnic", "assets/start-cutscene/picnic.png");
+        this.load.image("grass", "assets/start-cutscene/grassStrip.png");
+        this.load.image("flower", "assets/start-cutscene/flower.png");
+        this.load.image("portal", "assets/start-cutscene/portal.png");
+        this.load.image(
+            "cutsceneDoor",
+            "assets/start-cutscene/purple-door.png"
+        );
+        this.load.image(
+            "cutsceneDoorOpen",
+            "assets/start-cutscene/purple-open-door.png"
+        );
     }
 
     create(data: GameMapData) {
@@ -196,6 +187,7 @@ export default class StartCutScene extends Phaser.Scene {
         });
 
         const skipButton = this.add.image(150, 100, "skipButton");
+        skipButton.setScale(0.8);
         skipButton.setSize(skipButton.width - 100, skipButton.height - 200);
 
         skipButton.setInteractive();
@@ -373,11 +365,11 @@ export default class StartCutScene extends Phaser.Scene {
         this.portal.setVisible(false);
 
         this.door = this.add.image(1000, 200, "cutsceneDoor");
-        this.door.setScale(0.01, 0.01);
+        this.door.setScale(0.1, 0.1);
         this.door.setVisible(false);
 
         this.openDoor = this.add.image(1000, 450, "cutsceneDoorOpen");
-        this.openDoor.setScale(0.1, 0.1);
+        this.openDoor.setScale(0.42, 0.42);
         this.openDoor.setVisible(false);
 
         this.stackpack = this.add
@@ -426,10 +418,6 @@ export default class StartCutScene extends Phaser.Scene {
             .setOffset(32, 0)
             .setDepth(10);
 
-        /*this.door
-            .setSize(this.door.width, this.door.height - 60)
-            .setOffset(0, 0);*/
-
         this.animateStart();
     }
 
@@ -472,7 +460,7 @@ export default class StartCutScene extends Phaser.Scene {
             });
         }, this.delay);
 
-        this.delay += 2700;
+        this.delay += 2500;
 
         // DUDE PICKS FLOWER, TURNS LEFT
         setTimeout(() => {
@@ -589,7 +577,7 @@ export default class StartCutScene extends Phaser.Scene {
                 y: 300,
             });
         }, this.delay);
-        this.delay += 500;
+        this.delay += 1800;
 
         setTimeout(() => {
             this.exclamationPoint1?.setVisible(false);
@@ -604,8 +592,8 @@ export default class StartCutScene extends Phaser.Scene {
                 this.stackpack?.setVisible(true);
                 this.tweens.add({
                     targets: this.door,
-                    scaleX: 0.1,
-                    scaleY: 0.1,
+                    scaleX: 0.42,
+                    scaleY: 0.42,
                     y: 450,
                 });
                 this.tweens.add({
@@ -616,7 +604,7 @@ export default class StartCutScene extends Phaser.Scene {
                 });
             }
         }, this.delay);
-        this.delay += 2000;
+        this.delay += 1600;
 
         // GAL PICKS UP STACKPACK, GOES IN DOOR, MAIN MENU POPS UP
         setTimeout(() => {
