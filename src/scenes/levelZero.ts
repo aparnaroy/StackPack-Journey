@@ -643,18 +643,15 @@ export default class LevelZero extends Phaser.Scene {
             muteSound.setFillStyle();
         });
 
-        // Has to get fixed once we have sound
         muteSound.on("pointerup", () => {
             this.menuSound.play();
-            /*
             this.soundMuted = !this.soundMuted;
             if (this.soundMuted) {
-                this.sound.pauseAll();
-                //this.backgroundMusic.resume();
+                this.game.sound.mute = true;
+                this.backgroundMusic.resume();
             } else {
-                this.sound.resumeAll();
+                this.game.sound.mute = false;
             }
-            */
         });
 
         pauseGroup.setVisible(false);
