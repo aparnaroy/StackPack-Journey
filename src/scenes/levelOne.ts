@@ -107,7 +107,7 @@ export default class LevelOne extends Phaser.Scene {
     // Music and sounds
     private backgroundMusic: Phaser.Sound.BaseSound;
     private musicMuted: boolean = false;
-    private soundMuted: boolean = false;
+    private soundMuted: boolean;
     private injureSound: Phaser.Sound.BaseSound;
     private noMusic: Phaser.GameObjects.Image;
     private noSound: Phaser.GameObjects.Image;
@@ -255,6 +255,8 @@ export default class LevelOne extends Phaser.Scene {
         this.level3Stars = data.level3Stars;
 
         this.allItems = ["stone", "mushroom", "banana", "vineItem", "key"];
+
+        this.soundMuted = this.game.sound.mute;
 
         const backgroundImage = this.add
             .image(0, 0, "level1Background")
@@ -908,7 +910,7 @@ export default class LevelOne extends Phaser.Scene {
                 if (this.musicMuted) {
                     this.noMusic.setVisible(true);
                 }
-                if (this.soundMuted) {
+                if (this.soundMuted || this.game.sound.mute) {
                     this.noSound.setVisible(true);
                 }
                 // Pause all animations and tweens
