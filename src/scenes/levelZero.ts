@@ -99,7 +99,6 @@ export default class LevelZero extends Phaser.Scene {
     private doorOpenSound: Phaser.Sound.BaseSound;
     private injureSound: Phaser.Sound.BaseSound;
     private popSound: Phaser.Sound.BaseSound;
-    private deathSound: Phaser.Sound.BaseSound;
     private menuSound: Phaser.Sound.BaseSound;
     private winSound: Phaser.Sound.BaseSound;
 
@@ -283,7 +282,6 @@ export default class LevelZero extends Phaser.Scene {
         this.doorOpenSound = this.sound.add("dooropen-sound");
         this.injureSound = this.sound.add("injure-sound");
         this.popSound = this.sound.add("pop-sound");
-        this.deathSound = this.sound.add("death-sound");
         this.menuSound = this.sound.add("menu-sound");
         this.winSound = this.sound.add("win-sound");
 
@@ -415,7 +413,7 @@ export default class LevelZero extends Phaser.Scene {
         this.key.setName("key");
         this.physics.add.collider(this.key, this.platforms);
 
-        this.ladder = this.add.sprite(1050, 550, "ladder").setScale(0.5, 0.55);
+        this.ladder = this.add.sprite(1050, 560, "ladder").setScale(0.5, 0.55);
         this.ladder.setName("ladder");
 
         this.plank = this.add.sprite(350, 530, "plank").setScale(0.5, 0.5);
@@ -490,7 +488,6 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         popButton.on("pointerup", () => {
-            this.popSound.play();
             this.freePop();
             if (this.freePopsLeft <= 0) {
                 popButton.setScale(originalScale);
@@ -690,9 +687,8 @@ export default class LevelZero extends Phaser.Scene {
         });
 
         pauseButton.on("pointerup", () => {
-            this.menuSound.play();
             if (!this.isPaused) {
-                this.sound.play("menu-sound");
+                this.menuSound.play();
                 this.pauseTime();
                 pauseGroup.setVisible(true);
                 // Pause all animations and tweens
@@ -1079,11 +1075,10 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private collectItem(item: Phaser.GameObjects.Sprite) {
-        this.collectSound.play();
         if (this.collectedItems.includes(item)) {
             return;
         }
-        this.sound.play("collect-sound");
+        this.collectSound.play();
 
         this.isPushingMap[item.name] = true;
 
@@ -1281,7 +1276,7 @@ export default class LevelZero extends Phaser.Scene {
                 return; // Prevent popping if any push is in progress
             }
         }
-        this.sound.play("pop-sound");
+        this.popSound.play();
 
         this.freePopsLeft -= 1;
         this.freePopsLeftText.setText(`${this.freePopsLeft}`);
@@ -1309,7 +1304,7 @@ export default class LevelZero extends Phaser.Scene {
                     let originalScaleY = 0;
                     // Move popped item to its original location
                     if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
+                        poppedItem.setPosition(1050, 560);
                         originalScaleX = 0.5;
                         originalScaleY = 0.5;
                     }
@@ -1408,7 +1403,7 @@ export default class LevelZero extends Phaser.Scene {
                     let originalScaleY = 0;
                     // Move popped item to its original location
                     if (poppedItem.name === "ladder") {
-                        poppedItem.setPosition(1050, 550);
+                        poppedItem.setPosition(1050, 560);
                         originalScaleX = 0.5;
                         originalScaleY = 0.5;
                     }
@@ -1466,13 +1461,12 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private loseLife() {
-        this.injureSound.play();
         if (!this.isColliding && this.player) {
             this.isColliding = true;
             if (this.poppingWrongItem) {
                 this.sound.play("wrong-sound");
             } else {
-                this.sound.play("injure-sound");
+                this.injureSound.play();
             }
 
             this.player.setVelocity(0, 0);
@@ -1521,8 +1515,6 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     private playerDie() {
-        this.deathSound.play();
-        //this.sound.play("death-sound");
         const deathSound = this.sound.add("death-sound");
         deathSound.play();
         deathSound.setVolume(0.3);
