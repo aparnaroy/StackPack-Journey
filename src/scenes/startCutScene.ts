@@ -422,14 +422,7 @@ export default class StartCutScene extends Phaser.Scene {
     }
 
     private animateStart() {
-        // Make stackpack drop to floor
-        /*this.tweens.add({
-            targets: this.stackpack,
-            y: 551,
-            duration: 900,
-        });*/
-
-        this.delay = 1000; // Wait 1000 millisseconds before starting
+        this.delay = 600; // Wait 600 millisseconds before starting
 
         // GAL AND DUDE WALK TO PICNIC
         setTimeout(() => {
@@ -505,7 +498,7 @@ export default class StartCutScene extends Phaser.Scene {
             this.heart2?.setVisible(false);
             this.flower?.setVisible(false);
         }, this.delay);
-        this.delay += 1000;
+        this.delay += 500;
 
         // PORTAL APPEARS AND THEY HAVE QUESTION MAKRS
         setTimeout(() => {
@@ -549,7 +542,7 @@ export default class StartCutScene extends Phaser.Scene {
             this.questionMark1?.setVisible(false);
             this.questionMark2?.setVisible(false);
         }, this.delay);
-        this.delay += 1000;
+        this.delay += 100;
 
         // DUDE GETS SPIRALED UP, EXCLAMATION POINT
         setTimeout(() => {
@@ -568,6 +561,9 @@ export default class StartCutScene extends Phaser.Scene {
                     },
                 });
             }
+        }, this.delay);
+        this.delay += 600;
+        setTimeout(() => {
             this.exclamationPoint1?.setVisible(true);
             this.galMove = "jump";
             this.tweens.add({
@@ -583,7 +579,7 @@ export default class StartCutScene extends Phaser.Scene {
             this.exclamationPoint1?.setVisible(false);
             this.galMove = "";
         }, this.delay);
-        this.delay += 1000;
+        this.delay += 100;
 
         // DOOR AND STACKPACK APPEAR
         setTimeout(() => {
