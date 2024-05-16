@@ -29,6 +29,8 @@ export default class GameMap extends Phaser.Scene {
 
     preload() {
         this.load.audio("map-music", "assets/Dream.mp3");
+        this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
+
         this.load.image("game-map", "assets/gameMap/game-map.png");
         this.load.image(
             "level0-unlocked",
@@ -216,6 +218,7 @@ export default class GameMap extends Phaser.Scene {
         level0Button.setInteractive();
 
         level0Button.on("pointerup", () => {
+            this.sound.play("menu-sound");
             this.backgroundMusic?.stop();
             this.scene.start("Level0", {
                 level0State: this.level0State,
@@ -306,6 +309,7 @@ export default class GameMap extends Phaser.Scene {
             level1Button.setInteractive();
 
             level1Button.on("pointerup", () => {
+                this.sound.play("menu-sound");
                 this.backgroundMusic?.stop();
                 this.scene.start("Level1", {
                     level0State: this.level0State,
@@ -397,6 +401,7 @@ export default class GameMap extends Phaser.Scene {
             level2Button.setInteractive();
 
             level2Button.on("pointerup", () => {
+                this.sound.play("menu-sound");
                 this.backgroundMusic?.stop();
                 this.scene.start("Level2", {
                     level0State: this.level0State,
@@ -489,6 +494,7 @@ export default class GameMap extends Phaser.Scene {
             level3Button.setInteractive();
 
             level3Button.on("pointerup", () => {
+                this.sound.play("menu-sound");
                 this.backgroundMusic?.stop();
                 this.scene.start("Level3", {
                     level0State: this.level0State,

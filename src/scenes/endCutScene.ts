@@ -38,11 +38,16 @@ export default class EndCutScene extends Phaser.Scene {
     private level2Stars: number;
     private level3Stars: number;
 
+    private backgroundMusic: Phaser.Sound.BaseSound;
+
     constructor() {
         super({ key: "EndCutScene" });
     }
 
     preload() {
+        this.load.audio("endMusic", "assets/end-cutscene/sweet-love.mp3");
+        this.load.audio("menu-sound", "assets/sounds/menusound.mp3");
+
         this.load.image(
             "end-cutscene-background",
             "assets/end-cutscene/end-background1.jpeg"
@@ -169,6 +174,12 @@ export default class EndCutScene extends Phaser.Scene {
             this.cameras.main.width / backgroundImage.width + 0.1,
             this.cameras.main.height / backgroundImage.height
         );
+
+        this.backgroundMusic = this.sound.add("endMusic");
+        this.backgroundMusic.play({
+            loop: true,
+            volume: 0.1,
+        });
 
         this.stackpack = this.add
             .image(100, 150, "just-stackpack")
@@ -451,7 +462,7 @@ export default class EndCutScene extends Phaser.Scene {
                 targets: this.heart,
                 scaleX: 3,
                 scaleY: 3,
-                duration: 2800,
+                duration: 2300,
                 onComplete: () => {
                     // Step 8: Display last scene
                     this.displayLastScene();
@@ -580,6 +591,9 @@ export default class EndCutScene extends Phaser.Scene {
         });
 
         playAgainButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
+            this.backgroundMusic.destroy();
             window.location.reload(); // Reload the page
         });
 
@@ -604,6 +618,8 @@ export default class EndCutScene extends Phaser.Scene {
         });
 
         worldMapButton.on("pointerup", () => {
+            this.sound.play("menu-sound");
+            this.backgroundMusic.stop();
             this.scene.start("game-map", {
                 level0State: this.level0State,
                 level1State: this.level1State,

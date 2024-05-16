@@ -40,11 +40,14 @@ export default class StartCutScene extends Phaser.Scene {
     private level2State: number;
     private level3State: number;
 
+    private backgroundMusic: Phaser.Sound.BaseSound;
+
     constructor() {
         super({ key: "StartCutScene" });
     }
 
     preload() {
+        this.load.audio("intro-music", "assets/sounds/intro.mp3");
         this.load.image(
             "end-cutscene-background",
             "assets/end-cutscene/end-background1.jpeg"
@@ -178,6 +181,11 @@ export default class StartCutScene extends Phaser.Scene {
             this.cameras.main.height / backgroundImage.height
         );
 
+        this.backgroundMusic = this.sound.add("intro-music");
+        this.backgroundMusic.play({
+            volume: 0.75,
+        });
+
         const skipButton = this.add.image(150, 100, "skipButton");
         skipButton.setScale(0.8);
         skipButton.setSize(skipButton.width - 100, skipButton.height - 200);
@@ -208,6 +216,7 @@ export default class StartCutScene extends Phaser.Scene {
         });
 
         skipButton.on("pointerup", () => {
+            this.backgroundMusic.stop();
             this.scene.start("game-map");
         });
 
@@ -631,6 +640,7 @@ export default class StartCutScene extends Phaser.Scene {
                                         targets: this.player,
                                         alpha: 0,
                                         onComplete: () => {
+                                            this.backgroundMusic.stop();
                                             this.scene.start("game-map");
                                         },
                                     });

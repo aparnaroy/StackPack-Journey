@@ -101,6 +101,9 @@ export default class LevelZero extends Phaser.Scene {
     private popSound: Phaser.Sound.BaseSound;
     private menuSound: Phaser.Sound.BaseSound;
     private winSound: Phaser.Sound.BaseSound;
+    private wrongSound: Phaser.Sound.BaseSound;
+    private noMusic: Phaser.GameObjects.Image;
+    private noSound: Phaser.GameObjects.Image;
 
     constructor() {
         super({ key: "Level0" });
@@ -222,6 +225,7 @@ export default class LevelZero extends Phaser.Scene {
 
         this.load.image("pause-button", "assets/pause2.png");
         this.load.image("pause-popup", "assets/paused-popup.png");
+        this.load.image("red-line", "assets/red-line.png");
 
         this.load.image("3stars", "assets/FullStars.png");
         this.load.image("2stars", "assets/2Stars.png");
@@ -275,6 +279,10 @@ export default class LevelZero extends Phaser.Scene {
             loop: true,
             volume: 0.6,
         });
+        if (this.musicMuted) {
+            this.backgroundMusic.pause();
+        }
+
         this.collectSound = this.sound.add("collect-sound");
         this.plankSound = this.sound.add("plank-sound");
         this.ladderSound = this.sound.add("ladder-sound");
@@ -284,6 +292,7 @@ export default class LevelZero extends Phaser.Scene {
         this.popSound = this.sound.add("pop-sound");
         this.menuSound = this.sound.add("menu-sound");
         this.winSound = this.sound.add("win-sound");
+        this.wrongSound = this.sound.add("wrong-sound");
 
         const stackpack = this.add
             .image(0, 0, "stackpack")
@@ -505,6 +514,20 @@ export default class LevelZero extends Phaser.Scene {
         pausePopup.setDepth(10);
         pauseGroup.add(pausePopup);
 
+        this.noMusic = this.add.image(582, 215, "red-line");
+        this.noMusic
+            .setScale(0.32)
+            .setOrigin(0.5)
+            .setDepth(10)
+            .setVisible(false);
+
+        this.noSound = this.add.image(698, 215, "red-line");
+        this.noSound
+            .setScale(0.32)
+            .setOrigin(0.5)
+            .setDepth(10)
+            .setVisible(false);
+
         // Exit button for Pause popup
         const exitButton = this.add.rectangle(640, 530, 200, 75).setDepth(10);
         exitButton.setOrigin(0.5);
@@ -586,6 +609,8 @@ export default class LevelZero extends Phaser.Scene {
         resumeButton.on("pointerup", () => {
             this.menuSound.play();
             pauseGroup.setVisible(false);
+            this.noMusic.setVisible(false);
+            this.noSound.setVisible(false);
             this.pauseTime();
             // Resume all animations and tweens
             this.anims.resumeAll();
@@ -620,8 +645,10 @@ export default class LevelZero extends Phaser.Scene {
             this.musicMuted = !this.musicMuted;
             if (this.musicMuted) {
                 this.backgroundMusic.pause();
+                this.noMusic.setVisible(true);
             } else {
                 this.backgroundMusic.resume();
+                this.noMusic.setVisible(false);
             }
         });
 
@@ -639,18 +666,16 @@ export default class LevelZero extends Phaser.Scene {
             muteSound.setFillStyle();
         });
 
-        // Has to get fixed once we have sound
         muteSound.on("pointerup", () => {
             this.menuSound.play();
-            /*
             this.soundMuted = !this.soundMuted;
             if (this.soundMuted) {
-                this.sound.pauseAll();
-                //this.backgroundMusic.resume();
+                this.game.sound.mute = true;
+                this.noSound.setVisible(true);
             } else {
-                this.sound.resumeAll();
+                this.game.sound.mute = false;
+                this.noSound.setVisible(false);
             }
-            */
         });
 
         pauseGroup.setVisible(false);
@@ -691,6 +716,12 @@ export default class LevelZero extends Phaser.Scene {
                 this.menuSound.play();
                 this.pauseTime();
                 pauseGroup.setVisible(true);
+                if (this.musicMuted) {
+                    this.noMusic.setVisible(true);
+                }
+                if (this.soundMuted) {
+                    this.noSound.setVisible(true);
+                }
                 // Pause all animations and tweens
                 this.anims.pauseAll();
                 this.tweens.pauseAll();
@@ -1464,7 +1495,7 @@ export default class LevelZero extends Phaser.Scene {
         if (!this.isColliding && this.player) {
             this.isColliding = true;
             if (this.poppingWrongItem) {
-                this.sound.play("wrong-sound");
+                this.wrongSound.play();
             } else {
                 this.injureSound.play();
             }
@@ -1619,6 +1650,7 @@ export default class LevelZero extends Phaser.Scene {
     }
 
     update() {
+        console.log(this.musicMuted, this.soundMuted);
         // Updating timer
         if (!this.isPaused) {
             //console.log("updating time", this.time.now, this.startTime);

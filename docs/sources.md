@@ -11,19 +11,20 @@
 -   Key: https://frakassets.itch.io/free-rotating-key
 -   Collecting Items Sound: https://www.zapsplat.com/music/game-sound-blip-x-1/
 -   Unlocking Door Sound: https://www.zapsplat.com/music/game-sound-door-open-unlock-magical-secret-level-could-be-level-up-bonus-award-or-other-positive-action-2/
--   Character Injured Noise: https://www.zapsplat.com/music/game-sound-fantasy-hit-injure-critter-or-weird-insect-negative-tone/
-    -   OR https://www.zapsplat.com/music/cartoon-voice-high-pitched-grunt-in-pain-5/
+-   Character Injured Noise: https://www.zapsplat.com/music/cartoon-voice-high-pitched-grunt-in-pain-5/
 -   Incorrect Item Pop Noise: https://www.zapsplat.com/music/game-error-tone-2/
 -   Free Pop Noise: https://www.zapsplat.com/music/game-sound-designed-bubble-pop-24/
 -   Player Death Noise: https://www.zapsplat.com/music/retro-8-bit-arcade-style-game-sound-negative-death-die-or-lose-life-4/
 -   Win Level Noise: https://www.zapsplat.com/music/game-sound-bell-keys-win-or-success-tone/
 -   Menu Click: https://www.zapsplat.com/music/game-sound-menu-button-click-2/
+-   Intro Music: https://pixabay.com/music/pulses-lofi-nostalgia-melancolia-207487/
 -   Other: Canva Graphics
 
 ### Title Scene:
 
 -   Background: https://www.vecteezy.com/photo/30493204-fantasy-landscape-with-trees-and-rocks-3d-render-illustration-ai-generated
 -   Background Music: https://opengameart.org/content/titlemenu-screen-bgm
+-   Start Sound: https://www.zapsplat.com/music/game-sound-turn-on-start-or-initiate-tone-soft-warm-and-friendly/
 
 ### Game Map Scene:
 
@@ -67,6 +68,11 @@
 -   Background Music: https://opengameart.org/content/a-lucid-dream
 -   Wand Sound: https://www.zapsplat.com/music/magic-glissando-bright-and-magical-wand-cast-spell-etc-4/
 -   Pouring Sound: https://www.zapsplat.com/music/bucket-load-of-water-sudden-pour-into-deep-water-6/
+-   Seed Sound: https://www.zapsplat.com/music/axe-or-similar-tool-impact-hit-dirt-ground-3/
+-   Club Sound: https://www.zapsplat.com/music/heavy-medieval-axe-or-other-weapon-swing-in-air-whoosh-3/
+-   Ogre Hurt: https://www.soundsnap.com/giant_video_game_character_pain_vocalization_wound_oof_2
+-   Pot Sound: https://www.zapsplat.com/music/debris-small-pieces-in-plastic-pot-or-container-set-down-on-table-4/
+-   Climbing Noise: https://www.zapsplat.com/music/cartoon-ascend-climb-cute-and-fun-mallet-2/
 
 ### Level 3 Scene:
 
@@ -85,6 +91,12 @@
 -   Gas Mask: https://img.freepik.com/premium-vector/stencil-gas-mask-icon-flat-vector-chemical-air-toxic-army-isolated_98396-65151.jpg
 -   Fireball: https://static.vecteezy.com/system/resources/previews/012/629/333/original/fireball-drop-effect-png.png
 -   Background Music: https://opengameart.org/content/dark-chamber
+-   Gas Noise: https://www.zapsplat.com/music/gas-hiss-leak-from-gas-canister-short-burst-2/
+-   Bucket Noise: https://www.zapsplat.com/music/fast-swoosh-and-splash-of-water-3/
+-   Chainsaw Noise: https://www.zapsplat.com/music/electric-chainsaw-short-burst-1/
+-   Toolbox Noise: https://www.zapsplat.com/music/cordless-electric-screwdriver-tool-operate-screwing-with-force-short-burst-1/
+-   Sword Noise: https://www.zapsplat.com/music/heavy-sword-impact-fast-whoosh-into-wood-hit-with-a-thud-and-loud-cracking-sound-version-1/
+-   Skeleton Noise: https://www.soundsnap.com/search/audio?query=monster+death
 
 ### Ending Cutscene:
 
