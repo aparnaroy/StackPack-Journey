@@ -1,4 +1,6 @@
-# StackPack Journey
+# Game Name
+
+StackPack Journey
 
 # Team Color
 
