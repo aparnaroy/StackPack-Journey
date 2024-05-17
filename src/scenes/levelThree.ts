@@ -1299,15 +1299,34 @@ export default class LevelThree extends Phaser.Scene {
         completeExitButton.on("pointerup", () => {
             this.sound.play("menu-sound");
             this.backgroundMusic.stop();
-            this.isPaused = false;
-            if (threeStars.visible) {
-                this.threeStarsPopup.setVisible(false);
-            }
-            if (twoStars.visible) {
-                this.twoStarsPopup.setVisible(false);
-            }
-            if (oneStar.visible) {
-                this.oneStarPopup.setVisible(false);
+            this.backgroundMusic.destroy();
+            // Transition to ending cut scene if level 3 completed for the first time
+            if (data.level3State != 3) {
+                setTimeout(() => {
+                    this.scene.start("EndCutScene", {
+                        level0State: this.level0State,
+                        level1State: this.level1State,
+                        level2State: this.level2State,
+                        level3State: 3,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
+                    });
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: this.level0State,
+                        level1State: this.level1State,
+                        level2State: this.level2State,
+                        level3State: 3,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
+                    });
+                }, 500);
             }
         });
 

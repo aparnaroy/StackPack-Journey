@@ -953,15 +953,32 @@ export default class LevelTwo extends Phaser.Scene {
         completeExitButton.on("pointerup", () => {
             this.sound.play("menu-sound");
             this.backgroundMusic.stop();
-            this.isPaused = false;
-            if (threeStars.visible) {
-                this.threeStarsPopup.setVisible(false);
-            }
-            if (twoStars.visible) {
-                this.twoStarsPopup.setVisible(false);
-            }
-            if (oneStar.visible) {
-                this.oneStarPopup.setVisible(false);
+            if (data.level3State == 0) {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: this.level0State,
+                        level1State: this.level1State,
+                        level2State: 3,
+                        level3State: 1,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
+                    });
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: this.level0State,
+                        level1State: this.level1State,
+                        level2State: 3,
+                        level3State: this.level3State,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
+                    });
+                }, 1000);
             }
         });
 

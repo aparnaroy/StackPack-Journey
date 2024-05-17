@@ -806,15 +806,33 @@ export default class LevelZero extends Phaser.Scene {
         completeExitButton.on("pointerup", () => {
             this.menuSound.play();
             this.backgroundMusic.stop();
-            this.isPaused = false;
-            if (threeStars.visible) {
-                this.threeStarsPopup.setVisible(false);
-            }
-            if (twoStars.visible) {
-                this.twoStarsPopup.setVisible(false);
-            }
-            if (oneStar.visible) {
-                this.oneStarPopup.setVisible(false);
+            console.log(this.level0Stars);
+            if (data.level1State == 0) {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: 3,
+                        level1State: 1,
+                        level2State: this.level2State,
+                        level3State: this.level3State,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
+                    });
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    this.scene.start("game-map", {
+                        level0State: 3,
+                        level1State: this.level1State,
+                        level2State: this.level2State,
+                        level3State: this.level3State,
+                        level0Stars: this.level0Stars,
+                        level1Stars: this.level1Stars,
+                        level2Stars: this.level2Stars,
+                        level3Stars: this.level3Stars,
+                    });
+                }, 1000);
             }
         });
 
