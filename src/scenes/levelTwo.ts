@@ -2357,7 +2357,7 @@ export default class LevelTwo extends Phaser.Scene {
         const leftBoundary = 250;
         const rightBoundary = 525;
         const chaseThreshold = 400;
-        const attackThreshold = 70;
+        const attackThreshold = 115;
         const trollAttackY = 595;
         if (!this.usedClub && !this.isPaused) {
             if (this.troll && this.player && !this.trollDead) {
