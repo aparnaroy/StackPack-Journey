@@ -1346,7 +1346,7 @@ export default class LevelZero extends Phaser.Scene {
             this.tweens.add({
                 targets: poppedItem,
                 alpha: 0, // Fade out
-                duration: 200,
+                duration: 800,
                 onComplete: () => {
                     // Set item origin back to default (center)
                     poppedItem.setOrigin(0.5, 0.5);
