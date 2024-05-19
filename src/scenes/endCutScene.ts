@@ -373,7 +373,7 @@ export default class EndCutScene extends Phaser.Scene {
             });
         }, this.delay);
 
-        this.delay += 2200;
+        this.delay += 1700;
         setTimeout(() => {
             this.heartSmall?.setVisible(true);
             this.heartSmall?.setX(this.cameras.main.centerX).setY(300);
