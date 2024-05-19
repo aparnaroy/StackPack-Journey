@@ -33,9 +33,10 @@ export default class TitleScreen extends Phaser.Scene {
     create() {
         // Creating Gal
         this.player = this.physics.add
-            .sprite(360, 485, "gal_idle_right")
+            .sprite(360, 580, "gal_idle_right")
             .setScale(1.3, 1.3)
-            .setDepth(35);
+            .setDepth(35)
+            .setOrigin(0.5, 1);
         this.player.setCollideWorldBounds(true);
 
         this.anims.create({
@@ -51,9 +52,10 @@ export default class TitleScreen extends Phaser.Scene {
 
         // Creating Guy
         this.dude = this.physics.add
-            .sprite(this.cameras.main.width - 360, 485, "dude_idle_left")
+            .sprite(this.cameras.main.width - 360, 580, "dude_idle_left")
             .setScale(1.3, 1.3)
-            .setDepth(35);
+            .setDepth(35)
+            .setOrigin(0.5, 1);
         this.dude.setCollideWorldBounds(true);
 
         this.anims.create({
