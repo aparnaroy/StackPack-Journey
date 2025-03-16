@@ -31,7 +31,7 @@ StackPack Journey is a puzzle platform game designed to teach players about the 
 
 # Gameplay Video
 
-<iframe src="https://drive.google.com/file/d/1VieNLLkLdERRm2x6FSnr-KLPQ-DvZZaL/preview" width="640" height="480" allow="autoplay"></iframe>
+https://drive.google.com/file/d/1VieNLLkLdERRm2x6FSnr-KLPQ-DvZZaL/preview
 
 # Educational Game Design Document
 
